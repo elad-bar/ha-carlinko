@@ -28,13 +28,14 @@ async def test_diagnostics_redacts_secrets(hass: HomeAssistant) -> None:
     coordinator = MagicMock()
     coordinator.connected = True
     coordinator.last_update_ts = 123.0
-    coordinator.vehicle_id = "vehicle-abcdef"
-    coordinator.api.device_sn = "sn-12345678"
-    coordinator.data = {"vehicle": {"model": "J5", "plate": "ABC123", "vin": "VINSECRET"}}
-    coordinator.store.get_vehicle.return_value = {
+    coordinator.vehicle_ids = ["vehicle-abcdef"]
+    coordinator.vehicle_runtime.return_value = MagicMock(
+        device_sn="sn-12345678", connected=True, last_update_ts=123.0
+    )
+    coordinator.store.get_vehicle_meta.return_value = {
         "model": "J5",
         "plate": "ABC123",
-        "vin": "VINSECRET",
+        "device_sn": "sn-12345678",
     }
     coordinator.store.data = {
         "token": "tokensecret",
@@ -42,10 +43,10 @@ async def test_diagnostics_redacts_secrets(hass: HomeAssistant) -> None:
         "device_sn": "sn-12345678",
         "vin": "VINSECRET",
     }
-    coordinator.caps = {"lock": True, "ac": {}}
+    coordinator.caps_for.return_value = {"lock": True, "ac": {}}
     coordinator.current_spec_keys.return_value = {"battery", "lock"}
 
-    hass.data.setdefault(DOMAIN, {})[entry.entry_id] = coordinator
+    entry.runtime_data = coordinator
 
     diag = await async_get_config_entry_diagnostics(hass, entry)
     blob = str(diag)
@@ -56,6 +57,7 @@ async def test_diagnostics_redacts_secrets(hass: HomeAssistant) -> None:
     assert diag["entry"]["email_domain"] == "example.com"
     assert diag["entry"]["region"] == "sea"
     assert diag["runtime"]["connected"] is True
+    assert diag["runtime"]["vehicle_count"] == 1
     assert "battery" in diag["runtime"]["spec_keys"]
     assert CONF_PASSWORD not in diag["data"] or diag["data"].get(CONF_PASSWORD) in (
         None,

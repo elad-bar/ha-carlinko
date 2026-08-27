@@ -8,7 +8,6 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from .models.base_entity import CarlinkoEntity
 from .common.entity_setup import async_setup_entities
-from .common.consts import DOMAIN
 from .managers.coordinator import CarlinkoCoordinator
 from .models.entity_specs import EntitySpec
 
@@ -26,17 +25,19 @@ async def async_setup_entry(
     entry: ConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
-    coordinator: CarlinkoCoordinator = hass.data[DOMAIN][entry.entry_id]
+    coordinator: CarlinkoCoordinator = entry.runtime_data
     async_setup_entities(
-        hass, coordinator, "number", async_add_entities, CarlinkoNumber
+        hass, entry, coordinator, "number", async_add_entities, CarlinkoNumber
     )
 
 
 class CarlinkoNumber(CarlinkoEntity, NumberEntity):
     _attr_mode = NumberMode.BOX
 
-    def __init__(self, coordinator: CarlinkoCoordinator, spec: EntitySpec) -> None:
-        super().__init__(coordinator, spec)
+    def __init__(
+        self, coordinator: CarlinkoCoordinator, spec: EntitySpec, vehicle_id: str
+    ) -> None:
+        super().__init__(coordinator, spec, vehicle_id)
         if spec.unit:
             self._attr_native_unit_of_measurement = spec.unit
         lo, hi, step = _LIMITS.get(spec.config_key or spec.key, (0, 1e7, 1))

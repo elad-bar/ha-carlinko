@@ -11,7 +11,6 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from .models.base_entity import CarlinkoEntity
 from .common.entity_setup import async_setup_entities
-from .common.consts import DOMAIN
 from .managers.coordinator import CarlinkoCoordinator
 from .models.entity_specs import EntitySpec
 
@@ -25,15 +24,22 @@ async def async_setup_entry(
     entry: ConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
-    coordinator: CarlinkoCoordinator = hass.data[DOMAIN][entry.entry_id]
+    coordinator: CarlinkoCoordinator = entry.runtime_data
     async_setup_entities(
-        hass, coordinator, "binary_sensor", async_add_entities, CarlinkoBinarySensor
+        hass,
+        entry,
+        coordinator,
+        "binary_sensor",
+        async_add_entities,
+        CarlinkoBinarySensor,
     )
 
 
 class CarlinkoBinarySensor(CarlinkoEntity, BinarySensorEntity):
-    def __init__(self, coordinator: CarlinkoCoordinator, spec: EntitySpec) -> None:
-        super().__init__(coordinator, spec)
+    def __init__(
+        self, coordinator: CarlinkoCoordinator, spec: EntitySpec, vehicle_id: str
+    ) -> None:
+        super().__init__(coordinator, spec, vehicle_id)
         if spec.device_class:
             self._attr_device_class = _DEVICE_CLASS.get(spec.device_class)
 

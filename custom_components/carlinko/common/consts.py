@@ -9,11 +9,14 @@ DOMAIN = "carlinko"
 CONF_EMAIL = "email"
 CONF_PASSWORD = "password"
 CONF_REGION = "region"
+CONF_STREAM_BACKSTOP = "stream_backstop"
+CONF_AVAILABILITY_SECONDS = "availability_seconds"
 
 # Entity unavailable when last frame older than this (legacy ~40 min).
 AVAILABILITY_SECONDS = 2400
 CAPS_REFRESH_INTERVAL_S = 3300
 
+KNOWN_REGIONS = ("sea",)
 # Platform names; __init__ maps these to homeassistant.const.Platform.
 PLATFORMS = (
     "sensor",

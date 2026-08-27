@@ -16,6 +16,7 @@ import hmac
 import json
 import logging
 import time
+from typing import Any
 
 import aiohttp
 
@@ -42,6 +43,19 @@ _LOGGER = logging.getLogger(__name__)
 _HTTP_TIMEOUT = aiohttp.ClientTimeout(total=20)
 
 
+def vehicle_id_of(veh: dict[str, Any] | None) -> str:
+    """Stable id from a /user/vehicle row."""
+    if not veh:
+        return ""
+    return str(veh.get("vehicleId") or veh.get("id") or "")
+
+
+def device_sn_of(veh: dict[str, Any] | None) -> str:
+    if not veh:
+        return ""
+    return str(veh.get("deviceSn") or veh.get("deviceSN") or "")
+
+
 class ApiClient:
     """Signed CarLinko REST calls over an injected aiohttp ClientSession."""
 
@@ -56,10 +70,13 @@ class ApiClient:
         self.api_base = API_HOST_TMPL.format(region=self.region)
         self.ws_url = WS_HOST_TMPL.format(region=self.region)
         self.token = (store.data.get("token") or "").strip()
+        # Legacy single-vehicle fields (engine / first car).
         self.vehicle_id = str(store.data.get("vehicle_id") or "")
         self.device_sn = str(store.data.get("device_sn") or "")
-        self._veh_cache = {"t": 0.0, "v": None}
-        self._caps_cache: dict = {}
+        self._veh_list: list[dict[str, Any]] = []
+        self._veh_by_id: dict[str, dict[str, Any]] = {}
+        self._caps_by_id: dict[str, dict[str, Any]] = {}
+        self._list_cache_t = 0.0
 
     def reload_ids_from_store(self):
         self.store.load()
@@ -151,14 +168,37 @@ class ApiClient:
         out["plate"] = v.get("licenseNumber") or ""
         return out
 
-    async def refresh_vehicle_cache(self, force=False):
-        """Fetch /user/vehicle and refresh caps cache (~1h TTL unless force)."""
+    def _index_vehicles(self, rows: list[dict[str, Any]]) -> None:
+        self._veh_list = list(rows)
+        self._veh_by_id = {}
+        self._caps_by_id = {}
+        for row in rows:
+            vid = vehicle_id_of(row)
+            if not vid:
+                continue
+            self._veh_by_id[vid] = row
+            try:
+                self._caps_by_id[vid] = self._caps_from_vehicle(row)
+            except Exception:
+                self._caps_by_id[vid] = {}
+        self._list_cache_t = time.time()
+        # Keep legacy single-vehicle pointers for engine / first car.
+        first = rows[0] if rows else {}
+        vid0 = vehicle_id_of(first)
+        dsn0 = device_sn_of(first)
+        if vid0:
+            self.vehicle_id = vid0
+        if dsn0:
+            self.device_sn = dsn0
+
+    async def async_list_vehicles(self, force: bool = False) -> list[dict[str, Any]]:
+        """Fetch full /user/vehicle list and refresh per-vehicle caps (~1h TTL)."""
         if (
             not force
-            and self._veh_cache["v"] is not None
-            and (time.time() - self._veh_cache["t"]) < 3600
+            and self._veh_list
+            and (time.time() - self._list_cache_t) < 3600
         ):
-            return self._veh_cache["v"]
+            return list(self._veh_list)
 
         async def _fetch(tok):
             async with self.session.get(
@@ -175,24 +215,55 @@ class ApiClient:
         if str(d.get("code")) != OK_CODE:
             d = await _fetch(await self.login())
         data = d.get("data")
-        v = (data[0] if isinstance(data, list) and data else data) if data else {}
-        self._veh_cache["v"] = v or {}
-        self._veh_cache["t"] = time.time()
-        try:
-            self._caps_cache = self._caps_from_vehicle(self._veh_cache["v"])
-        except Exception:
-            self._caps_cache = {}
-        return self._veh_cache["v"]
+        if isinstance(data, list):
+            rows = [r for r in data if isinstance(r, dict)]
+        elif isinstance(data, dict):
+            rows = [data]
+        else:
+            rows = []
+        self._index_vehicles(rows)
+        return list(self._veh_list)
 
-    def control_caps(self):
+    async def refresh_vehicle_cache(self, force=False, vehicle_id: str | None = None):
+        """Fetch vehicles; return one row (selected id, else first). Engine-compatible."""
+        rows = await self.async_list_vehicles(force=force)
+        if vehicle_id:
+            v = self._veh_by_id.get(str(vehicle_id)) or {}
+        else:
+            v = rows[0] if rows else {}
+        return v or {}
+
+    def get_vehicle(self, vehicle_id: str | None = None) -> dict[str, Any]:
+        vid = str(vehicle_id or self.vehicle_id or "")
+        return dict(self._veh_by_id.get(vid) or {})
+
+    def control_caps(self, vehicle_id: str | None = None):
         """Capabilities from cached vehicle data (no network)."""
-        return dict(self._caps_cache)
+        vid = str(vehicle_id or self.vehicle_id or "")
+        if vid and vid in self._caps_by_id:
+            return dict(self._caps_by_id[vid])
+        if not vid and self._caps_by_id:
+            first = next(iter(self._caps_by_id.values()))
+            return dict(first)
+        return {}
 
-    async def send_control(self, opcode, timeout=20):
+    async def send_control(
+        self,
+        opcode,
+        timeout=20,
+        *,
+        vehicle_id: str | None = None,
+        device_sn: str | None = None,
+    ):
         """POST /user/vehicle/remoteControl."""
         self.reload_ids_from_store()
-        vid = self.vehicle_id
-        dsn = self.device_sn
+        vid = str(vehicle_id or self.vehicle_id or "")
+        dsn = str(device_sn or "")
+        if not dsn and vid:
+            meta = self.store.get_vehicle_meta(vid) if hasattr(self.store, "get_vehicle_meta") else {}
+            dsn = str(meta.get("device_sn") or "") or device_sn_of(self._veh_by_id.get(vid))
+        if not dsn:
+            dsn = self.device_sn
         if not vid or not dsn:
             return {"code": "-1", "msg": "vehicle_id / device_sn missing from store"}
         try:
@@ -230,8 +301,9 @@ class ApiClient:
         if str(d.get("code")) in STALE_TOKEN_CODES:
             d = await _post(await self.login())
         _LOGGER.info(
-            "remoteControl opcode=%s code=%s",
+            "remoteControl opcode=%s vehicle=%s code=%s",
             opcode,
+            vid,
             d.get("code"),
         )
         return d

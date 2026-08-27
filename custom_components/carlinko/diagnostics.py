@@ -7,7 +7,7 @@ from homeassistant.components.diagnostics import async_redact_data
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 
-from .common.consts import CONF_EMAIL, CONF_PASSWORD, CONF_REGION, DOMAIN
+from .common.consts import CONF_EMAIL, CONF_PASSWORD, CONF_REGION
 from .managers.coordinator import CarlinkoCoordinator
 
 TO_REDACT = {CONF_PASSWORD, "token", "password", "sign_key"}
@@ -32,29 +32,30 @@ async def async_get_config_entry_diagnostics(
     hass: HomeAssistant, entry: ConfigEntry
 ) -> dict[str, Any]:
     """Return redacted diagnostics for a config entry."""
-    coordinator: CarlinkoCoordinator | None = hass.data.get(DOMAIN, {}).get(
-        entry.entry_id
-    )
-    vehicle = {}
-    caps: dict[str, Any] = {}
-    spec_keys: list[str] = []
+    coordinator: CarlinkoCoordinator | None = getattr(entry, "runtime_data", None)
+    vehicles_out: list[dict[str, Any]] = []
     connected = False
     last_update_ts = 0.0
-    vehicle_id = None
-    device_sn = None
+    spec_keys: list[str] = []
 
     if coordinator is not None:
         connected = coordinator.connected
         last_update_ts = coordinator.last_update_ts
-        vehicle_id = coordinator.vehicle_id
-        device_sn = coordinator.api.device_sn
-        vehicle = dict(
-            (coordinator.data or {}).get("vehicle")
-            or coordinator.store.get_vehicle()
-            or {}
-        )
-        caps = coordinator.caps
         spec_keys = sorted(coordinator.current_spec_keys())
+        for vid in coordinator.vehicle_ids:
+            meta = coordinator.store.get_vehicle_meta(vid)
+            rt = coordinator.vehicle_runtime(vid)
+            vehicles_out.append(
+                {
+                    "vehicle_id": _partial_id(vid),
+                    "device_sn": _partial_id(meta.get("device_sn") or (rt.device_sn if rt else None)),
+                    "model": meta.get("model"),
+                    "plate": meta.get("plate"),
+                    "connected": bool(rt.connected) if rt else False,
+                    "last_update_ts": rt.last_update_ts if rt else 0.0,
+                    "caps_keys": sorted(coordinator.caps_for(vid).keys()),
+                }
+            )
 
     payload = {
         "entry": {
@@ -67,12 +68,9 @@ async def async_get_config_entry_diagnostics(
         "runtime": {
             "connected": connected,
             "last_update_ts": last_update_ts,
-            "vehicle_id": _partial_id(vehicle_id),
-            "device_sn": _partial_id(device_sn),
-            "model": vehicle.get("model"),
-            "plate": vehicle.get("plate"),
+            "vehicle_count": len(vehicles_out),
+            "vehicles": vehicles_out,
             "spec_keys": spec_keys,
-            "caps_keys": sorted(caps.keys()) if isinstance(caps, dict) else [],
         },
         "data": async_redact_data(dict(entry.data), TO_REDACT),
     }

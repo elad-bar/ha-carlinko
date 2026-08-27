@@ -33,13 +33,13 @@ models/       # wire consts, exceptions, vehicle/blob DTOs, entity catalog
 
 ### Integration lifecycle (`__init__.py`)
 
-- [ ] Typed config entry, e.g. `CarlinkoConfigEntry = ConfigEntry[CarlinkoCoordinator]`
-- [ ] Store coordinator on `entry.runtime_data` instead of `hass.data[DOMAIN][entry_id]`
-- [ ] `entry.async_on_unload(...)` for listeners and background tasks
-- [ ] Options / data update listener that reloads the entry (Dolphin `async_reload_entry`)
-- [ ] `async_migrate_entry` when `ConfigFlow.VERSION` / `MINOR_VERSION` bumps
-- [ ] `async_remove_entry` that deletes store files so tokens do not linger
-- [ ] Unsubscribe entity listeners when a platform unloads (`entity-event-setup`; today reload leaks listeners)
+- [x] Typed config entry, e.g. `CarlinkoConfigEntry = ConfigEntry[CarlinkoCoordinator]`
+- [x] Store coordinator on `entry.runtime_data` instead of `hass.data[DOMAIN][entry_id]`
+- [x] `entry.async_on_unload(...)` for listeners and background tasks
+- [x] Options / data update listener that reloads the entry (Dolphin `async_reload_entry`)
+- [x] `async_migrate_entry` when `ConfigFlow.VERSION` / `MINOR_VERSION` bumps
+- [x] `async_remove_entry` that deletes store files so tokens do not linger
+- [x] Unsubscribe entity listeners when a platform unloads (`entity-event-setup`; today reload leaks listeners)
 
 ### Config flow (login is not enough)
 
@@ -50,13 +50,14 @@ Structure (with layout above):
 
 Behavior:
 
-- [ ] Password field via HA **password** text selector (masked)
-- [ ] Region via **Select** (known codes + optional custom), not a free-form string
-- [ ] **Reconfigure** flow (`SOURCE_RECONFIGURE`); README mentions it, only reauth exists
-- [ ] **Options flow**: region, stream backstop, availability window, similar knobs
-- [ ] **Vehicle picker** when `GET /user/vehicle` returns a list (today always `data[0]`)
-- [ ] Unique id that can represent **one car per entry** (email-only unique id blocks a second vehicle on the same account)
-- [ ] Abort / update existing entry when unique id already configured (Dolphin-style)
+- [x] Password field via HA **password** text selector (masked)
+- [x] Region via **Select** (known codes + optional custom), not a free-form string
+- [x] **Reconfigure** flow (`SOURCE_RECONFIGURE`); README mentions it, only reauth exists
+- [x] **Options flow**: region, stream backstop, availability window, similar knobs
+- [x] Unique id = **account email**; abort when that account is already configured (Dolphin-style)
+- [x] After login, require ≥1 vehicle (`no_vehicles` abort); **no vehicle picker**
+- [x] **Hub entry:** one config entry per account; **auto-add every vehicle** on that account as HA devices/entities (today API uses `data[0]` only)
+- [x] On vehicle-list refresh: auto-add new cars; remove entities/devices for cars that disappeared
 
 ### Entity model (descriptions, not hardcoded English names)
 
@@ -149,7 +150,7 @@ Expand beyond the current 9 rules. Mark each `done` / `todo` / `exempt` with a o
 
 - [x] `issue_tracker` / `documentation` / `codeowners` → [elad-bar/ha-carlinko](https://github.com/elad-bar/ha-carlinko)
 - [ ] `loggers`
-- [ ] `integration_type` (`device` vs `hub` — likely device per car, hub if one entry owns many)
+- [x] `integration_type: hub` (one entry per account; many vehicle devices)
 - [ ] Align `hacs.json` with Dolphin (`iot_class`, and `filename` / `zip_release` if you ship GitHub releases)
 - [ ] `info.md` at repo root (HACS detail companion; Dolphin has this)
 - [ ] Optional `www/` brand assets at repo root (Dolphin convention; Core brands stay a separate PR)
@@ -168,7 +169,7 @@ Expand beyond the current 9 rules. Mark each `done` / `todo` / `exempt` with a o
 - [ ] WS connect / reconnect / auth failure after setup
 - [ ] Spec / description factory add/remove when caps or PHEV/TPMS flags change
 - [ ] One test per platform entity class (lock, climate, cover, switch, select, number, button, sensors)
-- [ ] Config flow: cannot_connect, already_configured, reconfigure, multi-vehicle
+- [x] Config flow: cannot_connect, already_configured (account), reconfigure, multi-vehicle auto-add (no picker)
 - [ ] Diagnostics: device-level if added
 - [ ] After layout: `engine/` still imports the HA-free slice; platforms go through `common` setup helper
 
@@ -189,8 +190,8 @@ Expand beyond the current 9 rules. Mark each `done` / `todo` / `exempt` with a o
 
 ## P3 — product extras Dolphin solved in config / diagnostics
 
-- [ ] Multi-vehicle: one config entry per car, or one hub entry with multiple devices
-- [ ] Reload after password/region change without deleting the integration
+- [x] Multi-vehicle hub runtime: per-vehicle devices/entities, caps/WS keyed by `vehicle_id`, store holds vehicles map (see P0 config flow)
+- [x] Reload after password/region change without deleting the integration
 - [ ] `async_get_device_diagnostics` in addition to config-entry diagnostics
 - [ ] `device_tracker` if the blob or REST payload has coordinates
 - [ ] Speed (and other blob fields already decoded) as sensors if useful

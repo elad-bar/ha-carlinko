@@ -105,6 +105,19 @@ class CarlinkoStore:
             return
         self._save_file()
 
+    async def async_remove(self) -> None:
+        """Delete persisted HA store so tokens do not linger after entry removal."""
+        if self._ha_store is not None:
+            await self._ha_store.async_remove()
+            self.data = {}
+            return
+        if self._path and os.path.isfile(self._path):
+            try:
+                os.unlink(self._path)
+            except OSError:
+                pass
+        self.data = {}
+
     def _save_file(self) -> dict[str, Any]:
         assert self._path is not None
         os.makedirs(os.path.dirname(self._path) or ".", exist_ok=True)
@@ -181,7 +194,68 @@ class CarlinkoStore:
         self.save()
         return {"ok": True, "key": key, "value": self.get_cost_config()[key]}
 
-    def get_vehicle(self) -> dict[str, Any]:
+    def get_vehicles(self) -> dict[str, dict[str, Any]]:
+        """Map of vehicle_id → metadata (device_sn, plate, model, vin)."""
+        raw = self.data.get("vehicles")
+        if isinstance(raw, dict) and raw:
+            return {
+                str(vid): dict(meta) if isinstance(meta, dict) else {}
+                for vid, meta in raw.items()
+            }
+        # Legacy single-vehicle shape → synthetic map.
+        vid = str(self.data.get("vehicle_id") or "")
+        if not vid:
+            return {}
+        v = self.data.get("vehicle") or {}
+        return {
+            vid: {
+                "vehicle_id": vid,
+                "device_sn": str(self.data.get("device_sn") or ""),
+                "plate": v.get("plate") or "—",
+                "model": v.get("model") or "EV",
+                "vin": v.get("vin") or "—",
+            }
+        }
+
+    def get_vehicle_meta(self, vehicle_id: str) -> dict[str, Any]:
+        return dict(self.get_vehicles().get(str(vehicle_id)) or {})
+
+    def set_vehicles(self, vehicles: dict[str, dict[str, Any]]) -> dict[str, Any]:
+        """Persist hub vehicles map and mirror first car into legacy keys."""
+        cleaned: dict[str, dict[str, Any]] = {}
+        for vid, meta in (vehicles or {}).items():
+            key = str(vid)
+            if not key:
+                continue
+            m = dict(meta or {})
+            m["vehicle_id"] = key
+            cleaned[key] = m
+        self.data["vehicles"] = cleaned
+        if cleaned:
+            first_id = next(iter(cleaned))
+            first = cleaned[first_id]
+            self.data["vehicle_id"] = first_id
+            self.data["device_sn"] = str(first.get("device_sn") or "")
+            self.data["vehicle"] = {
+                "plate": first.get("plate") or "—",
+                "model": first.get("model") or "EV",
+                "vin": first.get("vin") or "—",
+            }
+        else:
+            self.data.pop("vehicle_id", None)
+            self.data.pop("device_sn", None)
+            self.data.pop("vehicle", None)
+        return self.save()
+
+    def get_vehicle(self, vehicle_id: str | None = None) -> dict[str, Any]:
+        if vehicle_id:
+            meta = self.get_vehicle_meta(vehicle_id)
+            if meta:
+                return {
+                    "plate": meta.get("plate") or "—",
+                    "model": meta.get("model") or "EV",
+                    "vin": meta.get("vin") or "—",
+                }
         v = self.data.get("vehicle") or {}
         return {
             "plate": v.get("plate") or "—",
@@ -190,4 +264,7 @@ class CarlinkoStore:
         }
 
     def get_vehicle_id(self) -> str:
+        vehicles = self.get_vehicles()
+        if vehicles:
+            return next(iter(vehicles))
         return str(self.data.get("vehicle_id") or "")

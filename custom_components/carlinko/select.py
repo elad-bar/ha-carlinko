@@ -8,7 +8,6 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from .models.base_entity import CarlinkoEntity
 from .common.entity_setup import async_setup_entities
-from .common.consts import DOMAIN
 from .managers.coordinator import CarlinkoCoordinator
 from .models.entity_specs import EntitySpec
 
@@ -20,15 +19,17 @@ async def async_setup_entry(
     entry: ConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
-    coordinator: CarlinkoCoordinator = hass.data[DOMAIN][entry.entry_id]
+    coordinator: CarlinkoCoordinator = entry.runtime_data
     async_setup_entities(
-        hass, coordinator, "select", async_add_entities, CarlinkoSelect
+        hass, entry, coordinator, "select", async_add_entities, CarlinkoSelect
     )
 
 
 class CarlinkoSelect(CarlinkoEntity, SelectEntity):
-    def __init__(self, coordinator: CarlinkoCoordinator, spec: EntitySpec) -> None:
-        super().__init__(coordinator, spec)
+    def __init__(
+        self, coordinator: CarlinkoCoordinator, spec: EntitySpec, vehicle_id: str
+    ) -> None:
+        super().__init__(coordinator, spec, vehicle_id)
         options = list(spec.options or ())
         if not options and spec.commands:
             options = list(spec.commands.keys())

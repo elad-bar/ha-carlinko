@@ -2,7 +2,7 @@
 
 Holds one persistent socket, receives pushed action:6 frames, decodes them via
 an injected VehicleState, and notifies an optional on_frame callback.
-Auth / vehicle ids come from ApiClient.
+Auth / vehicle ids come from ApiClient + explicit vehicle_id / device_sn.
 """
 from __future__ import annotations
 
@@ -11,6 +11,8 @@ import json
 import logging
 import sys
 import time
+from collections.abc import Callable
+from typing import Any
 
 import aiohttp
 
@@ -28,17 +30,56 @@ _RECV_TIMEOUT = 2.0
 class WsClient:
     """Persistent CarLinko WS stream → VehicleState → optional on_frame(state)."""
 
-    def __init__(self, vehicle_state, api_client, on_frame=None):
+    def __init__(
+        self,
+        vehicle_state,
+        api_client,
+        on_frame: Callable[[dict[str, Any]], None] | None = None,
+        *,
+        vehicle_id: str | None = None,
+        device_sn: str | None = None,
+        stream_backstop_s: int | None = None,
+    ):
         self.vehicle_state = vehicle_state
         self.api = api_client
         self.on_frame = on_frame
-        self.stream_backstop_s = STREAM_BACKSTOP
+        self.vehicle_id = str(vehicle_id or "")
+        self.device_sn = str(device_sn or "")
+        self.stream_backstop_s = int(
+            stream_backstop_s if stream_backstop_s is not None else STREAM_BACKSTOP
+        )
 
     def reload_config(self):
         self.api.reload_ids_from_store()
         cfg = self.api.store.data
-        self.stream_backstop_s = int(cfg.get("stream_backstop") or STREAM_BACKSTOP)
-        self.vehicle_state.update_metadata(cfg)
+        if not self.vehicle_id:
+            self.vehicle_id = str(self.api.vehicle_id or "")
+        if not self.device_sn:
+            self.device_sn = str(self.api.device_sn or "")
+        meta = {}
+        if hasattr(self.api.store, "get_vehicle_meta") and self.vehicle_id:
+            meta = self.api.store.get_vehicle_meta(self.vehicle_id)
+            if meta.get("device_sn"):
+                self.device_sn = str(meta["device_sn"])
+        backstop = cfg.get("stream_backstop")
+        if backstop is not None:
+            self.stream_backstop_s = int(backstop)
+        # Metadata for this vehicle (hub store or legacy).
+        if meta:
+            self.vehicle_state.update_metadata(
+                {
+                    **cfg,
+                    "vehicle": {
+                        "plate": meta.get("plate") or "—",
+                        "model": meta.get("model") or "EV",
+                        "vin": meta.get("vin") or "—",
+                    },
+                    "vehicle_id": self.vehicle_id,
+                    "device_sn": self.device_sn,
+                }
+            )
+        else:
+            self.vehicle_state.update_metadata(cfg)
 
     async def connect(self, attempts=3):
         last = None
@@ -81,11 +122,13 @@ class WsClient:
 
     async def _stream_session(self, stop: asyncio.Event):
         self.reload_config()
+        vid = self.vehicle_id or self.api.vehicle_id
+        dsn = self.device_sn or self.api.device_sn
         ws = await self.connect()
         try:
             await self.ws_send(ws, {
                 "action": 1,
-                "data": {"token": self.api.token, "vehicleId": self.api.vehicle_id},
+                "data": {"token": self.api.token, "vehicleId": vid},
             })
             login_raw = await self.ws_recv(ws)
             login = json.loads(login_raw) if login_raw else {}
@@ -96,14 +139,14 @@ class WsClient:
                 )
                 await self.api.login()
                 try:
-                    await self.api.refresh_vehicle_cache(force=True)
+                    await self.api.refresh_vehicle_cache(force=True, vehicle_id=vid)
                 except AuthError:
                     raise
                 except Exception:
                     _LOGGER.exception("vehicle cache refresh after login failed")
                 await self.ws_send(ws, {
                     "action": 1,
-                    "data": {"token": self.api.token, "vehicleId": self.api.vehicle_id},
+                    "data": {"token": self.api.token, "vehicleId": vid},
                 })
                 login_raw = await self.ws_recv(ws)
                 login = json.loads(login_raw) if login_raw else {}
@@ -112,13 +155,13 @@ class WsClient:
                         f"websocket login failed after refresh (code={login.get('code')})"
                     )
             await self.ws_send(ws, {"action": 6})
-            await self.ws_send(ws, {"action": 0, "data": {"sn": self.api.device_sn}})
+            await self.ws_send(ws, {"action": 0, "data": {"sn": dsn}})
             last_hb = last_req = last_touch = time.time()
             last_blob = None
             while not stop.is_set():
                 now = time.time()
                 if now - last_hb >= HEARTBEAT:
-                    await self.ws_send(ws, {"action": 0, "data": {"sn": self.api.device_sn}})
+                    await self.ws_send(ws, {"action": 0, "data": {"sn": dsn}})
                     last_hb = now
                 if now - last_req >= self.stream_backstop_s:
                     await self.ws_send(ws, {"action": 6})
@@ -143,8 +186,9 @@ class WsClient:
                         d = self._emit(blob)
                         last_touch = time.time()
                         _LOGGER.debug(
-                            "%s  batt=%s%%  range=%skm  odo=%s  %s",
+                            "%s  veh=%s  batt=%s%%  range=%skm  odo=%s  %s",
                             time.strftime("%H:%M:%S"),
+                            vid,
                             d.get("battery"),
                             d.get("range"),
                             d.get("odo"),
@@ -158,7 +202,8 @@ class WsClient:
         """Persistent-socket ingest until stop is set. Reconnects on drop."""
         self.reload_config()
         _LOGGER.info(
-            "streaming CarLinko WS (push + %ss heartbeat, auto-reconnect)",
+            "streaming CarLinko WS vehicle=%s (push + %ss heartbeat, auto-reconnect)",
+            self.vehicle_id or self.api.vehicle_id,
             HEARTBEAT,
         )
         while not stop.is_set():

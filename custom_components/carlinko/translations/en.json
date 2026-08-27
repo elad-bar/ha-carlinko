@@ -3,11 +3,11 @@
     "step": {
       "user": {
         "title": "CarLinko",
-        "description": "Sign in with your CarLinko app account.",
+        "description": "Sign in with your CarLinko app account. All vehicles on the account are added automatically.",
         "data": {
           "email": "Email",
           "password": "Password",
-          "region": "Region (e.g. sea)"
+          "region": "Region"
         }
       },
       "reauth_confirm": {
@@ -16,16 +16,40 @@
         "data": {
           "password": "Password"
         }
+      },
+      "reconfigure": {
+        "title": "Reconfigure CarLinko",
+        "description": "Update password or region for this CarLinko account.",
+        "data": {
+          "password": "Password",
+          "region": "Region"
+        }
       }
     },
     "error": {
       "cannot_connect": "Could not reach CarLinko.",
       "invalid_auth": "Invalid email or password.",
+      "no_vehicles": "No vehicles found on this CarLinko account.",
       "unknown": "Unexpected error."
     },
     "abort": {
       "already_configured": "This CarLinko account is already configured.",
-      "reauth_successful": "Re-authentication successful."
+      "reauth_successful": "Re-authentication successful.",
+      "reconfigure_successful": "Reconfigure successful.",
+      "no_vehicles": "No vehicles found on this CarLinko account."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "CarLinko options",
+        "description": "Tune region and stream timing for this account.",
+        "data": {
+          "region": "Region",
+          "stream_backstop": "Stream backstop (seconds)",
+          "availability_seconds": "Availability window (seconds)"
+        }
+      }
     }
   },
   "exceptions": {

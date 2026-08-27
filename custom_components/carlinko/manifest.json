@@ -5,7 +5,8 @@
   "config_flow": true,
   "documentation": "https://github.com/elad-bar/ha-carlinko",
   "issue_tracker": "https://github.com/elad-bar/ha-carlinko/issues",
+  "integration_type": "hub",
   "iot_class": "cloud_push",
-  "requirements": ["aiohttp>=3.10,<4"],
+  "requirements": [],
   "version": "0.1.0"
 }

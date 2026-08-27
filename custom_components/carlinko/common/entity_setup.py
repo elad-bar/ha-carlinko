@@ -4,6 +4,7 @@ from __future__ import annotations
 import logging
 from collections.abc import Callable
 
+from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
@@ -13,30 +14,44 @@ from ..models.base_entity import CarlinkoEntity
 
 _LOGGER = logging.getLogger(__name__)
 
+EntityFactory = Callable[
+    [CarlinkoCoordinator, EntitySpec, str], CarlinkoEntity
+]
+
 
 def async_setup_entities(
     hass: HomeAssistant,
+    entry: ConfigEntry,
     coordinator: CarlinkoCoordinator,
     platform: str,
     async_add_entities: AddEntitiesCallback,
-    entity_factory: Callable[[CarlinkoCoordinator, EntitySpec], CarlinkoEntity],
-) -> None:
-    """Create entities for ``platform`` and listen for caps-driven add/remove."""
-    known: dict[str, CarlinkoEntity] = {}
+    entity_factory: EntityFactory,
+) -> Callable[[], None]:
+    """Create entities for every vehicle × platform; return unsub for unload."""
+    known: dict[tuple[str, str], CarlinkoEntity] = {}
 
-    def _wanted() -> list[EntitySpec]:
-        state = coordinator.data or coordinator.vehicle_state.data or {}
-        return get_entity_specs(
-            platform=platform, state=state, caps=coordinator.caps
-        )
+    def _wanted() -> list[tuple[str, EntitySpec]]:
+        out: list[tuple[str, EntitySpec]] = []
+        vids = coordinator.vehicle_ids
+        first_vid = vids[0] if vids else None
+        for vid in vids:
+            state = coordinator.vehicle_data(vid)
+            caps = coordinator.caps_for(vid)
+            for spec in get_entity_specs(platform=platform, state=state, caps=caps):
+                # Account-level cost knobs: one set only (first vehicle device).
+                if spec.config_key and vid != first_vid:
+                    continue
+                out.append((vid, spec))
+        return out
 
-    def _add_new(specs: list[EntitySpec]) -> None:
+    def _add_new(items: list[tuple[str, EntitySpec]]) -> None:
         to_add: list[CarlinkoEntity] = []
-        for spec in specs:
-            if spec.key in known:
+        for vid, spec in items:
+            key = (vid, spec.key)
+            if key in known:
                 continue
-            entity = entity_factory(coordinator, spec)
-            known[spec.key] = entity
+            entity = entity_factory(coordinator, spec, vid)
+            known[key] = entity
             to_add.append(entity)
         if to_add:
             async_add_entities(to_add)
@@ -44,13 +59,36 @@ def async_setup_entities(
     _add_new(_wanted())
 
     @callback
-    def _on_specs_changed(added: set[str], removed: set[str]) -> None:
-        for key in list(removed):
+    def _on_specs_changed(
+        vehicle_id: str, added: set[str], removed: set[str]
+    ) -> None:
+        if vehicle_id == "":
+            # Fleet membership changed: reconcile full wanted set.
+            wanted = {(vid, s.key): s for vid, s in _wanted()}
+            wanted_keys = set(wanted)
+            known_keys = set(known)
+            for key in known_keys - wanted_keys:
+                entity = known.pop(key, None)
+                if entity is not None and getattr(entity, "hass", None) is not None:
+                    hass.async_create_task(entity.async_remove(force_remove=True))
+            _add_new([(vid, wanted[(vid, k)]) for vid, k in wanted_keys - known_keys])
+            return
+
+        for key_name in list(removed):
+            key = (vehicle_id, key_name)
             entity = known.pop(key, None)
             if entity is not None and getattr(entity, "hass", None) is not None:
                 hass.async_create_task(entity.async_remove(force_remove=True))
         if added:
-            wanted = {s.key: s for s in _wanted()}
-            _add_new([wanted[k] for k in added if k in wanted])
+            wanted_map = {s.key: s for vid, s in _wanted() if vid == vehicle_id}
+            _add_new(
+                [
+                    (vehicle_id, wanted_map[k])
+                    for k in added
+                    if k in wanted_map
+                ]
+            )
 
-    coordinator.register_entity_listener(_on_specs_changed)
+    unsub = coordinator.register_entity_listener(_on_specs_changed)
+    entry.async_on_unload(unsub)
+    return unsub

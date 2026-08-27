@@ -1,4 +1,4 @@
-"""Coordinator auth-failure tests."""
+"""Coordinator auth-failure and multi-vehicle tests."""
 from __future__ import annotations
 
 from unittest.mock import AsyncMock, MagicMock, patch
@@ -12,6 +12,23 @@ from custom_components.carlinko.common.consts import CONF_EMAIL, CONF_PASSWORD, 
 from custom_components.carlinko.managers.coordinator import CarlinkoCoordinator
 from custom_components.carlinko.managers.store import CarlinkoStore
 from custom_components.carlinko.models.exceptions import AuthError
+
+_VEHICLES = [
+    {
+        "vehicleId": "veh-1",
+        "deviceSn": "sn-1",
+        "licenseNumber": "AAA111",
+        "model": "J5",
+        "vin": "VIN1",
+    },
+    {
+        "vehicleId": "veh-2",
+        "deviceSn": "sn-2",
+        "licenseNumber": "BBB222",
+        "model": "J7",
+        "vin": "VIN2",
+    },
+]
 
 
 def _entry() -> MockConfigEntry:
@@ -48,16 +65,99 @@ async def test_async_start_auth_error(hass: HomeAssistant) -> None:
 
 
 @pytest.mark.asyncio
+async def test_async_start_multi_vehicle(hass: HomeAssistant) -> None:
+    entry = _entry()
+    entry.add_to_hass(hass)
+    store = CarlinkoStore(hass, entry.entry_id)
+    store.data = {}
+    session = MagicMock()
+    coordinator = CarlinkoCoordinator(hass, entry, store, session)
+
+    with (
+        patch.object(coordinator.api, "login", new_callable=AsyncMock, return_value="tok"),
+        patch.object(
+            coordinator.api,
+            "async_list_vehicles",
+            new_callable=AsyncMock,
+            return_value=_VEHICLES,
+        ),
+        patch.object(coordinator, "_start_ws"),
+    ):
+        await coordinator.async_start()
+        await coordinator.async_stop()
+
+    assert set(coordinator.vehicle_ids) == {"veh-1", "veh-2"}
+    assert "veh-1" in store.get_vehicles()
+    assert "veh-2" in store.get_vehicles()
+    assert store.get_vehicles()["veh-1"]["plate"] == "AAA111"
+    assert store.get_vehicles()["veh-2"]["plate"] == "BBB222"
+
+
+@pytest.mark.asyncio
+async def test_vehicle_list_add_remove(hass: HomeAssistant) -> None:
+    entry = _entry()
+    entry.add_to_hass(hass)
+    store = CarlinkoStore(hass, entry.entry_id)
+    store.data = {}
+    session = MagicMock()
+    coordinator = CarlinkoCoordinator(hass, entry, store, session)
+
+    with (
+        patch.object(coordinator.api, "login", new_callable=AsyncMock, return_value="tok"),
+        patch.object(
+            coordinator.api,
+            "async_list_vehicles",
+            new_callable=AsyncMock,
+            return_value=[_VEHICLES[0]],
+        ),
+        patch.object(coordinator, "_start_ws"),
+        patch.object(coordinator, "_stop_ws"),
+    ):
+        await coordinator.async_start()
+        assert coordinator.vehicle_ids == ["veh-1"]
+
+        events: list[tuple[str, set[str], set[str]]] = []
+
+        def _listen(vid: str, added: set[str], removed: set[str]) -> None:
+            events.append((vid, added, removed))
+
+        coordinator.register_entity_listener(_listen)
+        coordinator._sync_vehicles_from_rows(_VEHICLES)
+        assert set(coordinator.vehicle_ids) == {"veh-1", "veh-2"}
+        assert any(e[0] == "veh-2" for e in events)
+
+        coordinator._sync_vehicles_from_rows([_VEHICLES[1]])
+        assert coordinator.vehicle_ids == ["veh-2"]
+        assert any(e[0] == "veh-1" and e[2] for e in events)
+
+        await coordinator.async_stop()
+
+
+@pytest.mark.asyncio
 async def test_async_send_control_auth_error(hass: HomeAssistant) -> None:
     entry = _entry()
     entry.add_to_hass(hass)
     store = CarlinkoStore(hass, entry.entry_id)
-    store.data = {"token": "dead", "vehicle_id": "v1", "device_sn": "s1"}
+    store.data = {
+        "token": "dead",
+        "vehicles": {
+            "v1": {"vehicle_id": "v1", "device_sn": "s1", "plate": "P", "model": "M"}
+        },
+        "vehicle_id": "v1",
+        "device_sn": "s1",
+    }
     session = MagicMock()
     coordinator = CarlinkoCoordinator(hass, entry, store, session)
     coordinator.api.token = "dead"
-    coordinator.api.vehicle_id = "v1"
-    coordinator.api.device_sn = "s1"
+    from custom_components.carlinko.managers.coordinator import VehicleRuntime
+    from custom_components.carlinko.models.vehicle_state import VehicleState
+
+    coordinator._vehicles["v1"] = VehicleRuntime(
+        vehicle_id="v1",
+        device_sn="s1",
+        meta=store.get_vehicle_meta("v1"),
+        vehicle_state=VehicleState(),
+    )
 
     with (
         patch.object(
@@ -67,5 +167,5 @@ async def test_async_send_control_auth_error(hass: HomeAssistant) -> None:
     ):
         send_control.side_effect = AuthError("relogin failed")
         with pytest.raises(ConfigEntryAuthFailed):
-            await coordinator.async_send_control("740100")
+            await coordinator.async_send_control("740100", vehicle_id="v1")
         start_reauth.assert_called_once_with(hass)
