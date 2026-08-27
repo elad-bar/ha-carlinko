@@ -48,7 +48,7 @@ class VehicleState:
         self._chemistry = DEFAULT_CHEMISTRY
 
     def update_metadata(self, creds):
-        """Apply vehicle / tariff / TPMS config from config.json into self.data."""
+        """Apply vehicle / tariff / TPMS from store data into self.data."""
         creds = creds or {}
         v = creds.get("vehicle") or {}
         model = v.get("model") or "EV"

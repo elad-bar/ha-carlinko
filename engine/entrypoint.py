@@ -1,7 +1,8 @@
 """CarLinko WS stream → live entity change logs (dev harness; no HA).
 
-Requires .env (CARLINKO_EMAIL / PASSWORD / REGION) and data/config.json.
-HA-free code lives in custom_components/carlinko/{managers,models}/.
+Requires .env (CARLINKO_EMAIL / PASSWORD / REGION) and data/config.json
+(same CarlinkoStore as HA, file-backed). HA-free code lives in
+custom_components/carlinko/{managers,models}/.
 
 Usage:
   python entrypoint.py
@@ -71,9 +72,8 @@ from dotenv import load_dotenv
 load_dotenv(os.path.join(REPO, ".env"))
 
 from carlinko.managers.api_client import ApiClient
-from carlinko.managers.config_manager import ConfigManager
+from carlinko.managers.store import CarlinkoStore
 from carlinko.managers.ws_client import WsClient
-from carlinko.models.config_adapter import ConfigAdapter
 from carlinko.common.consts import USER_AGENT
 from carlinko.models.entity_specs import ENTITY_SPECS, EntitySpec, get_entity_specs
 from carlinko.models.entity_values import EntityValueResolver
@@ -83,10 +83,10 @@ from carlinko.models.vehicle_state import VehicleState
 class EntityPublisher:
     """Dev-only: resolve EntitySpecs → INFO logs on value change."""
 
-    def __init__(self, config: ConfigAdapter, get_caps: Callable[[], dict]):
-        self.config = config
+    def __init__(self, store: CarlinkoStore, get_caps: Callable[[], dict]):
+        self.store = store
         self.get_caps = get_caps
-        self._resolver = EntityValueResolver(config)
+        self._resolver = EntityValueResolver(store)
         self._last: dict[str, Any] = {}
 
     def publish(self, state: dict) -> None:
@@ -172,7 +172,7 @@ async def async_main() -> None:
     _register_stop_handlers(loop, stop)
 
     email, password, region = _env_secrets()
-    config = ConfigManager()
+    store = CarlinkoStore.for_engine()
     vehicle_state = VehicleState()
 
     connector = aiohttp.TCPConnector(family=socket.AF_INET)
@@ -180,8 +180,8 @@ async def async_main() -> None:
         connector=connector,
         headers={"User-Agent": USER_AGENT},
     ) as session:
-        api = ApiClient(email, password, region, config, session)
-        entities = EntityPublisher(config, api.control_caps)
+        api = ApiClient(email, password, region, store, session)
+        entities = EntityPublisher(store, api.control_caps)
         ws = WsClient(
             vehicle_state,
             api,
@@ -191,7 +191,7 @@ async def async_main() -> None:
         _LOGGER.info("logging in to CarLinko…")
         await api.login()
         await api.refresh_vehicle_cache(force=True)
-        vehicle_state.update_metadata(config.data)
+        vehicle_state.update_metadata(store.data)
         _LOGGER.info("streaming CarLinko WS → entity change logs…")
 
         refresh_task = asyncio.create_task(_caps_refresh_loop(api, stop))

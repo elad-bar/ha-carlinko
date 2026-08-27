@@ -14,8 +14,8 @@ integration does on *your* Home Assistant instance.
 | Cost knobs (tariff, petrol price, …) | HA storage | No |
 
 **Optional `engine/` CLI** (dev / debugging only): email/password/region in a gitignored
-`.env`; token and vehicle ids in `data/config.json` (also gitignored). Same outbound
-destinations as the integration.
+`.env`; token and vehicle ids via the same `CarlinkoStore` class, file-backed to
+`data/config.json` (also gitignored). Same outbound destinations as the integration.
 
 **No analytics, no tracking, no third-party backend.** Outbound traffic is to CarLinko's
 cloud only (WebSocket + REST for login and remote control).

@@ -6,7 +6,7 @@ Signing recovered from libapp.so (Blutter): see docs/decompiled/secure_*_utils.d
 Login = POST /user/login with a plaintext password body. The `v-data` header the app sends is
 NOT validated by the server, so we omit it.
 
-Secrets (email / password / region) come from the environment; token + vehicle ids from ConfigManager.
+Secrets (email / password / region) come from the caller; token + vehicle ids from CarlinkoStore.
 """
 from __future__ import annotations
 
@@ -45,28 +45,28 @@ _HTTP_TIMEOUT = aiohttp.ClientTimeout(total=20)
 class ApiClient:
     """Signed CarLinko REST calls over an injected aiohttp ClientSession."""
 
-    def __init__(self, email, password, region, config, session: aiohttp.ClientSession):
+    def __init__(self, email, password, region, store, session: aiohttp.ClientSession):
         self.email = (email or "").strip()
         self.password = password or ""
         self.region = (region or DEFAULT_REGION).strip() or DEFAULT_REGION
-        self.config = config
+        self.store = store
         self.session = session
-        sk = config.data.get("sign_key") or DEFAULT_SIGN_KEY
+        sk = store.data.get("sign_key") or DEFAULT_SIGN_KEY
         self.sign_key = sk.encode() if isinstance(sk, str) else sk
         self.api_base = API_HOST_TMPL.format(region=self.region)
         self.ws_url = WS_HOST_TMPL.format(region=self.region)
-        self.token = (config.data.get("token") or "").strip()
-        self.vehicle_id = str(config.data.get("vehicle_id") or "")
-        self.device_sn = str(config.data.get("device_sn") or "")
+        self.token = (store.data.get("token") or "").strip()
+        self.vehicle_id = str(store.data.get("vehicle_id") or "")
+        self.device_sn = str(store.data.get("device_sn") or "")
         self._veh_cache = {"t": 0.0, "v": None}
         self._caps_cache: dict = {}
 
-    def reload_ids_from_config(self):
-        self.config.load()
-        self.token = (self.config.data.get("token") or "").strip() or self.token
-        self.vehicle_id = str(self.config.data.get("vehicle_id") or "") or self.vehicle_id
-        self.device_sn = str(self.config.data.get("device_sn") or "") or self.device_sn
-        sk = self.config.data.get("sign_key") or DEFAULT_SIGN_KEY
+    def reload_ids_from_store(self):
+        self.store.load()
+        self.token = (self.store.data.get("token") or "").strip() or self.token
+        self.vehicle_id = str(self.store.data.get("vehicle_id") or "") or self.vehicle_id
+        self.device_sn = str(self.store.data.get("device_sn") or "") or self.device_sn
+        sk = self.store.data.get("sign_key") or DEFAULT_SIGN_KEY
         self.sign_key = sk.encode() if isinstance(sk, str) else sk
 
     @staticmethod
@@ -95,7 +95,7 @@ class ApiClient:
         return h
 
     async def login(self):
-        """Log in with env credentials; persist token to config.json."""
+        """Log in with credentials; persist token via CarlinkoStore."""
         if not self.email or not self.password:
             raise RuntimeError(
                 "CARLINKO_EMAIL / CARLINKO_PASSWORD missing — see .env.example / README"
@@ -128,7 +128,7 @@ class ApiClient:
         if not token:
             raise AuthError(f"login ok but no token in response: {d}")
         self.token = token
-        self.config.set_token(token)
+        self.store.set_token(token)
         return token
 
     def _caps_from_vehicle(self, v: dict) -> dict:
@@ -190,11 +190,11 @@ class ApiClient:
 
     async def send_control(self, opcode, timeout=20):
         """POST /user/vehicle/remoteControl."""
-        self.reload_ids_from_config()
+        self.reload_ids_from_store()
         vid = self.vehicle_id
         dsn = self.device_sn
         if not vid or not dsn:
-            return {"code": "-1", "msg": "vehicle_id / device_sn missing from config.json"}
+            return {"code": "-1", "msg": "vehicle_id / device_sn missing from store"}
         try:
             timeout = int(timeout)
         except Exception:

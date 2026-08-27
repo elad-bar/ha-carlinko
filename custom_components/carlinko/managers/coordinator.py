@@ -147,7 +147,7 @@ class CarlinkoCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             updates["vehicle"] = vehicle
         if updates:
             self.store.update(**updates)
-            self.api.reload_ids_from_config()
+            self.api.reload_ids_from_store()
 
     async def async_stop(self) -> None:
         self._stop.set()

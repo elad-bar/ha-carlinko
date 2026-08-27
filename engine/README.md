@@ -19,7 +19,7 @@ in `.env` for verbose WebSocket lines.
 
 ## What it does
 
-1. Logs in via `ApiClient` (token saved to `config.json`)
+1. Logs in via `ApiClient` (token saved via `CarlinkoStore` → `config.json`)
 2. Streams the CarLinko realtime WebSocket
 3. Decodes each status frame into live state
 4. Logs entity value deltas when values change
@@ -29,6 +29,6 @@ in `.env` for verbose WebSocket lines.
 | Path | Role |
 |------|------|
 | `engine/entrypoint.py` | Only engine Python file — mount + CLI + delta logs |
-| `custom_components/carlinko/managers/` | API / WS clients (+ HA coordinator / store) |
+| `custom_components/carlinko/managers/` | API / WS / **shared** `CarlinkoStore` (+ HA coordinator) |
 | `custom_components/carlinko/models/` | Wire consts, catalog, vehicle state, exceptions |
 | `custom_components/carlinko/common/` | HA-facing shared (consts, base entity, setup) |

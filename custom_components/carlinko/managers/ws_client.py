@@ -35,8 +35,8 @@ class WsClient:
         self.stream_backstop_s = STREAM_BACKSTOP
 
     def reload_config(self):
-        self.api.reload_ids_from_config()
-        cfg = self.api.config.data
+        self.api.reload_ids_from_store()
+        cfg = self.api.store.data
         self.stream_backstop_s = int(cfg.get("stream_backstop") or STREAM_BACKSTOP)
         self.vehicle_state.update_metadata(cfg)
 

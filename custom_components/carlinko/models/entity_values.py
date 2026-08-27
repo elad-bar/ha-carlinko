@@ -1,13 +1,20 @@
 """Resolve EntitySpec values from live vehicle state + cost config (HA-free)."""
 from __future__ import annotations
 
-from typing import Any, Callable
+from typing import Any, Callable, Protocol, runtime_checkable
 
-from .config_adapter import ConfigAdapter
 from ..common.consts import CHARGE_STATE, HV_STATE
 from .entity_specs import EntitySpec
 
 DerivedResolver = Callable[[EntitySpec, dict], Any]
+
+
+@runtime_checkable
+class _StoreCostView(Protocol):
+    """Minimal store surface used for cost knobs (CarlinkoStore)."""
+
+    def get_cost_config(self) -> dict[str, Any]:
+        ...
 
 
 def get_path(data: Any, path: str) -> Any:
@@ -40,8 +47,8 @@ def doors(state: dict) -> int:
 class EntityValueResolver:
     """Map EntitySpec → value using data_path / resolve / config_key."""
 
-    def __init__(self, config: ConfigAdapter):
-        self.config = config
+    def __init__(self, store: _StoreCostView):
+        self.store = store
         self._resolvers: dict[str, DerivedResolver] = {
             "charge_power": self._charge_power,
             "charge_state": self._charge_state,
@@ -62,13 +69,13 @@ class EntityValueResolver:
             resolver = self._resolvers.get(spec.resolve)
             return resolver(spec, state) if resolver else None
         if spec.config_key:
-            cost = self.config.get_cost_config() or {}
+            cost = self.store.get_cost_config() or {}
             return cost.get(spec.config_key)
         path = spec.data_path
         if path is None:
             return None
         if path.startswith("config:"):
-            cost = self.config.get_cost_config() or {}
+            cost = self.store.get_cost_config() or {}
             return cost.get(path.split(":", 1)[1])
         return get_path(state, path)
 
