@@ -15,32 +15,32 @@ import os
 import signal
 import socket
 import sys
-import types
 from typing import Any, Callable
 
 import aiohttp
+from dotenv import load_dotenv
+
+import ha_free_path  # noqa: F401  # mounts synthetic carlinko package
+from carlinko.common.consts import USER_AGENT
+from carlinko.managers.api_client import ApiClient
+from carlinko.managers.store import CarlinkoStore
+from carlinko.managers.ws_client import WsClient
+from carlinko.models.entity_specs import ENTITY_SPECS, get_entity_specs
+from carlinko.models.entity_values import EntityValueResolver
+from carlinko.models.vehicle_state import VehicleState
+
+try:
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+except Exception:
+    pass
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 REPO = os.path.dirname(HERE)
 
+load_dotenv(os.path.join(REPO, ".env"))
+
 _CAPS_REFRESH_INTERVAL_S = 3300
 _LOGGER = logging.getLogger(__name__)
-
-
-def _ensure_ha_free_packages(repo_root: str) -> None:
-    """Expose carlinko.managers / carlinko.models without loading HA ``__init__``.
-
-    Avoids putting ``custom_components/carlinko`` on ``sys.path`` (stdlib ``select``
-    shadow) and avoids executing the real integration package init.
-    """
-    if "carlinko" in sys.modules and getattr(sys.modules["carlinko"], "__path__", None):
-        return
-    root = os.path.join(repo_root, "custom_components", "carlinko")
-    pkg = types.ModuleType("carlinko")
-    pkg.__file__ = os.path.join(root, "__init__.py")
-    pkg.__path__ = [root]  # type: ignore[attr-defined]
-    pkg.__package__ = "carlinko"
-    sys.modules["carlinko"] = pkg
 
 
 def _configure_logging() -> None:
@@ -63,21 +63,6 @@ def _configure_logging() -> None:
     root.addHandler(handler)
     for name in ("aiohttp", "aiohttp.access"):
         logging.getLogger(name).setLevel(logging.WARNING)
-
-
-_ensure_ha_free_packages(REPO)
-
-from dotenv import load_dotenv
-
-load_dotenv(os.path.join(REPO, ".env"))
-
-from carlinko.managers.api_client import ApiClient
-from carlinko.managers.store import CarlinkoStore
-from carlinko.managers.ws_client import WsClient
-from carlinko.common.consts import USER_AGENT
-from carlinko.models.entity_specs import ENTITY_SPECS, EntitySpec, get_entity_specs
-from carlinko.models.entity_values import EntityValueResolver
-from carlinko.models.vehicle_state import VehicleState
 
 
 class EntityPublisher:

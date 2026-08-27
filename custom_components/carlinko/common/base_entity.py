@@ -1,13 +1,17 @@
-"""Base CarLinko entity + shared helpers."""
+"""HA base CarLinko entity (CoordinatorEntity + DeviceInfo).
+
+May import homeassistant. HA-free catalog lives in ``models/entity_specs``.
+"""
 from __future__ import annotations
 
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from ..managers.coordinator import CarlinkoCoordinator
-from ..common.consts import DOMAIN
-from .entity_specs import EntitySpec
-from .entity_values import EntityValueResolver
+from ..models.entity_specs import EntitySpec
+from ..models.entity_values import EntityValueResolver
+from .consts import DOMAIN
+from .entity_descriptions import get_entity_description
 
 
 class CarlinkoEntity(CoordinatorEntity[CarlinkoCoordinator]):
@@ -25,10 +29,9 @@ class CarlinkoEntity(CoordinatorEntity[CarlinkoCoordinator]):
         self.spec = spec
         self.vehicle_id = str(vehicle_id)
         self._resolver = EntityValueResolver(coordinator.store)
+        self.entity_description = get_entity_description(spec)
         self._attr_unique_id = f"carlinko_{self.vehicle_id}_{spec.key}"
-        self._attr_name = spec.name
-        if spec.icon:
-            self._attr_icon = spec.icon
+        self._attr_translation_key = spec.key
         meta = coordinator.store.get_vehicle_meta(self.vehicle_id)
         vehicle = coordinator.vehicle_data(self.vehicle_id).get("vehicle") or {
             "plate": meta.get("plate") or "—",
@@ -36,13 +39,18 @@ class CarlinkoEntity(CoordinatorEntity[CarlinkoCoordinator]):
             "vin": meta.get("vin") or "—",
         }
         model = vehicle.get("model") or meta.get("model") or "CarLinko"
-        vin = vehicle.get("vin") or meta.get("vin") or self.vehicle_id
+        vin = vehicle.get("vin") or meta.get("vin")
+        serial = None
+        if vin and vin != "—":
+            serial = str(vin)
+        elif meta.get("device_sn"):
+            serial = str(meta["device_sn"])
         self._attr_device_info = DeviceInfo(
             identifiers={(DOMAIN, self.vehicle_id)},
             name=vehicle.get("plate") or meta.get("plate") or model,
             manufacturer="CarLinko",
             model=model,
-            serial_number=vin if vin and vin != "—" else None,
+            serial_number=serial,
         )
 
     @property

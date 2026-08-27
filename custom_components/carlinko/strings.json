@@ -62,5 +62,317 @@
     "control_failed": {
       "message": "Remote control failed: {error}"
     }
+  },
+  "entity": {
+    "sensor": {
+      "battery": {
+        "name": "Battery"
+      },
+      "range": {
+        "name": "Range",
+        "icon": "mdi:map-marker-distance"
+      },
+      "odometer": {
+        "name": "Odometer",
+        "icon": "mdi:counter"
+      },
+      "volt12": {
+        "name": "12V Battery"
+      },
+      "volt12_status": {
+        "name": "12V status",
+        "state": {
+          "ok": "OK",
+          "low": "Low",
+          "critical": "Critical"
+        }
+      },
+      "charge_power": {
+        "name": "Charge Power"
+      },
+      "consumption": {
+        "name": "Consumption",
+        "icon": "mdi:lightning-bolt"
+      },
+      "charge_remaining": {
+        "name": "Charge remaining"
+      },
+      "charge_mode": {
+        "name": "Charge mode",
+        "state": {
+          "none": "None",
+          "ac": "AC",
+          "dc": "DC"
+        }
+      },
+      "charge_state": {
+        "name": "Charge state",
+        "state": {
+          "idle": "Idle",
+          "charging": "Charging",
+          "complete": "Complete",
+          "canceled": "Canceled",
+          "hot": "Hot",
+          "stop": "Stop"
+        }
+      },
+      "updated": {
+        "name": "Updated"
+      },
+      "hv_state": {
+        "name": "HV state",
+        "state": {
+          "off": "Off",
+          "lv": "LV",
+          "ready": "Ready",
+          "unknown": "Unknown"
+        }
+      },
+      "wltc_range": {
+        "name": "Rated range",
+        "icon": "mdi:map-marker-distance"
+      },
+      "energy_left": {
+        "name": "Energy left"
+      },
+      "tyre_status": {
+        "name": "Tyre status",
+        "state": {
+          "normal": "Normal",
+          "check_tyres": "Check tyres"
+        }
+      },
+      "fuel": {
+        "name": "Fuel",
+        "icon": "mdi:gas-station"
+      },
+      "fuel_range": {
+        "name": "Fuel range",
+        "icon": "mdi:map-marker-distance"
+      },
+      "total_range": {
+        "name": "Total range",
+        "icon": "mdi:map-marker-distance"
+      },
+      "fuel_consumption": {
+        "name": "Fuel consumption",
+        "icon": "mdi:fuel"
+      },
+      "tyre_fl": {
+        "name": "Front left"
+      },
+      "tyre_fl_temp": {
+        "name": "Front left temp"
+      },
+      "tyre_fr": {
+        "name": "Front right"
+      },
+      "tyre_fr_temp": {
+        "name": "Front right temp"
+      },
+      "tyre_rl": {
+        "name": "Rear left"
+      },
+      "tyre_rl_temp": {
+        "name": "Rear left temp"
+      },
+      "tyre_rr": {
+        "name": "Rear right"
+      },
+      "tyre_rr_temp": {
+        "name": "Rear right temp"
+      }
+    },
+    "binary_sensor": {
+      "charging": {
+        "name": "Charging"
+      },
+      "online": {
+        "name": "Online"
+      },
+      "moving": {
+        "name": "Moving"
+      },
+      "tyres_ok": {
+        "name": "Tyre problem"
+      },
+      "door": {
+        "name": "Any door"
+      },
+      "door_driver": {
+        "name": "Driver door"
+      },
+      "door_passenger": {
+        "name": "Passenger door"
+      },
+      "door_rear_left": {
+        "name": "Rear left door"
+      },
+      "door_rear_right": {
+        "name": "Rear right door"
+      },
+      "seat_heat_left": {
+        "name": "Seat heat left"
+      },
+      "seat_heat_right": {
+        "name": "Seat heat right"
+      },
+      "seat_vent_left": {
+        "name": "Seat vent left",
+        "icon": "mdi:car-seat"
+      },
+      "seat_vent_right": {
+        "name": "Seat vent right",
+        "icon": "mdi:car-seat"
+      },
+      "defrost": {
+        "name": "Defrost",
+        "icon": "mdi:car-defrost-front"
+      },
+      "engine_on": {
+        "name": "Engine on"
+      }
+    },
+    "number": {
+      "tariff": {
+        "name": "Charging tariff",
+        "icon": "mdi:currency-usd"
+      },
+      "petrol_price": {
+        "name": "Petrol price",
+        "icon": "mdi:gas-station"
+      },
+      "petrol_kml": {
+        "name": "Petrol economy",
+        "icon": "mdi:car-speed-limiter"
+      }
+    },
+    "lock": {
+      "lock": {
+        "name": "Lock"
+      }
+    },
+    "climate": {
+      "climate": {
+        "name": "Climate"
+      }
+    },
+    "cover": {
+      "windows": {
+        "name": "Windows"
+      },
+      "sunroof": {
+        "name": "Sunroof"
+      },
+      "liftgate": {
+        "name": "Liftgate"
+      }
+    },
+    "button": {
+      "find": {
+        "name": "Find car"
+      },
+      "charge_stop": {
+        "name": "Stop charging"
+      },
+      "quick_cool": {
+        "name": "Quick cool"
+      },
+      "quick_heat": {
+        "name": "Quick heat"
+      }
+    },
+    "switch": {
+      "engine": {
+        "name": "Engine"
+      },
+      "defrost_cmd": {
+        "name": "Defog"
+      },
+      "purify": {
+        "name": "Air purify"
+      }
+    },
+    "select": {
+      "gear": {
+        "name": "Gear",
+        "state": {
+          "low": "Low",
+          "high": "High"
+        }
+      },
+      "seat_heatL": {
+        "name": "Driver seat heat",
+        "state": {
+          "off": "Off",
+          "L1": "Level 1",
+          "L2": "Level 2",
+          "L3": "Level 3"
+        }
+      },
+      "seat_ventL": {
+        "name": "Driver seat vent",
+        "state": {
+          "off": "Off",
+          "L1": "Level 1",
+          "L2": "Level 2",
+          "L3": "Level 3"
+        }
+      },
+      "seat_heatR": {
+        "name": "Passenger seat heat",
+        "state": {
+          "off": "Off",
+          "L1": "Level 1",
+          "L2": "Level 2",
+          "L3": "Level 3"
+        }
+      },
+      "seat_ventR": {
+        "name": "Passenger seat vent",
+        "state": {
+          "off": "Off",
+          "L1": "Level 1",
+          "L2": "Level 2",
+          "L3": "Level 3"
+        }
+      },
+      "seat_heatLR": {
+        "name": "Rear L seat heat",
+        "state": {
+          "off": "Off",
+          "L1": "Level 1",
+          "L2": "Level 2",
+          "L3": "Level 3"
+        }
+      },
+      "seat_ventLR": {
+        "name": "Rear L seat vent",
+        "state": {
+          "off": "Off",
+          "L1": "Level 1",
+          "L2": "Level 2",
+          "L3": "Level 3"
+        }
+      },
+      "seat_heatRR": {
+        "name": "Rear R seat heat",
+        "state": {
+          "off": "Off",
+          "L1": "Level 1",
+          "L2": "Level 2",
+          "L3": "Level 3"
+        }
+      },
+      "seat_ventRR": {
+        "name": "Rear R seat vent",
+        "state": {
+          "off": "Off",
+          "L1": "Level 1",
+          "L2": "Level 2",
+          "L3": "Level 3"
+        }
+      }
+    }
   }
 }

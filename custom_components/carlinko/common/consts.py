@@ -14,6 +14,8 @@ CONF_AVAILABILITY_SECONDS = "availability_seconds"
 
 # Entity unavailable when last frame older than this (legacy ~40 min).
 AVAILABILITY_SECONDS = 2400
+# Max wait during setup for first successful WS session.
+WS_SETUP_TIMEOUT_S = 60
 CAPS_REFRESH_INTERVAL_S = 3300
 
 KNOWN_REGIONS = ("sea",)
@@ -208,7 +210,6 @@ AC_BOOLS = (
 DEFAULT_BATTERY_KWH = 58.9
 DEFAULT_WLTP_KWH_100 = 14.8
 DEFAULT_TPMS_SCALE = 1.373
-DEFAULT_CURRENCY = {"symbol": "Rp", "locale": "id-ID", "code": "IDR"}
 DEFAULT_CHEMISTRY = "lfp"
 BALANCE_DAYS_LFP = 7
 BALANCE_DAYS_NMC = 90
@@ -240,7 +241,6 @@ KNOWN_CAR_OVERRIDES = {
 EMPTY_VEHICLE_STATE = {
     "vehicle": {"plate": "—", "model": "EV", "vin": "—"},
     "battery_kwh": DEFAULT_BATTERY_KWH,
-    "currency": dict(DEFAULT_CURRENCY),
     "tyre_unit": "psi",
     "tariff": None,
     "battery": None,
@@ -283,7 +283,7 @@ EMPTY_VEHICLE_STATE = {
     "charge_power": None,
     "charge_power_calculated": None,
     "tyre_indirect": True,
-    "tyre_status": "Normal",
+    "tyre_status": "normal",
     "tpms": [{"pos": p, "psi": None, "temp": None, "valid": False} for p in TPMS_POS],
     "moving": False,
     "powertrain": "bev",

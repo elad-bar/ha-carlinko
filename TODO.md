@@ -4,7 +4,7 @@ Tracked against [sh00t2kill/dolphin-robot](https://github.com/sh00t2kill/dolphin
 
 Checkboxes are work items, not a claim that Dolphin has climate/covers. Platform-specific bugs are still listed because hassfest and users will hit them.
 
-Suggested order: **P0 → P1 → P2 → P3** (within P0: layout first, then lifecycle / flow, then entities / translations).
+Suggested order: **P0 → P1 → P2 → P3** (P0 closed; next is P1 quality scale / CI / tests).
 
 ---
 
@@ -16,7 +16,7 @@ Target shape under `custom_components/carlinko/`:
 
 ```
 common/       # HA consts, base_entity, entity_descriptions, domain enums
-managers/     # coordinator, store, api/ws clients, flow_manager
+managers/     # coordinator, store, api/ws clients
 models/       # wire consts, exceptions, vehicle/blob DTOs, entity catalog
 ```
 
@@ -25,11 +25,9 @@ models/       # wire consts, exceptions, vehicle/blob DTOs, entity catalog
 - [x] Move root `entity.py` + `entity_setup.py` → `common/base_entity.py` + `common/entity_setup.py` (`async_setup_entities`)
 - [x] Move root `coordinator.py` / `store.py` → `managers/`
 - [x] Move API / WS clients → `managers/`; engine uses the same `CarlinkoStore` (file-backed)
-- [ ] Extract `managers/flow_manager.py` + `models/config_data.py` from `config_flow.py` (thin flow module at package root) — deferred (flow is already small)
 - [x] One consts file: `common/consts.py` (integration + wire; HA-free). Helpers in `common/helpers.py`. Platforms mapped to `Platform` in `__init__.py`.
 - [x] Engine collapsed to `engine/entrypoint.py` (mounts synthetic `carlinko.managers` / `carlinko.models`)
 - [x] Add empty `services.yaml` (Dolphin ships a placeholder even with no custom services)
-- [ ] Optional repo companions: `info.md`, `www/` brand SVGs (HACS / Dolphin repo convention)
 
 ### Integration lifecycle (`__init__.py`)
 
@@ -43,13 +41,6 @@ models/       # wire consts, exceptions, vehicle/blob DTOs, entity catalog
 
 ### Config flow (login is not enough)
 
-Structure (with layout above):
-
-- [ ] Thin `config_flow.py` + `managers/flow_manager.py` for validation / OTP-or-login / entry updates
-- [ ] Schemas and defaults in `models/config_data.py`
-
-Behavior:
-
 - [x] Password field via HA **password** text selector (masked)
 - [x] Region via **Select** (known codes + optional custom), not a free-form string
 - [x] **Reconfigure** flow (`SOURCE_RECONFIGURE`); README mentions it, only reauth exists
@@ -61,69 +52,67 @@ Behavior:
 
 ### Entity model (descriptions, not hardcoded English names)
 
-- [ ] Add `common/entity_descriptions.py`: map HA-free catalog → HA `EntityDescription` subclasses (Dolphin `entity_descriptions`)
-- [ ] Platforms import base entity / descriptions from `common/`, not package-root helpers or the HA-free catalog directly
-- [ ] `EntityCategory.CONFIG` on cost numbers (`tariff`, `petrol_price`, `petrol_kml`)
-- [ ] `EntityCategory.DIAGNOSTIC` on noisy / derived sensors (`updated`, HV state, tyre temps, 12V, …)
-- [ ] `entity_registry_enabled_default=False` where Dolphin would hide diagnostics by default
+- [x] Add `common/entity_descriptions.py`: map HA-free catalog → HA `EntityDescription` subclasses (Dolphin `entity_descriptions`)
+- [x] Platforms import base entity / descriptions from `common/`, not package-root helpers or the HA-free catalog directly
+- [x] `EntityCategory.CONFIG` on cost numbers (`tariff`, `petrol_price`, `petrol_kml`)
+- [x] `EntityCategory.DIAGNOSTIC` on noisy / derived sensors (`updated`, HV state, tyre temps, 12V, …)
+- [x] `entity_registry_enabled_default=False` where Dolphin would hide diagnostics by default
 
 ### Translations (`key` is the identity)
 
 Keep the HA-free catalog language-free. `key` is unique id + translation key. Do not put English (or Hebrew) strings on the catalog used by HA.
 
-- [ ] Remove `name` from the HA-facing path (or keep English only in `engine/` for CLI logs; HA must not use it)
-- [ ] HA entities: `_attr_translation_key = key`; never set `_attr_name` from catalog English
-- [ ] English source in `strings.json` as `entity.{platform}.{key}.name` for every entity; keep `translations/en.json` in sync (hassfest) — today there is **no `entity` tree**
-- [ ] Translate **states** for every enum sensor and select (`entity.{platform}.{key}.state.{option}`)
-- [ ] Live values must be **keys** (`idle`, `normal`, `l1`), not display English (`"Normal"`, `"Check tyres"`) or HA cannot translate them
-- [ ] Keep `options` / command action keys in the catalog as those machine keys (`off`, `L1`, `low`)
-- [ ] Icon translations (`entity.{platform}.{key}.icon`) where there is no device class
-- [ ] Config / options / reconfigure / vehicle-picker strings as those flows land; `ConfigEntryNotReady` via `translation_key`
-- [ ] Add **`options`** section in `strings.json` / translations when options flow lands (Dolphin has this)
-- [ ] Do not translate units (`km`, `kWh`); HA unit system handles that
-- [ ] Device name stays plate/model from the car (proper nouns); no extra translation
-- [ ] Optional non-English file when desired (e.g. `translations/he.json`); English-only is still translation-ready
-- [ ] Engine `format_command` / logs: use catalog `key` after display `name` is gone from the HA path
-- [ ] Quality scale: `entity-translations` / `icon-translations` → `done`
+- [x] Remove `name` from the HA-facing path (English only in `engine/` for CLI logs; HA uses translation keys)
+- [x] HA entities: `_attr_translation_key = key`; never set `_attr_name` from catalog English
+- [x] English source in `strings.json` as `entity.{platform}.{key}.name` for every entity; keep `translations/en.json` in sync (hassfest)
+- [x] Translate **states** for every enum sensor and select (`entity.{platform}.{key}.state.{option}`)
+- [x] Live values must be **keys** (`idle`, `normal`, `l1`), not display English (`"Normal"`, `"Check tyres"`) or HA cannot translate them
+- [x] Keep `options` / command action keys in the catalog as those machine keys (`off`, `L1`, `low`)
+- [x] Icon translations (`entity.{platform}.{key}.icon`) where there is no device class
+- [x] Config / options / reconfigure / reauth strings; `ConfigEntryNotReady` via `translation_key`
+- [x] **`options`** section in `strings.json` / translations (options flow already landed)
+- [x] Do not translate units (`km`, `kWh`); HA unit system handles that
+- [x] Device name stays plate/model from the car (proper nouns); no extra translation
+- [x] English-only is translation-ready (optional `he.json` later)
+- [x] Engine CLI keeps catalog `name` for logs; HA path does not use it
+- [x] Quality scale: `entity-translations` / `icon-translations` ready to mark `done` in P1 yaml
 
-### Currency (use HA General, do not store IDR)
+### Currency (use HA General)
 
-HA already has Settings → General → Currency (`hass.config.currency`). The integration still defaults to IDR / Rp / `id-ID` in the store and never asks for currency in the config flow. `tariff` / `petrol_price` have no monetary device class.
+HA Settings → General → Currency (`hass.config.currency`). Amounts are number entities; monetary device class supplies the unit. No currency field in store / config.
 
-- [ ] Do not store `currency` (symbol / locale / code) in the HA store
-- [ ] `tariff` and `petrol_price`: `NumberDeviceClass.MONETARY` so the unit is `hass.config.currency`
-- [ ] Keep **amounts** as number entities (kWh tariff, petrol price); HA has no house electricity/petrol price
-- [ ] `petrol_kml` stays a normal number (`km/L`), not monetary
-- [ ] Drop IDR / `tariff_idr` defaults on the HA path
-- [ ] Engine CLI may keep optional `currency` in `config.json` only
-- [ ] Do **not** convert amounts when the user changes HA currency (label only, not FX)
-- [ ] Future derived cost sensors: `SensorDeviceClass.MONETARY` as well
+- [x] Do not store `currency` (symbol / locale / code)
+- [x] `tariff` and `petrol_price`: `NumberDeviceClass.MONETARY` so the unit is `hass.config.currency`
+- [x] Keep **amounts** as number entities (kWh tariff, petrol price)
+- [x] `petrol_kml` stays a normal number (`km/L`), not monetary
+- [x] Do **not** convert amounts when the user changes HA currency (label only, not FX)
+- [ ] Future derived cost sensors: `SensorDeviceClass.MONETARY` as well (P3 when added)
 
 ### Device registry
 
-- [ ] Do not bake unique ids with `entry.entry_id` as `vehicle_id`; wait until real `vehicleId` is known (avoids duplicate devices after cache fill)
-- [ ] Refresh `DeviceInfo` when vehicle cache updates (plate, model, VIN)
-- [ ] Manufacturer / model that match the car (not always `"CarLinko"`)
-- [ ] `sw_version` / `hw_version` if the API exposes them
-- [ ] `serial_number` / connections from stable VIN or `deviceSn`
-- [ ] Optional `configuration_url` if there is a useful cloud/app URL
-- [ ] Stale-device cleanup when caps drop entities (`stale-devices`)
+- [x] Do not bake unique ids with `entry.entry_id` as `vehicle_id`; wait until real `vehicleId` is known
+- [x] Refresh `DeviceInfo` when vehicle cache updates (plate, model, VIN)
+- [x] Manufacturer `"CarLinko"` (API has no OEM brand); model from API `model`/`modelName`
+- [x] `sw_version` / `hw_version` — not exposed by API (skipped)
+- [x] `serial_number` from stable VIN or `deviceSn`
+- [x] `configuration_url` — no useful cloud URL (skipped)
+- [x] Stale-device cleanup when vehicles leave the account (`stale-devices`)
 
 ### Setup vs live stream (`test-before-setup`)
 
-- [ ] Treat first successful cloud session as part of setup (login + vehicle is not enough if WS never connects)
-- [ ] Keep a reconnecting WS client; do not exit the WS runner forever on a generic error
-- [ ] Drive `available` / `connected` from that client the way Dolphin drives MQTT/AWS connected
-- [ ] `ConfigEntryNotReady` with `translation_domain` / `translation_key` (not only `str(err)`)
-- [ ] Log when entities go unavailable (`log-when-unavailable`; 40‑minute silent gap today)
+- [x] Treat first successful cloud session as part of setup (wait for WS connected; timeout → NotReady)
+- [x] Keep a reconnecting WS client; restart runner if it exits on a generic error
+- [x] Drive `available` from last frame within window **and** runtime `connected`
+- [x] `ConfigEntryNotReady` with `translation_domain` / `translation_key` (not only `str(err)`)
+- [x] Log when entities go unavailable (`log-when-unavailable`)
 
 ### HA vs HA-free boundary (after the split)
 
-- [ ] Remove `sys.stdout.reconfigure(...)` from the WS client
-- [ ] Drop `call_soon_threadsafe` in frame handling if the WS client already runs on the HA loop
-- [ ] Stop documenting env / `config.json` inside the API client as if HA used them; HA path is config entry + store
-- [ ] Keep `engine/` CLI comments in `engine/`, not in HA-facing modules
-- [ ] Document which packages may import `homeassistant` (`common` / `managers` / platforms) vs which must not (HA-free slice for `engine/`)
+- [x] Remove `sys.stdout.reconfigure(...)` from the WS client (engine entrypoint only)
+- [x] Drop `call_soon_threadsafe` in frame handling (WS runs on the HA loop)
+- [x] Stop documenting env / `config.json` inside the API client as if HA used them; HA path is config entry + store
+- [x] Keep `engine/` CLI comments in `engine/`, not in HA-facing modules
+- [x] Document which packages may import `homeassistant` (`common` / platforms / coordinator) vs which must not (HA-free `models/` + api/ws/store)
 
 ---
 
@@ -152,8 +141,6 @@ Expand beyond the current 9 rules. Mark each `done` / `todo` / `exempt` with a o
 - [ ] `loggers`
 - [x] `integration_type: hub` (one entry per account; many vehicle devices)
 - [ ] Align `hacs.json` with Dolphin (`iot_class`, and `filename` / `zip_release` if you ship GitHub releases)
-- [ ] `info.md` at repo root (HACS detail companion; Dolphin has this)
-- [ ] Optional `www/` brand assets at repo root (Dolphin convention; Core brands stay a separate PR)
 
 ### CI (Dolphin develop is merge-gated)
 
@@ -201,26 +188,29 @@ Expand beyond the current 9 rules. Mark each `done` / `todo` / `exempt` with a o
 
 ## Already done (do not re-litigate)
 
-Keep these; they already match the Dolphin *behavior* shape (file paths may still move in the layout pass):
+Keep these; they already match the Dolphin *behavior* shape:
 
-- Config flow + unique id + reauth
-- Coordinator owns REST + WS
+- Config flow + unique id + reauth (+ reconfigure / options; schemas stay in `config_flow.py`)
+- Coordinator owns REST + WS (setup waits for first WS session)
 - Capability-gated entity add/remove (factory helper)
 - Diagnostics with redaction
-- `_attr_has_entity_name`
+- `_attr_has_entity_name` + `_attr_translation_key` + `common/entity_descriptions.py`
+- Full `entity.*` trees in `strings.json` / `translations/en.json`
 - `iot_class: cloud_push`
 - `PARALLEL_UPDATES = 1`
 - Exception translations for auth / control failures
 - A HA-free catalog / wire layer in `models/` (+ API/WS in `managers/`) usable from `engine/`
+- HACS detail via `hacs.json` `render_readme: true` (no separate `info.md` / `www/`)
+- HA currency from Settings → General; monetary number device class on tariff / petrol_price
 
-Not done: HA `EntityDescription` catalog, or full `entity.*` translations.
+Not done (P1+): quality_scale expansion, remaining CI green, platform hassfest fixes (P2), device diagnostics / repair issues (P3).
 
 ---
 
 ## Notes
 
-- HA-free modules (`models/` + `managers/api_client.py` / `ws_client.py` / `store.py`) must not import Home Assistant at module load (`CarlinkoStore` lazy-imports HA Store only when constructed with `hass`). HA-facing code lives in `common/`, HA parts of `managers/` (coordinator), and package-root platforms. `engine/entrypoint.py` mounts a synthetic `carlinko` parent so those packages import without loading the integration `__init__`.
+- HA-free modules (`models/` + `managers/api_client.py` / `ws_client.py` / `store.py`) must not import Home Assistant at all (`CarlinkoStore` takes a pre-built HA ``Store`` from HA-facing callers). HA-facing code lives in `common/`, HA parts of `managers/` (coordinator), and package-root platforms. `engine/entrypoint.py` mounts a synthetic `carlinko` parent so those packages import without loading the integration `__init__`.
 - Entity copy lives in `strings.json` / `translations/*.json`; description / catalog `key` is the lookup, not a display `name`.
-- House currency comes from HA General (`hass.config.currency`), not a CarLinko setting.
+- House currency comes from HA General (`hass.config.currency`); CarLinko never stores a currency code.
 - Custom domain services are optional; empty `services.yaml` + `action_setup: exempt` is fine if everything stays on entities.
-- Core brands icons are an external PR to `home-assistant/brands`. Local `info.md` / `www/` are HACS/repo convention, not a substitute for that PR.
+- Core brands icons are an external PR to `home-assistant/brands` (not local repo assets).

@@ -5,10 +5,11 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ConfigEntryAuthFailed, ConfigEntryNotReady
+from homeassistant.helpers.storage import Store
 
 from .managers.coordinator import CarlinkoCoordinator, async_create_coordinator
-from .managers.store import CarlinkoStore
-from .common.consts import DOMAIN, PLATFORMS as _PLATFORM_NAMES
+from .managers.store import CarlinkoStore, ha_storage_key
+from .common.consts import DOMAIN, PLATFORMS as _PLATFORM_NAMES, STORAGE_VERSION
 
 PLATFORMS = [Platform(p) for p in _PLATFORM_NAMES]
 
@@ -68,5 +69,8 @@ async def async_migrate_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
 async def async_remove_entry(hass: HomeAssistant, entry: ConfigEntry) -> None:
     """Delete store so tokens do not linger after removal."""
-    store = CarlinkoStore(hass, entry.entry_id)
+    store = CarlinkoStore(
+        hass,
+        ha_store=Store(hass, STORAGE_VERSION, ha_storage_key(entry.entry_id)),
+    )
     await store.async_remove()

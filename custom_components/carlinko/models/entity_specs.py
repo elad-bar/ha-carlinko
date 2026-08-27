@@ -144,7 +144,7 @@ ENTITY_SPECS: tuple[EntitySpec, ...] = (
     EntitySpec(
         key="tyre_status", platform="sensor", name="Tyre status",
         data_path="tyre_status", device_class="enum",
-        options=("Normal", "Check tyres"), icon="mdi:car-tire-alert",
+        options=("normal", "check_tyres"), icon="mdi:car-tire-alert",
     ),
     # --- binary sensors (always) ---
     EntitySpec(

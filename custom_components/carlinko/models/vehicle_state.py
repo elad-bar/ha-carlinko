@@ -9,7 +9,6 @@ from .blob_fields import BlobFields
 from ..common.consts import (
     DEFAULT_BATTERY_KWH,
     DEFAULT_CHEMISTRY,
-    DEFAULT_CURRENCY,
     DEFAULT_TPMS_SCALE,
     EMPTY_VEHICLE_STATE,
     KNOWN_CAR_OVERRIDES,
@@ -53,9 +52,6 @@ class VehicleState:
         v = creds.get("vehicle") or {}
         model = v.get("model") or "EV"
         known = _match_car_overrides(KNOWN_CAR_OVERRIDES, model) or {}
-        cur = creds.get("currency") or {}
-        currency = {k: cur.get(k) or d for k, d in DEFAULT_CURRENCY.items()}
-        currency["code"] = currency["code"].upper()
 
         self._powertrain_cfg = (
             creds.get("powertrain") or known.get("powertrain") or "auto"
@@ -66,6 +62,8 @@ class VehicleState:
         self._chemistry = (
             creds.get("chemistry") or known.get("chemistry") or DEFAULT_CHEMISTRY
         ).lower()
+
+        tariff = creds.get("tariff")
 
         self.data.update(
             {
@@ -79,13 +77,8 @@ class VehicleState:
                     or known.get("battery_kwh")
                     or DEFAULT_BATTERY_KWH
                 ),
-                "currency": currency,
                 "tyre_unit": (creds.get("tyre_unit") or "psi").lower(),
-                "tariff": (
-                    creds.get("tariff")
-                    if creds.get("tariff") is not None
-                    else creds.get("tariff_idr")
-                ),
+                "tariff": tariff,
             }
         )
         return self.data

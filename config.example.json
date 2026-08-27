@@ -9,7 +9,6 @@
 
   "_optional": "everything below is OPTIONAL — defaults are the Jaecoo J5 / Indonesia values",
   "tariff": 2540,
-  "currency": { "symbol": "Rp", "locale": "id-ID", "code": "IDR" },
   "petrol_price": 16250,
   "petrol_kml": 12.0,
   "tyre_unit": "psi",

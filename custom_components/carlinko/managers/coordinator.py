@@ -12,7 +12,9 @@ from aiohttp import ClientSession
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.exceptions import ConfigEntryAuthFailed, HomeAssistantError
+from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
+from homeassistant.helpers.storage import Store
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 
 from ..common.consts import (
@@ -26,14 +28,16 @@ from ..common.consts import (
     DOMAIN,
     OK_CODE,
     STALE_TOKEN_CODES,
+    STORAGE_VERSION,
     STREAM_BACKSTOP,
+    WS_SETUP_TIMEOUT_S,
 )
 from ..managers.api_client import ApiClient, device_sn_of, vehicle_id_of
 from ..models.entity_specs import get_entity_specs
 from ..models.exceptions import AuthError
 from ..models.vehicle_state import VehicleState
 from ..managers.ws_client import WsClient
-from .store import CarlinkoStore
+from .store import CarlinkoStore, ha_storage_key
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -81,6 +85,7 @@ class CarlinkoCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         self._caps_task: asyncio.Task | None = None
         self._vehicles: dict[str, VehicleRuntime] = {}
         self._entity_listeners: list[EntityListener] = []
+        self._was_available: dict[str, bool] = {}
         self.data: dict[str, Any] = {"vehicles": {}}
 
     @property
@@ -89,10 +94,10 @@ class CarlinkoCoordinator(DataUpdateCoordinator[dict[str, Any]]):
 
     @property
     def vehicle_id(self) -> str:
-        """First / legacy vehicle id (diagnostics / single-car helpers)."""
+        """First vehicle id (diagnostics / single-car helpers). Never entry_id."""
         if self._vehicles:
             return next(iter(self._vehicles))
-        return str(self.store.get_vehicle_id() or self.entry.entry_id)
+        return str(self.store.get_vehicle_id() or "")
 
     def vehicle_runtime(self, vehicle_id: str) -> VehicleRuntime | None:
         return self._vehicles.get(str(vehicle_id))
@@ -128,10 +133,9 @@ class CarlinkoCoordinator(DataUpdateCoordinator[dict[str, Any]]):
     def is_available(self, vehicle_id: str | None = None) -> bool:
         if vehicle_id:
             rt = self._vehicles.get(str(vehicle_id))
-            if rt is None or not rt.last_update_ts:
+            if rt is None or not rt.connected or not rt.last_update_ts:
                 return False
             return (time.time() - rt.last_update_ts) <= self._availability_seconds()
-        # Any vehicle fresh → hub considered live for coarse checks.
         return any(self.is_available(vid) for vid in self._vehicles)
 
     @property
@@ -211,6 +215,11 @@ class CarlinkoCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                     translation_key="cannot_connect",
                 )
             self._sync_vehicles_from_rows(rows)
+            if not self._vehicles:
+                raise HomeAssistantError(
+                    translation_domain=DOMAIN,
+                    translation_key="cannot_connect",
+                )
         except Exception as err:
             if _is_auth_error(err):
                 await self._async_handle_auth_failure(err)
@@ -222,11 +231,27 @@ class CarlinkoCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         self._stop.clear()
         for vid in list(self._vehicles):
             self._start_ws(vid)
+            self._async_refresh_device(vid)
         self._publish_data()
         for vid, rt in self._vehicles.items():
             rt.spec_keys = self.current_spec_keys(vid)
+        await self._async_wait_for_stream()
         self._caps_task = self.hass.async_create_background_task(
             self._caps_refresh_loop(), name=f"{DOMAIN}_caps"
+        )
+
+    async def _async_wait_for_stream(self) -> None:
+        """Block setup until at least one vehicle WS session is live."""
+        deadline = time.time() + WS_SETUP_TIMEOUT_S
+        while time.time() < deadline:
+            if any(rt.connected for rt in self._vehicles.values()):
+                return
+            if self._stop.is_set():
+                return
+            await asyncio.sleep(0.25)
+        raise HomeAssistantError(
+            translation_domain=DOMAIN,
+            translation_key="cannot_connect",
         )
 
     def _sync_vehicles_from_rows(self, rows: list[dict[str, Any]]) -> None:
@@ -253,6 +278,7 @@ class CarlinkoCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             if vid in self._vehicles:
                 self._vehicles[vid].meta = meta
                 self._vehicles[vid].device_sn = str(meta.get("device_sn") or "")
+                self._async_refresh_device(vid)
             else:
                 rt = VehicleRuntime(
                     vehicle_id=vid,
@@ -270,6 +296,7 @@ class CarlinkoCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                     }
                 )
                 self._vehicles[vid] = rt
+                self._async_refresh_device(vid)
                 if not self._stop.is_set() and self._caps_task is not None:
                     # Already running: start WS and notify entity add for all specs.
                     self._start_ws(vid)
@@ -280,17 +307,49 @@ class CarlinkoCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         if old_ids != new_ids:
             # Fleet membership changed — platforms may rebuild wanted set.
             self._notify_listeners("", set(), set())
+            self._async_cleanup_stale_devices()
+
+    def _async_refresh_device(self, vehicle_id: str) -> None:
+        """Update DeviceInfo fields when vehicle cache/meta changes."""
+        rt = self._vehicles.get(str(vehicle_id))
+        if rt is None or not vehicle_id:
+            return
+        plate = rt.meta.get("plate") or "—"
+        model = rt.meta.get("model") or "EV"
+        vin = rt.meta.get("vin") or ""
+        serial = vin if vin and vin != "—" else (rt.device_sn or None)
+        registry = dr.async_get(self.hass)
+        device = registry.async_get_device(identifiers={(DOMAIN, vehicle_id)})
+        if device is None:
+            return
+        registry.async_update_device(
+            device.id,
+            name=plate if plate != "—" else model,
+            manufacturer="CarLinko",
+            model=model,
+            serial_number=serial,
+        )
 
     def _async_remove_device(self, vehicle_id: str) -> None:
         """Drop HA device registry entry when a vehicle leaves the account."""
-        from homeassistant.helpers import device_registry as dr
-
         registry = dr.async_get(self.hass)
         device = registry.async_get_device(identifiers={(DOMAIN, vehicle_id)})
         if device is not None:
             registry.async_update_device(
                 device.id, remove_config_entry_id=self.entry.entry_id
             )
+        self._was_available.pop(str(vehicle_id), None)
+
+    def _async_cleanup_stale_devices(self) -> None:
+        """Remove devices for this entry that no longer match a live vehicleId."""
+        registry = dr.async_get(self.hass)
+        live = set(self._vehicles)
+        for device in dr.async_entries_for_config_entry(registry, self.entry.entry_id):
+            vids = [ident[1] for ident in device.identifiers if ident[0] == DOMAIN]
+            if vids and not any(v in live for v in vids):
+                registry.async_update_device(
+                    device.id, remove_config_entry_id=self.entry.entry_id
+                )
 
     def _start_ws(self, vehicle_id: str) -> None:
         rt = self._vehicles.get(vehicle_id)
@@ -299,14 +358,20 @@ class CarlinkoCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         rt.stop = asyncio.Event()
 
         def _on_frame(state: dict, vid: str = vehicle_id) -> None:
-            self.hass.loop.call_soon_threadsafe(
-                self._handle_frame, vid, dict(state or {})
-            )
+            self._handle_frame(vid, dict(state or {}))
+
+        def _on_connected(connected: bool, vid: str = vehicle_id) -> None:
+            runtime = self._vehicles.get(vid)
+            if runtime is None:
+                return
+            runtime.connected = connected
+            self._log_availability_transition(vid)
 
         ws = WsClient(
             rt.vehicle_state,
             self.api,
             on_frame=_on_frame,
+            on_connected=_on_connected,
             vehicle_id=rt.vehicle_id,
             device_sn=rt.device_sn,
             stream_backstop_s=self._stream_backstop(),
@@ -329,8 +394,8 @@ class CarlinkoCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         rt = self._vehicles.get(vehicle_id)
         if rt is None:
             return
+        restart = False
         try:
-            rt.connected = True
             await ws.run(rt.stop)
         except asyncio.CancelledError:
             raise
@@ -338,10 +403,27 @@ class CarlinkoCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             await self._async_handle_auth_failure(err)
             _LOGGER.error("WebSocket auth failed; reauthentication required")
         except Exception:
-            _LOGGER.exception("WebSocket runner stopped unexpectedly for %s", vehicle_id)
+            # Should be rare: WsClient.run reconnects on generic errors.
+            _LOGGER.exception(
+                "WebSocket runner stopped unexpectedly for %s; restarting",
+                vehicle_id,
+            )
+            if not self._stop.is_set() and rt is self._vehicles.get(vehicle_id):
+                rt.ws_task = None
+                restart = True
         finally:
-            if rt is self._vehicles.get(vehicle_id):
+            if rt is self._vehicles.get(vehicle_id) and not restart:
                 rt.connected = False
+                self._log_availability_transition(vehicle_id)
+        if restart:
+            self._start_ws(vehicle_id)
+
+    def _log_availability_transition(self, vehicle_id: str) -> None:
+        now = self.is_available(vehicle_id)
+        was = self._was_available.get(vehicle_id)
+        if was is True and now is False:
+            _LOGGER.info("CarLinko vehicle %s became unavailable", vehicle_id)
+        self._was_available[vehicle_id] = now
 
     async def _caps_refresh_loop(self) -> None:
         while not self._stop.is_set():
@@ -372,6 +454,7 @@ class CarlinkoCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             return
         rt.last_update_ts = float(state.get("updated_ts") or time.time())
         self._publish_data()
+        self._log_availability_transition(vehicle_id)
         self._maybe_notify_spec_changes(vehicle_id)
 
     def _maybe_notify_spec_changes(self, vehicle_id: str) -> None:
@@ -474,6 +557,9 @@ def _is_auth_error(err: Exception) -> bool:
 async def async_create_coordinator(
     hass: HomeAssistant, entry: ConfigEntry
 ) -> CarlinkoCoordinator:
-    store = CarlinkoStore(hass, entry.entry_id)
+    store = CarlinkoStore(
+        hass,
+        ha_store=Store(hass, STORAGE_VERSION, ha_storage_key(entry.entry_id)),
+    )
     session = async_get_clientsession(hass)
     return CarlinkoCoordinator(hass, entry, store, session)

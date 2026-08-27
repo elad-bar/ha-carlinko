@@ -6,7 +6,8 @@ Signing recovered from libapp.so (Blutter): see docs/decompiled/secure_*_utils.d
 Login = POST /user/login with a plaintext password body. The `v-data` header the app sends is
 NOT validated by the server, so we omit it.
 
-Secrets (email / password / region) come from the caller; token + vehicle ids from CarlinkoStore.
+Must not import homeassistant. Credentials come from the caller (HA config entry or
+engine CLI/.env); token + vehicle ids from CarlinkoStore.
 """
 from __future__ import annotations
 
@@ -115,7 +116,8 @@ class ApiClient:
         """Log in with credentials; persist token via CarlinkoStore."""
         if not self.email or not self.password:
             raise RuntimeError(
-                "CARLINKO_EMAIL / CARLINKO_PASSWORD missing — see .env.example / README"
+                "email / password missing — pass credentials to ApiClient "
+                "(HA: config entry; engine: .env / CLI)"
             )
         body = {
             "account": self.email,

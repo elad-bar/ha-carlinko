@@ -6,7 +6,7 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-from .models.base_entity import CarlinkoEntity
+from .common.base_entity import CarlinkoEntity
 from .common.entity_setup import async_setup_entities
 from .managers.coordinator import CarlinkoCoordinator
 from .models.entity_specs import EntitySpec
@@ -38,8 +38,6 @@ class CarlinkoNumber(CarlinkoEntity, NumberEntity):
         self, coordinator: CarlinkoCoordinator, spec: EntitySpec, vehicle_id: str
     ) -> None:
         super().__init__(coordinator, spec, vehicle_id)
-        if spec.unit:
-            self._attr_native_unit_of_measurement = spec.unit
         lo, hi, step = _LIMITS.get(spec.config_key or spec.key, (0, 1e7, 1))
         self._attr_native_min_value = lo
         self._attr_native_max_value = hi

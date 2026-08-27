@@ -1,7 +1,9 @@
 """Session / cost / vehicle persistence — one store for HA and engine.
 
-HA: wraps ``homeassistant.helpers.storage.Store`` (lazy import).
-Engine: same class, JSON file under ``CARLINKO_DATA`` / repo ``data/``.
+HA path: pass a pre-built ``homeassistant.helpers.storage.Store`` via ``ha_store=``
+(constructed in HA-facing modules). This module never imports Home Assistant.
+
+Engine: JSON file under ``CARLINKO_DATA`` / repo ``data/``.
 """
 from __future__ import annotations
 
@@ -33,11 +35,16 @@ def config_path() -> str:
     return os.path.join(data_dir(), "config.json")
 
 
+def ha_storage_key(entry_id: str) -> str:
+    """Storage key for HA ``Store`` (built by HA-facing callers)."""
+    return f"{STORAGE_KEY}.{entry_id}"
+
+
 class CarlinkoStore:
     """Persist token / vehicle ids / cost knobs.
 
-    Construct with ``(hass, entry_id)`` for Home Assistant, or ``path=...`` /
-    ``CarlinkoStore.for_engine()`` for the CLI harness.
+    HA: ``CarlinkoStore(hass, ha_store=Store(...))``.
+    Engine: ``CarlinkoStore.for_engine()`` / ``path=...``.
     """
 
     def __init__(
@@ -46,22 +53,22 @@ class CarlinkoStore:
         entry_id: str | None = None,
         *,
         path: str | None = None,
+        ha_store: Any | None = None,
     ) -> None:
         self.data: dict[str, Any] = {}
         self.hass = hass
         self._path: str | None = None
         self._ha_store: Any | None = None
 
-        if hass is not None:
-            if not entry_id:
-                raise ValueError("entry_id is required when hass is set")
-            # Lazy so engine can import this module without Home Assistant.
-            from homeassistant.helpers.storage import Store
-
-            self._ha_store = Store(
-                hass, STORAGE_VERSION, f"{STORAGE_KEY}.{entry_id}"
-            )
+        if ha_store is not None:
+            self._ha_store = ha_store
             return
+
+        if hass is not None:
+            raise ValueError(
+                "HA store requires ha_store= (construct Store in HA-facing code; "
+                f"key={ha_storage_key(entry_id or '')!r}, version={STORAGE_VERSION})"
+            )
 
         self._path = path or config_path()
         self.load()
@@ -153,21 +160,13 @@ class CarlinkoStore:
 
     def get_cost_config(self) -> dict[str, Any]:
         c = self.data
-        cur = c.get("currency") or {}
         raw = c.get("tariff")
-        if raw is None:
-            raw = c.get("tariff_idr")
         t = float(raw if raw is not None else DEFAULT_TARIFF)
         tariff = int(t) if t == int(t) else t
         return {
             "tariff": tariff,
             "petrol_price": float(c.get("petrol_price") or DEFAULT_PETROL_PRICE),
             "petrol_kml": float(c.get("petrol_kml") or DEFAULT_PETROL_KML),
-            "currency": {
-                "symbol": cur.get("symbol") or "Rp",
-                "locale": cur.get("locale") or "id-ID",
-                "code": (cur.get("code") or "IDR").upper(),
-            },
         }
 
     def set_cost_config(self, key: str, value: Any) -> dict[str, Any]:
@@ -188,7 +187,6 @@ class CarlinkoStore:
             self.load()
         if key == "tariff":
             self.data["tariff"] = int(v) if v == int(v) else v
-            self.data.pop("tariff_idr", None)
         else:
             self.data[key] = v
         self.save()

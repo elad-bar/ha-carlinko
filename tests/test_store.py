@@ -40,6 +40,22 @@ def test_set_vehicles_map_and_legacy_mirror() -> None:
             os.unlink(path)
 
 
+def test_cost_config_amounts() -> None:
+    path = tempfile.mktemp(suffix=".json")
+    try:
+        store = CarlinkoStore(path=path)
+        cfg = store.get_cost_config()
+        assert "tariff" in cfg
+        assert "petrol_price" in cfg
+        assert "petrol_kml" in cfg
+        assert "currency" not in cfg
+        assert store.set_cost_config("tariff", 100)["ok"]
+        assert store.get_cost_config()["tariff"] == 100
+    finally:
+        if os.path.isfile(path):
+            os.unlink(path)
+
+
 @pytest.mark.asyncio
 async def test_async_remove_file_store() -> None:
     path = tempfile.mktemp(suffix=".json")

@@ -10,7 +10,7 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from ..managers.coordinator import CarlinkoCoordinator
 from ..models.entity_specs import EntitySpec, get_entity_specs
-from ..models.base_entity import CarlinkoEntity
+from .base_entity import CarlinkoEntity
 
 _LOGGER = logging.getLogger(__name__)
 

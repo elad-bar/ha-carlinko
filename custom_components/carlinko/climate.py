@@ -11,7 +11,7 @@ from homeassistant.const import UnitOfTemperature
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-from .models.base_entity import CarlinkoEntity
+from .common.base_entity import CarlinkoEntity
 from .common.entity_setup import async_setup_entities
 from .managers.coordinator import CarlinkoCoordinator
 from .models.entity_specs import EntitySpec

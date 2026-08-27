@@ -353,7 +353,6 @@ async def test_entity_value_resolver_battery() -> None:
         "tariff": 1000,
         "petrol_price": 1,
         "petrol_kml": 12,
-        "currency": {},
     }
     resolver = EntityValueResolver(store)
     battery = next(s for s in ENTITY_SPECS if s.key == "battery")

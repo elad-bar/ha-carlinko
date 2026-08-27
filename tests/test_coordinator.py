@@ -8,10 +8,21 @@ from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ConfigEntryAuthFailed
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
-from custom_components.carlinko.common.consts import CONF_EMAIL, CONF_PASSWORD, CONF_REGION, DOMAIN
-from custom_components.carlinko.managers.coordinator import CarlinkoCoordinator
-from custom_components.carlinko.managers.store import CarlinkoStore
+from custom_components.carlinko.common.consts import (
+    CONF_EMAIL,
+    CONF_PASSWORD,
+    CONF_REGION,
+    DOMAIN,
+    STORAGE_VERSION,
+)
+from custom_components.carlinko.managers.coordinator import (
+    CarlinkoCoordinator,
+    VehicleRuntime,
+)
+from custom_components.carlinko.managers.store import CarlinkoStore, ha_storage_key
 from custom_components.carlinko.models.exceptions import AuthError
+from custom_components.carlinko.models.vehicle_state import VehicleState
+from homeassistant.helpers.storage import Store
 
 _VEHICLES = [
     {
@@ -43,11 +54,18 @@ def _entry() -> MockConfigEntry:
     )
 
 
+def _store(hass: HomeAssistant, entry: MockConfigEntry) -> CarlinkoStore:
+    return CarlinkoStore(
+        hass,
+        ha_store=Store(hass, STORAGE_VERSION, ha_storage_key(entry.entry_id)),
+    )
+
+
 @pytest.mark.asyncio
 async def test_async_start_auth_error(hass: HomeAssistant) -> None:
     entry = _entry()
     entry.add_to_hass(hass)
-    store = CarlinkoStore(hass, entry.entry_id)
+    store = _store(hass, entry)
     store.data = {"token": "dead"}
     session = MagicMock()
     coordinator = CarlinkoCoordinator(hass, entry, store, session)
@@ -68,7 +86,7 @@ async def test_async_start_auth_error(hass: HomeAssistant) -> None:
 async def test_async_start_multi_vehicle(hass: HomeAssistant) -> None:
     entry = _entry()
     entry.add_to_hass(hass)
-    store = CarlinkoStore(hass, entry.entry_id)
+    store = _store(hass, entry)
     store.data = {}
     session = MagicMock()
     coordinator = CarlinkoCoordinator(hass, entry, store, session)
@@ -82,6 +100,7 @@ async def test_async_start_multi_vehicle(hass: HomeAssistant) -> None:
             return_value=_VEHICLES,
         ),
         patch.object(coordinator, "_start_ws"),
+        patch.object(coordinator, "_async_wait_for_stream", new_callable=AsyncMock),
     ):
         await coordinator.async_start()
         await coordinator.async_stop()
@@ -97,7 +116,7 @@ async def test_async_start_multi_vehicle(hass: HomeAssistant) -> None:
 async def test_vehicle_list_add_remove(hass: HomeAssistant) -> None:
     entry = _entry()
     entry.add_to_hass(hass)
-    store = CarlinkoStore(hass, entry.entry_id)
+    store = _store(hass, entry)
     store.data = {}
     session = MagicMock()
     coordinator = CarlinkoCoordinator(hass, entry, store, session)
@@ -112,6 +131,7 @@ async def test_vehicle_list_add_remove(hass: HomeAssistant) -> None:
         ),
         patch.object(coordinator, "_start_ws"),
         patch.object(coordinator, "_stop_ws"),
+        patch.object(coordinator, "_async_wait_for_stream", new_callable=AsyncMock),
     ):
         await coordinator.async_start()
         assert coordinator.vehicle_ids == ["veh-1"]
@@ -137,7 +157,7 @@ async def test_vehicle_list_add_remove(hass: HomeAssistant) -> None:
 async def test_async_send_control_auth_error(hass: HomeAssistant) -> None:
     entry = _entry()
     entry.add_to_hass(hass)
-    store = CarlinkoStore(hass, entry.entry_id)
+    store = _store(hass, entry)
     store.data = {
         "token": "dead",
         "vehicles": {
@@ -149,8 +169,6 @@ async def test_async_send_control_auth_error(hass: HomeAssistant) -> None:
     session = MagicMock()
     coordinator = CarlinkoCoordinator(hass, entry, store, session)
     coordinator.api.token = "dead"
-    from custom_components.carlinko.managers.coordinator import VehicleRuntime
-    from custom_components.carlinko.models.vehicle_state import VehicleState
 
     coordinator._vehicles["v1"] = VehicleRuntime(
         vehicle_id="v1",

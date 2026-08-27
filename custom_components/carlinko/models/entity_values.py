@@ -107,7 +107,7 @@ class EntityValueResolver:
 
     @staticmethod
     def _tyres_problem(_spec: EntitySpec, state: dict) -> Any:
-        return (state.get("tyre_status") or "").lower().find("check") >= 0
+        return (state.get("tyre_status") or "") == "check_tyres"
 
     @staticmethod
     def _door_any(_spec: EntitySpec, state: dict) -> Any:

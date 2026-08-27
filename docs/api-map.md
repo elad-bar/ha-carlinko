@@ -114,7 +114,7 @@ tireTempFormula: data * 0.65 - 40      ->  °C
 invalid: pressure byte == FF, temp byte == FF    (…but the bytes are always FF here)
 ```
 
-So entities expose tyre **status** (Normal / Check tyres), **not** PSI on indirect-TPMS cars.
+So entities expose tyre **status** (`normal` / `check_tyres`), **not** PSI on indirect-TPMS cars.
 The decoder + formula are kept so a car which *does* report real values would display them,
 but on the J5 the only honest output is status. An abnormal tyre would surface via CarLinko
 alerts, not telemetry.

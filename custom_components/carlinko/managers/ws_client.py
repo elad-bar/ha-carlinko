@@ -1,22 +1,21 @@
-"""CarLinko WebSocket client for the HA bridge.
+"""CarLinko WebSocket client (HA-free at module load).
 
 Holds one persistent socket, receives pushed action:6 frames, decodes them via
-an injected VehicleState, and notifies an optional on_frame callback.
+an injected VehicleState, and notifies optional on_frame / on_connected callbacks.
 Auth / vehicle ids come from ApiClient + explicit vehicle_id / device_sn.
+
+Must not import homeassistant. Engine CLI owns stdout encoding setup.
 """
 from __future__ import annotations
 
 import asyncio
 import json
 import logging
-import sys
 import time
 from collections.abc import Callable
 from typing import Any
 
 import aiohttp
-
-sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 
 from ..common.consts import HEARTBEAT, OK_CODE, RECONNECT_WAIT, STREAM_BACKSTOP, TOUCH, USER_AGENT
 from ..models.exceptions import AuthError
@@ -28,7 +27,7 @@ _RECV_TIMEOUT = 2.0
 
 
 class WsClient:
-    """Persistent CarLinko WS stream → VehicleState → optional on_frame(state)."""
+    """Persistent CarLinko WS stream → VehicleState → optional callbacks."""
 
     def __init__(
         self,
@@ -36,6 +35,7 @@ class WsClient:
         api_client,
         on_frame: Callable[[dict[str, Any]], None] | None = None,
         *,
+        on_connected: Callable[[bool], None] | None = None,
         vehicle_id: str | None = None,
         device_sn: str | None = None,
         stream_backstop_s: int | None = None,
@@ -43,11 +43,19 @@ class WsClient:
         self.vehicle_state = vehicle_state
         self.api = api_client
         self.on_frame = on_frame
+        self.on_connected = on_connected
         self.vehicle_id = str(vehicle_id or "")
         self.device_sn = str(device_sn or "")
         self.stream_backstop_s = int(
             stream_backstop_s if stream_backstop_s is not None else STREAM_BACKSTOP
         )
+
+    def _set_connected(self, connected: bool) -> None:
+        if self.on_connected:
+            try:
+                self.on_connected(connected)
+            except Exception:
+                _LOGGER.exception("on_connected error")
 
     def reload_config(self):
         self.api.reload_ids_from_store()
@@ -156,6 +164,7 @@ class WsClient:
                     )
             await self.ws_send(ws, {"action": 6})
             await self.ws_send(ws, {"action": 0, "data": {"sn": dsn}})
+            self._set_connected(True)
             last_hb = last_req = last_touch = time.time()
             last_blob = None
             while not stop.is_set():
@@ -196,6 +205,7 @@ class WsClient:
                         )
                     last_blob = blob
         finally:
+            self._set_connected(False)
             await ws.close()
 
     async def run(self, stop: asyncio.Event):

@@ -86,7 +86,9 @@ class Enrichments:
         if raw_psi:
             self.new_data["tyre_indirect"] = False
             self.new_data["tyre_status"] = (
-                "Check tyres" if any(p < 28 or p > 40 for p in raw_psi) else "Normal"
+                "check_tyres"
+                if any(p < 28 or p > 40 for p in raw_psi)
+                else "normal"
             )
 
     def enrich_moving(self):
