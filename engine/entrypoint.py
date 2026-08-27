@@ -1,7 +1,7 @@
 """CarLinko WS stream → live entity change logs (dev harness; no HA).
 
 Requires .env (CARLINKO_EMAIL / PASSWORD / REGION) and data/config.json.
-Protocol code lives in custom_components/carlinko/protocol/.
+HA-free code lives in custom_components/carlinko/{managers,models}/.
 
 Usage:
   python entrypoint.py
@@ -14,33 +14,119 @@ import os
 import signal
 import socket
 import sys
+import types
+from typing import Any, Callable
 
 import aiohttp
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 REPO = os.path.dirname(HERE)
-if HERE not in sys.path:
-    sys.path.insert(0, HERE)
 
-from protocol_path import ensure_protocol_package
+_CAPS_REFRESH_INTERVAL_S = 3300
+_LOGGER = logging.getLogger(__name__)
 
-ensure_protocol_package(REPO)
+
+def _ensure_ha_free_packages(repo_root: str) -> None:
+    """Expose carlinko.managers / carlinko.models without loading HA ``__init__``.
+
+    Avoids putting ``custom_components/carlinko`` on ``sys.path`` (stdlib ``select``
+    shadow) and avoids executing the real integration package init.
+    """
+    if "carlinko" in sys.modules and getattr(sys.modules["carlinko"], "__path__", None):
+        return
+    root = os.path.join(repo_root, "custom_components", "carlinko")
+    pkg = types.ModuleType("carlinko")
+    pkg.__file__ = os.path.join(root, "__init__.py")
+    pkg.__path__ = [root]  # type: ignore[attr-defined]
+    pkg.__package__ = "carlinko"
+    sys.modules["carlinko"] = pkg
+
+
+def _configure_logging() -> None:
+    raw = (os.environ.get("CARLINKO_LOG_LEVEL") or "").strip().upper()
+    if raw:
+        level = getattr(logging, raw, logging.INFO)
+    else:
+        debug = str(os.environ.get("DEBUG", "")).lower() == "true"
+        level = logging.DEBUG if debug else logging.INFO
+    root = logging.getLogger()
+    root.setLevel(level)
+    root.handlers.clear()
+    handler = logging.StreamHandler(sys.stdout)
+    handler.setLevel(level)
+    handler.setFormatter(
+        logging.Formatter(
+            "%(asctime)s %(threadName)s[%(thread)d] %(levelname)s %(name)s %(message)s"
+        )
+    )
+    root.addHandler(handler)
+    for name in ("aiohttp", "aiohttp.access"):
+        logging.getLogger(name).setLevel(logging.WARNING)
+
+
+_ensure_ha_free_packages(REPO)
 
 from dotenv import load_dotenv
 
 load_dotenv(os.path.join(REPO, ".env"))
 
-from protocol.api_client import ApiClient
-from protocol.config_manager import ConfigManager
-from protocol.consts import USER_AGENT
-from protocol.vehicle_state import VehicleState
-from protocol.ws_client import WsClient
-from entity_publisher import EntityPublisher
-from log_setup import configure_logging
+from carlinko.managers.api_client import ApiClient
+from carlinko.managers.config_manager import ConfigManager
+from carlinko.managers.ws_client import WsClient
+from carlinko.models.config_adapter import ConfigAdapter
+from carlinko.common.consts import USER_AGENT
+from carlinko.models.entity_specs import ENTITY_SPECS, EntitySpec, get_entity_specs
+from carlinko.models.entity_values import EntityValueResolver
+from carlinko.models.vehicle_state import VehicleState
 
-_LOGGER = logging.getLogger(__name__)
 
-_CAPS_REFRESH_INTERVAL_S = 3300
+class EntityPublisher:
+    """Dev-only: resolve EntitySpecs → INFO logs on value change."""
+
+    def __init__(self, config: ConfigAdapter, get_caps: Callable[[], dict]):
+        self.config = config
+        self.get_caps = get_caps
+        self._resolver = EntityValueResolver(config)
+        self._last: dict[str, Any] = {}
+
+    def publish(self, state: dict) -> None:
+        try:
+            caps = self.get_caps() or {}
+        except Exception:
+            caps = {}
+        state = state or {}
+        specs = get_entity_specs(state=state, caps=caps)
+        active = set()
+        for spec in specs:
+            active.add(spec.key)
+            if not spec.has_live_state():
+                continue
+            value = self._resolver.resolve_value(spec, state)
+            if spec.key not in self._last or self._last[spec.key] != value:
+                old = (
+                    "—"
+                    if spec.key not in self._last
+                    else spec.format_value(self._last[spec.key])
+                )
+                _LOGGER.info(
+                    "%s: %s → %s",
+                    spec.name,
+                    old,
+                    spec.format_value(value),
+                )
+                self._last[spec.key] = value
+        for key in list(self._last):
+            if key not in active:
+                del self._last[key]
+
+    def log_command(self, key: str, action: str | None = None) -> None:
+        spec = next((s for s in ENTITY_SPECS if s.key == key), None)
+        if not spec:
+            _LOGGER.info("command %s %s", key, action)
+            return
+        if action is None and spec.platform == "button":
+            action = "press"
+        _LOGGER.info("%s", spec.format_command(action))
 
 
 def _env_secrets():
@@ -119,8 +205,8 @@ async def async_main() -> None:
                 pass
 
 
-def main():
-    configure_logging()
+def main() -> None:
+    _configure_logging()
     asyncio.run(async_main())
 
 

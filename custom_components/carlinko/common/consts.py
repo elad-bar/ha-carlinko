@@ -1,9 +1,34 @@
-"""Shared constants for the CarLinko engine (protocol, blob layout, defaults, thresholds).
-
-Instance-specific values come from config.json / KNOWN_CAR_OVERRIDES / env; these are the fallbacks and
-static protocol facts shared across api_client, ws_client, entity_specs.
-"""
+"""All CarLinko constants (integration + wire). Keep HA-free — no homeassistant imports."""
 from enum import Enum
+
+# ---------------------------------------------------------------------------
+# Integration
+# ---------------------------------------------------------------------------
+DOMAIN = "carlinko"
+
+CONF_EMAIL = "email"
+CONF_PASSWORD = "password"
+CONF_REGION = "region"
+
+# Entity unavailable when last frame older than this (legacy ~40 min).
+AVAILABILITY_SECONDS = 2400
+CAPS_REFRESH_INTERVAL_S = 3300
+
+# Platform names; __init__ maps these to homeassistant.const.Platform.
+PLATFORMS = (
+    "sensor",
+    "binary_sensor",
+    "number",
+    "lock",
+    "climate",
+    "cover",
+    "button",
+    "switch",
+    "select",
+)
+
+STORAGE_VERSION = 1
+STORAGE_KEY = f"{DOMAIN}.store"
 
 # ---------------------------------------------------------------------------
 # Protocol / hosts / headers

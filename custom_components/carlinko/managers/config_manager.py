@@ -6,13 +6,13 @@ import logging
 import os
 import tempfile
 
-from .consts import DEFAULT_PETROL_KML, DEFAULT_PETROL_PRICE, DEFAULT_TARIFF
+from ..common.consts import DEFAULT_PETROL_KML, DEFAULT_PETROL_PRICE, DEFAULT_TARIFF
 
 _LOGGER = logging.getLogger(__name__)
 
-# protocol/ → carlinko/ → custom_components/ → repo root
-_PROTOCOL = os.path.dirname(os.path.abspath(__file__))
-_REPO = os.path.dirname(os.path.dirname(os.path.dirname(_PROTOCOL)))
+# managers/ → carlinko/ → custom_components/ → repo root
+_MANAGERS = os.path.dirname(os.path.abspath(__file__))
+_REPO = os.path.dirname(os.path.dirname(os.path.dirname(_MANAGERS)))
 
 # Keys that belong in env, never in config.json
 _SECRET_KEYS = frozenset({"email", "password", "region"})

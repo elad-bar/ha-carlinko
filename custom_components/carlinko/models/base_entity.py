@@ -4,10 +4,10 @@ from __future__ import annotations
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from .const import DOMAIN
-from .coordinator import CarlinkoCoordinator
-from .protocol.entity_specs import EntitySpec
-from .protocol.entity_values import EntityValueResolver
+from ..managers.coordinator import CarlinkoCoordinator
+from ..common.consts import DOMAIN
+from .entity_specs import EntitySpec
+from .entity_values import EntityValueResolver
 
 
 class CarlinkoEntity(CoordinatorEntity[CarlinkoCoordinator]):

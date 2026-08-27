@@ -7,8 +7,8 @@ from homeassistant.components.diagnostics import async_redact_data
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 
-from .const import CONF_EMAIL, CONF_PASSWORD, CONF_REGION, DOMAIN
-from .coordinator import CarlinkoCoordinator
+from .common.consts import CONF_EMAIL, CONF_PASSWORD, CONF_REGION, DOMAIN
+from .managers.coordinator import CarlinkoCoordinator
 
 TO_REDACT = {CONF_PASSWORD, "token", "password", "sign_key"}
 

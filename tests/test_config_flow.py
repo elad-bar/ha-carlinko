@@ -9,10 +9,10 @@ from homeassistant.core import HomeAssistant
 from homeassistant.data_entry_flow import FlowResultType
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
-from custom_components.carlinko.const import CONF_EMAIL, CONF_PASSWORD, CONF_REGION, DOMAIN
-from custom_components.carlinko.protocol.entity_specs import ENTITY_SPECS
-from custom_components.carlinko.protocol.entity_values import EntityValueResolver
-from custom_components.carlinko.protocol.exceptions import AuthError
+from custom_components.carlinko.common.consts import CONF_EMAIL, CONF_PASSWORD, CONF_REGION, DOMAIN
+from custom_components.carlinko.models.entity_specs import ENTITY_SPECS
+from custom_components.carlinko.models.entity_values import EntityValueResolver
+from custom_components.carlinko.models.exceptions import AuthError
 
 
 @pytest.mark.asyncio

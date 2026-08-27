@@ -1,6 +1,6 @@
 # TODO — close gaps vs dolphin-robot `develop`
 
-Tracked against [sh00t2kill/dolphin-robot](https://github.com/sh00t2kill/dolphin-robot) (`develop` / `custom_components/mydolphin_plus`). CarLinko already has the factory shape (spec catalog, coordinator, reauth, diagnostics). Behavior gaps and **package layout** vs Dolphin’s `common` / `managers` / `models` are still open; current file paths below are temporary until the layout pass lands.
+Tracked against [sh00t2kill/dolphin-robot](https://github.com/sh00t2kill/dolphin-robot) (`develop` / `custom_components/mydolphin_plus`). CarLinko already has the factory shape (spec catalog, coordinator, reauth, diagnostics). Package layout now matches Dolphin: `common/` + `managers/` + `models/` (no `protocol/`). Engine is a single-file CLI that mounts HA-free managers/models. Behavior gaps remain.
 
 Checkboxes are work items, not a claim that Dolphin has climate/covers. Platform-specific bugs are still listed because hassfest and users will hit them.
 
@@ -16,20 +16,19 @@ Target shape under `custom_components/carlinko/`:
 
 ```
 common/       # HA consts, base_entity, entity_descriptions, domain enums
-managers/     # coordinator, config_manager, flow_manager, api/ws clients, store
-models/       # config_data, exceptions, vehicle/blob DTOs
-# optional thin HA-free slice for engine/ (catalog + wire helpers; name TBD)
+managers/     # coordinator, store, api/ws clients, config_manager, flow_manager
+models/       # wire consts, exceptions, vehicle/blob DTOs, entity catalog
 ```
 
-- [ ] Split / rename away from a single fat `protocol/` bag into `common/` + `managers/` + `models/`
-- [ ] Decide what stays HA-free for `engine/` (catalog and wire helpers only — not HA `config_manager` / coordinator)
-- [ ] Move root `entity.py` + `entity_setup.py` → `common/base_entity.py` (+ Dolphin-style `async_setup_entities` helper)
-- [ ] Move root `coordinator.py` / `store.py` → `managers/`
-- [ ] Move API / WS clients (+ HA-facing config manager) → `managers/`
-- [ ] Extract `managers/flow_manager.py` + `models/config_data.py` from monolithic `config_flow.py` (thin flow module at package root)
-- [ ] Collapse dual consts (`const.py` vs `protocol/consts.py`) toward Dolphin’s `common/consts.py` (thin re-export at package root OK)
-- [ ] Update `engine/protocol_path.py` (or successor) so CLI still resolves the HA-free slice after the move
-- [ ] Add empty `services.yaml` (Dolphin ships a placeholder even with no custom services)
+- [x] Split HA glue into `common/` + `managers/` + `models/` (former `protocol/` dissolved)
+- [x] HA-free for `engine/`: `managers/` clients + `models/` must not import Home Assistant; HA coordinator/store stay HA-only
+- [x] Move root `entity.py` + `entity_setup.py` → `common/base_entity.py` + `common/entity_setup.py` (`async_setup_entities`)
+- [x] Move root `coordinator.py` / `store.py` → `managers/`
+- [x] Move API / WS clients (+ file `config_manager`) → `managers/`
+- [ ] Extract `managers/flow_manager.py` + `models/config_data.py` from `config_flow.py` (thin flow module at package root) — deferred (flow is already small)
+- [x] One consts file: `common/consts.py` (integration + wire; HA-free). Helpers in `common/helpers.py`. Platforms mapped to `Platform` in `__init__.py`.
+- [x] Engine collapsed to `engine/entrypoint.py` (mounts synthetic `carlinko.managers` / `carlinko.models`)
+- [x] Add empty `services.yaml` (Dolphin ships a placeholder even with no custom services)
 - [ ] Optional repo companions: `info.md`, `www/` brand SVGs (HACS / Dolphin repo convention)
 
 ### Integration lifecycle (`__init__.py`)
@@ -211,15 +210,15 @@ Keep these; they already match the Dolphin *behavior* shape (file paths may stil
 - `iot_class: cloud_push`
 - `PARALLEL_UPDATES = 1`
 - Exception translations for auth / control failures
-- A HA-free catalog / wire layer usable from `engine/` (exact package name TBD after layout)
+- A HA-free catalog / wire layer in `models/` (+ API/WS in `managers/`) usable from `engine/`
 
-Not done: Dolphin’s `common` / `managers` / `models` package layout, HA `EntityDescription` catalog, or full `entity.*` translations.
+Not done: HA `EntityDescription` catalog, or full `entity.*` translations.
 
 ---
 
 ## Notes
 
-- HA-free modules (catalog + wire helpers used by `engine/`) must not import Home Assistant. HA-facing code lives in `common/` / `managers/` / package-root platforms after the layout pass. Do not treat today’s entire `protocol/` tree as the permanent contract.
+- HA-free modules (`models/` + `managers/api_client.py` / `ws_client.py` / `config_manager.py`) must not import Home Assistant. HA-facing code lives in `common/`, HA parts of `managers/`, and package-root platforms. `engine/entrypoint.py` mounts a synthetic `carlinko` parent so those packages import without loading the integration `__init__`.
 - Entity copy lives in `strings.json` / `translations/*.json`; description / catalog `key` is the lookup, not a display `name`.
 - House currency comes from HA General (`hass.config.currency`), not a CarLinko setting.
 - Custom domain services are optional; empty `services.yaml` + `action_setup: exempt` is fine if everything stays on entities.

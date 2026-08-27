@@ -9,7 +9,7 @@ Recovered from Dart AOT (`send_vehicle_control_data_utils.dart::assembledSendDat
 verify on an awake car before trusting them.
 
 **Runtime wiring:** hex for integrated controls lives on
-[`EntitySpec.commands`](../custom_components/carlinko/protocol/entity_specs.py)
+[`EntitySpec.commands`](../custom_components/carlinko/models/entity_specs.py)
 (action → opcode). This document is the **complete** named-key catalog (used and unused).
 
 Verify by calling `ApiClient.send_control(hex)` from `engine/` or `EntityPublisher.log_command(key, action)`.
@@ -91,7 +91,7 @@ Indices ~28–35 (generic seat On/Off) are **incomplete in the binary** (some Of
 ## Named keys (complete)
 
 Blutter assembledSendData jump table (2026-08). **Entity spec** = `EntitySpec.key` in
-[`entity_specs.py`](../custom_components/carlinko/protocol/entity_specs.py) when that hex is
+[`entity_specs.py`](../custom_components/carlinko/models/entity_specs.py) when that hex is
 wired via `commands`; **—** = doc-only.
 
 | Name | Opcode | Entity spec |

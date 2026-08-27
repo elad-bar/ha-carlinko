@@ -1,7 +1,7 @@
 """Section-gated status-blob field extract + optional scaling."""
 from __future__ import annotations
 
-from .consts import BLOB, BLOB_FIELDS
+from ..common.consts import BLOB, BLOB_FIELDS
 
 
 class BlobFields:

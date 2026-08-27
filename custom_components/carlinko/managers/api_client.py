@@ -19,7 +19,7 @@ import time
 
 import aiohttp
 
-from .consts import (
+from ..common.consts import (
     AC_BOOLS,
     API_HOST_TMPL,
     CFG_BOOLS,
@@ -34,8 +34,8 @@ from .consts import (
     WIN_BOOLS,
     WS_HOST_TMPL,
 )
-from .exceptions import AuthError
-from .helpers import flag, flags, parse_control_cfg, seat_max
+from ..models.exceptions import AuthError
+from ..common.helpers import flag, flags, parse_control_cfg, seat_max
 
 _LOGGER = logging.getLogger(__name__)
 

@@ -7,14 +7,14 @@ from collections.abc import Callable
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-from .coordinator import CarlinkoCoordinator
-from .entity import CarlinkoEntity
-from .protocol.entity_specs import EntitySpec, get_entity_specs
+from ..managers.coordinator import CarlinkoCoordinator
+from ..models.entity_specs import EntitySpec, get_entity_specs
+from ..models.base_entity import CarlinkoEntity
 
 _LOGGER = logging.getLogger(__name__)
 
 
-def async_setup_spec_platform(
+def async_setup_entities(
     hass: HomeAssistant,
     coordinator: CarlinkoCoordinator,
     platform: str,

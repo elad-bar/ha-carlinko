@@ -6,11 +6,11 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-from .const import DOMAIN
-from .coordinator import CarlinkoCoordinator
-from .entity import CarlinkoEntity
-from .entity_setup import async_setup_spec_platform
-from .protocol.entity_specs import EntitySpec
+from .models.base_entity import CarlinkoEntity
+from .common.entity_setup import async_setup_entities
+from .common.consts import DOMAIN
+from .managers.coordinator import CarlinkoCoordinator
+from .models.entity_specs import EntitySpec
 
 PARALLEL_UPDATES = 1
 
@@ -21,7 +21,7 @@ async def async_setup_entry(
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     coordinator: CarlinkoCoordinator = hass.data[DOMAIN][entry.entry_id]
-    async_setup_spec_platform(
+    async_setup_entities(
         hass, coordinator, "select", async_add_entities, CarlinkoSelect
     )
 

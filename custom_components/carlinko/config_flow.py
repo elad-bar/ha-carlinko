@@ -11,10 +11,9 @@ from homeassistant.const import CONF_PASSWORD
 from homeassistant.data_entry_flow import FlowResult
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
-from .const import CONF_EMAIL, CONF_REGION, DOMAIN
-from .protocol.api_client import ApiClient
-from .protocol.consts import DEFAULT_REGION
-from .protocol.exceptions import AuthError
+from .managers.api_client import ApiClient
+from .common.consts import CONF_EMAIL, CONF_REGION, DEFAULT_REGION, DOMAIN
+from .models.exceptions import AuthError
 
 _LOGGER = logging.getLogger(__name__)
 

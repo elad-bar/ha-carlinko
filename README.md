@@ -54,7 +54,7 @@ If the token goes stale, Home Assistant prompts for **re-authentication**
 
 - Push updates over the CarLinko WebSocket (`iot_class: cloud_push`).
 - Entities come from the HA-free catalog in
-  [`protocol/entity_specs.py`](custom_components/carlinko/protocol/entity_specs.py).
+  [`models/entity_specs.py`](custom_components/carlinko/models/entity_specs.py).
 - PHEV, direct TPMS, and capability-gated controls appear when the car reports
   them; entities are added/removed as that set changes.
 - Entities go unavailable after ~40 minutes without a frame.
@@ -73,7 +73,7 @@ If the token goes stale, Home Assistant prompts for **re-authentication**
 | Button          | Find car, stop charging, quick cool/heat      |
 | Number          | Charging tariff, petrol price / economy       |
 
-Full catalog and opcodes: [`entity_specs.py`](custom_components/carlinko/protocol/entity_specs.py),
+Full catalog and opcodes: [`entity_specs.py`](custom_components/carlinko/models/entity_specs.py),
 [`docs/control-opcodes.md`](docs/control-opcodes.md).
 
 File a [compatibility report](https://github.com/elad-bar/ha-carlinko/issues/new?template=compatibility.md)
@@ -104,8 +104,8 @@ Reauthenticate** on the integration entry.
 
 ## Dev without Home Assistant
 
-Optional CLI harness that imports the same protocol package and logs entity
-value changes on stdout:
+Optional CLI harness (`engine/entrypoint.py`) that mounts the same HA-free
+`managers/` + `models/` packages and logs entity value changes on stdout:
 
 ```bash
 pip install -r requirements.txt
@@ -119,8 +119,8 @@ cd engine && python entrypoint.py
 
 | Path | Role |
 |------|------|
-| [`custom_components/carlinko/`](custom_components/carlinko/) | HA integration + protocol |
-| [`engine/`](engine/) | Dev harness (no HA) |
+| [`custom_components/carlinko/`](custom_components/carlinko/) | HA integration (`common` / `managers` / `models`) |
+| [`engine/`](engine/) | Dev harness (single-file CLI, no HA) |
 | [`docs/`](docs/) | API map, opcodes |
 
 ## Docs

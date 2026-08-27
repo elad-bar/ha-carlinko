@@ -4,7 +4,7 @@ from __future__ import annotations
 from typing import Any, Callable
 
 from .config_adapter import ConfigAdapter
-from .consts import CHARGE_STATE, HV_STATE
+from ..common.consts import CHARGE_STATE, HV_STATE
 from .entity_specs import EntitySpec
 
 DerivedResolver = Callable[[EntitySpec, dict], Any]

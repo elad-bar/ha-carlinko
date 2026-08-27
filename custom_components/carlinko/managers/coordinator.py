@@ -14,20 +14,21 @@ from homeassistant.exceptions import ConfigEntryAuthFailed, HomeAssistantError
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 
-from .const import (
+from ..common.consts import (
     AVAILABILITY_SECONDS,
     CAPS_REFRESH_INTERVAL_S,
     CONF_EMAIL,
     CONF_PASSWORD,
     CONF_REGION,
     DOMAIN,
+    OK_CODE,
+    STALE_TOKEN_CODES,
 )
-from .protocol.api_client import ApiClient
-from .protocol.consts import OK_CODE, STALE_TOKEN_CODES
-from .protocol.exceptions import AuthError
-from .protocol.entity_specs import get_entity_specs
-from .protocol.vehicle_state import VehicleState
-from .protocol.ws_client import WsClient
+from ..managers.api_client import ApiClient
+from ..models.entity_specs import get_entity_specs
+from ..models.exceptions import AuthError
+from ..models.vehicle_state import VehicleState
+from ..managers.ws_client import WsClient
 from .store import CarlinkoStore
 
 _LOGGER = logging.getLogger(__name__)

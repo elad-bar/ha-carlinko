@@ -8,10 +8,10 @@ from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ConfigEntryAuthFailed
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
-from custom_components.carlinko.const import CONF_EMAIL, CONF_PASSWORD, CONF_REGION, DOMAIN
-from custom_components.carlinko.coordinator import CarlinkoCoordinator
-from custom_components.carlinko.protocol.exceptions import AuthError
-from custom_components.carlinko.store import CarlinkoStore
+from custom_components.carlinko.common.consts import CONF_EMAIL, CONF_PASSWORD, CONF_REGION, DOMAIN
+from custom_components.carlinko.managers.coordinator import CarlinkoCoordinator
+from custom_components.carlinko.managers.store import CarlinkoStore
+from custom_components.carlinko.models.exceptions import AuthError
 
 
 def _entry() -> MockConfigEntry:

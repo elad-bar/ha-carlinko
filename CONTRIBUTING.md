@@ -12,7 +12,7 @@ get a [template](.github/PULL_REQUEST_TEMPLATE.md); *which car you validated aga
 - **Confirm compatibility.** Run the engine against your car and open a
   [compatibility report](https://github.com/elad-bar/ha-carlinko/issues/new?template=compatibility.md).
 - **Fix a telemetry offset** (blob decode lives under
-  [`custom_components/carlinko/protocol/`](custom_components/carlinko/protocol/) —
+  [`custom_components/carlinko/models/`](custom_components/carlinko/models/) —
   `helpers.py` / `enrichments.py` / `consts.py`).
 - **Docs** — setup friction, HA entity notes, opcode verification.
 
@@ -30,9 +30,9 @@ get a [template](.github/PULL_REQUEST_TEMPLATE.md); *which car you validated aga
 1. Keep changes focused — one feature/fix per PR.
 2. Runtime pip deps live in [`requirements.txt`](requirements.txt)
    (`aiohttp`, `python-dotenv`, `homeassistant` for local typing / IDE).
-   Protocol code under `custom_components/carlinko/protocol/` must stay free of
-   `homeassistant` imports. Test-only deps (including `pre-commit`) are in
-   `requirements-dev.txt`.
+   HA-free code under `custom_components/carlinko/models/` and the API/WS clients in
+   `managers/` must stay free of `homeassistant` imports. Test-only deps (including
+   `pre-commit`) are in `requirements-dev.txt`.
 3. **Never** include `.env`, `config.json`, tokens, API keys, VIN or plate in a commit,
    screenshot, or log paste.
 4. If you touch telemetry decoding, say which car/region you validated against.

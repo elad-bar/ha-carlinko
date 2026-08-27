@@ -1,4 +1,4 @@
-"""HA Store-backed config implementing protocol ConfigAdapter."""
+"""HA Store-backed config implementing models.ConfigAdapter."""
 from __future__ import annotations
 
 from typing import Any
@@ -6,8 +6,13 @@ from typing import Any
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.storage import Store
 
-from .const import STORAGE_KEY, STORAGE_VERSION
-from .protocol.consts import DEFAULT_PETROL_KML, DEFAULT_PETROL_PRICE, DEFAULT_TARIFF
+from ..common.consts import (
+    DEFAULT_PETROL_KML,
+    DEFAULT_PETROL_PRICE,
+    DEFAULT_TARIFF,
+    STORAGE_KEY,
+    STORAGE_VERSION,
+)
 
 
 class CarlinkoStore:

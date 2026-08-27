@@ -2,11 +2,14 @@
 from __future__ import annotations
 
 from homeassistant.config_entries import ConfigEntry
+from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ConfigEntryNotReady
 
-from .const import DOMAIN, PLATFORMS
-from .coordinator import async_create_coordinator
+from .managers.coordinator import async_create_coordinator
+from .common.consts import DOMAIN, PLATFORMS as _PLATFORM_NAMES
+
+PLATFORMS = [Platform(p) for p in _PLATFORM_NAMES]
 
 __all__ = ["DOMAIN", "PLATFORMS", "async_setup_entry", "async_unload_entry"]
 

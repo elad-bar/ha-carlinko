@@ -2,8 +2,10 @@
 
 > Historical recon notes (captured 2026-06-21 via reFlutter + mitmproxy). Runtime
 > implementation lives in
-> [`custom_components/carlinko/protocol/`](../custom_components/carlinko/protocol/)
-> (HA integration) and the optional [`engine/`](../engine/) CLI harness. The retired
+> [`custom_components/carlinko/models/`](../custom_components/carlinko/models/)
+> (catalog / wire) and
+> [`managers/`](../custom_components/carlinko/managers/) (API / WS), plus the optional
+> [`engine/`](../engine/) CLI harness. The retired
 > mobile PWA is gone — “dashboard” below means the official CarLinko app or the car’s
 > own instrument cluster unless noted.
 
@@ -35,7 +37,7 @@ Notes:
 - **Responses are plaintext JSON** (not encrypted). The request `v-data` blob is ignored by the server (not validated), so the only thing gating signed requests is the HMAC signature (app-global key).
 - Envelope: `{"data": ..., "code": "0000", "msg": "请求成功"/"OK"}`. `code != "0000"` = error.
 - Crypto lib = pointycastle (AES + HMAC-SHA256). Signing is implemented in
-  `protocol/api_client.py` (`DEFAULT_SIGN_KEY` in `consts.py` — app-global constant).
+  `managers/api_client.py` (`DEFAULT_SIGN_KEY` in `consts.py` — app-global constant).
 
 ## Endpoint catalog (observed)
 
@@ -89,7 +91,7 @@ Example (car parked/asleep):
 000000FF00E000F802
 ```
 This is the packed vehicle state (battery, range, lock, windows, **tyres**…). Field byte
-offsets are mapped in `protocol/` (`blob_fields.py`, `helpers.py`, `enrichments.py`) —
+offsets are mapped in `models/` (`blob_fields.py`, `helpers.py`, `enrichments.py`) —
 see the table under **Standalone access** below.
 The `FFFFFFFFFFFFFFFF` run = invalid markers (`tirePressureInvalid:["FF"]`,
 `tireTempInvalid:["FF"]`) because the car is asleep → no live tyre data right now.
@@ -119,7 +121,7 @@ alerts, not telemetry.
 
 ## Standalone access — VALIDATED ✅
 
-[`protocol/ws_client.py`](../custom_components/carlinko/protocol/ws_client.py): connects to the
+[`managers/ws_client.py`](../custom_components/carlinko/managers/ws_client.py): connects to the
 WS with **only the token** (WS login takes `{action:1,data:{token,vehicleId}}` — **no
 signature**), requests `{action:6}`, and decodes the blob. Confirmed against the official app:
 
@@ -238,7 +240,7 @@ Reads can run off the WebSocket + token alone; REST signing is used for login, v
 and remote control (`ApiClient`).
 
 **Resolved since original recon:**
-- ~~Signature algorithm + appSecret~~ — implemented in `protocol/api_client.py`.
-- ~~Map telemetry blob offsets~~ — see table above; live in `protocol/`.
+- ~~Signature algorithm + appSecret~~ — implemented in `managers/api_client.py`.
+- ~~Map telemetry blob offsets~~ — see table above; live in `models/`.
 - ~~`v-data` replay~~ — not validated by the server; omitted.
 - Token refresh — login + re-auth via signed REST (HA config entry / engine `.env`).

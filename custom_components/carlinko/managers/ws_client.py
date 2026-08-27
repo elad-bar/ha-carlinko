@@ -16,8 +16,8 @@ import aiohttp
 
 sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 
-from .consts import HEARTBEAT, OK_CODE, RECONNECT_WAIT, STREAM_BACKSTOP, TOUCH, USER_AGENT
-from .exceptions import AuthError
+from ..common.consts import HEARTBEAT, OK_CODE, RECONNECT_WAIT, STREAM_BACKSTOP, TOUCH, USER_AGENT
+from ..models.exceptions import AuthError
 
 _LOGGER = logging.getLogger(__name__)
 
