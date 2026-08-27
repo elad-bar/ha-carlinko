@@ -1,12 +1,15 @@
 """Resolve EntitySpec values from live vehicle state + cost config (HA-free)."""
 from __future__ import annotations
 
+from datetime import UTC, datetime
 from typing import Any, Callable, Protocol, runtime_checkable
 
 from ..common.consts import CHARGE_STATE, HV_STATE
 from .entity_specs import EntitySpec
 
 DerivedResolver = Callable[[EntitySpec, dict], Any]
+
+_SEAT_LEVELS = {0: "off", 1: "L1", 2: "L2", 3: "L3"}
 
 
 @runtime_checkable
@@ -54,6 +57,8 @@ class EntityValueResolver:
             "charge_state": self._charge_state,
             "hv_state": self._hv_state,
             "energy_left": self._energy_left,
+            "updated": self._updated,
+            "seat_level": self._seat_level,
             "tyres_problem": self._tyres_problem,
             "door_any": self._door_any,
             "door_bit": self._door_bit,
@@ -104,6 +109,30 @@ class EntityValueResolver:
         if battery is None or not cap:
             return None
         return round(battery / 100.0 * cap, 2)
+
+    @staticmethod
+    def _updated(_spec: EntitySpec, state: dict) -> Any:
+        ts = state.get("updated_ts")
+        if ts is None:
+            return None
+        try:
+            return datetime.fromtimestamp(float(ts), tz=UTC)
+        except (TypeError, ValueError, OSError, OverflowError):
+            return None
+
+    @staticmethod
+    def _seat_level(spec: EntitySpec, state: dict) -> Any:
+        path = spec.data_path
+        if not path:
+            return None
+        raw = get_path(state, path)
+        if raw is None:
+            return None
+        try:
+            level = int(raw)
+        except (TypeError, ValueError):
+            return None
+        return _SEAT_LEVELS.get(level)
 
     @staticmethod
     def _tyres_problem(_spec: EntitySpec, state: dict) -> Any:

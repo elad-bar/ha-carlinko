@@ -84,11 +84,13 @@ ENTITY_SPECS: tuple[EntitySpec, ...] = (
     ),
     EntitySpec(
         key="range", platform="sensor", name="Range",
-        data_path="range", unit="km", icon="mdi:map-marker-distance", state_class="measurement",
+        data_path="range", unit="km", device_class="distance",
+        icon="mdi:map-marker-distance", state_class="measurement",
     ),
     EntitySpec(
         key="odometer", platform="sensor", name="Odometer",
-        data_path="odo", unit="km", icon="mdi:counter", state_class="total_increasing",
+        data_path="odo", unit="km", device_class="distance",
+        icon="mdi:counter", state_class="total_increasing",
     ),
     EntitySpec(
         key="volt12", platform="sensor", name="12V Battery",
@@ -125,7 +127,7 @@ ENTITY_SPECS: tuple[EntitySpec, ...] = (
     ),
     EntitySpec(
         key="updated", platform="sensor", name="Updated",
-        data_path="updated", device_class="timestamp",
+        resolve="updated", device_class="timestamp",
     ),
     EntitySpec(
         key="hv_state", platform="sensor", name="HV state",
@@ -134,12 +136,13 @@ ENTITY_SPECS: tuple[EntitySpec, ...] = (
     ),
     EntitySpec(
         key="wltc_range", platform="sensor", name="Rated range",
-        data_path="wltc_range", unit="km", icon="mdi:map-marker-distance",
-        state_class="measurement",
+        data_path="wltc_range", unit="km", device_class="distance",
+        icon="mdi:map-marker-distance", state_class="measurement",
     ),
     EntitySpec(
         key="energy_left", platform="sensor", name="Energy left",
-        resolve="energy_left", unit="kWh", device_class="energy", state_class="measurement",
+        resolve="energy_left", unit="kWh", device_class="energy_storage",
+        state_class="measurement",
     ),
     EntitySpec(
         key="tyre_status", platform="sensor", name="Tyre status",
@@ -211,13 +214,13 @@ ENTITY_SPECS: tuple[EntitySpec, ...] = (
     ),
     EntitySpec(
         key="fuel_range", platform="sensor", name="Fuel range",
-        data_path="fuel.range_km", unit="km", icon="mdi:map-marker-distance",
-        state_class="measurement", when="phev",
+        data_path="fuel.range_km", unit="km", device_class="distance",
+        icon="mdi:map-marker-distance", state_class="measurement", when="phev",
     ),
     EntitySpec(
         key="total_range", platform="sensor", name="Total range",
-        data_path="fuel.total_range_km", unit="km", icon="mdi:map-marker-distance",
-        state_class="measurement", when="phev",
+        data_path="fuel.total_range_km", unit="km", device_class="distance",
+        icon="mdi:map-marker-distance", state_class="measurement", when="phev",
     ),
     EntitySpec(
         key="fuel_consumption", platform="sensor", name="Fuel consumption",
@@ -227,43 +230,43 @@ ENTITY_SPECS: tuple[EntitySpec, ...] = (
     # --- direct TPMS ---
     EntitySpec(
         key="tyre_fl", platform="sensor", name="Front left",
-        data_path="tpms.0.psi", device_class="pressure", state_class="measurement",
-        when="direct_tpms",
+        data_path="tpms.0.psi", unit="psi", device_class="pressure",
+        state_class="measurement", when="direct_tpms",
     ),
     EntitySpec(
         key="tyre_fl_temp", platform="sensor", name="Front left temp",
-        data_path="tpms.0.temp", unit="°C", device_class="temperature", state_class="measurement",
-        when="direct_tpms",
+        data_path="tpms.0.temp", unit="°C", device_class="temperature",
+        state_class="measurement", when="direct_tpms",
     ),
     EntitySpec(
         key="tyre_fr", platform="sensor", name="Front right",
-        data_path="tpms.1.psi", device_class="pressure", state_class="measurement",
-        when="direct_tpms",
+        data_path="tpms.1.psi", unit="psi", device_class="pressure",
+        state_class="measurement", when="direct_tpms",
     ),
     EntitySpec(
         key="tyre_fr_temp", platform="sensor", name="Front right temp",
-        data_path="tpms.1.temp", unit="°C", device_class="temperature", state_class="measurement",
-        when="direct_tpms",
+        data_path="tpms.1.temp", unit="°C", device_class="temperature",
+        state_class="measurement", when="direct_tpms",
     ),
     EntitySpec(
         key="tyre_rl", platform="sensor", name="Rear left",
-        data_path="tpms.2.psi", device_class="pressure", state_class="measurement",
-        when="direct_tpms",
+        data_path="tpms.2.psi", unit="psi", device_class="pressure",
+        state_class="measurement", when="direct_tpms",
     ),
     EntitySpec(
         key="tyre_rl_temp", platform="sensor", name="Rear left temp",
-        data_path="tpms.2.temp", unit="°C", device_class="temperature", state_class="measurement",
-        when="direct_tpms",
+        data_path="tpms.2.temp", unit="°C", device_class="temperature",
+        state_class="measurement", when="direct_tpms",
     ),
     EntitySpec(
         key="tyre_rr", platform="sensor", name="Rear right",
-        data_path="tpms.3.psi", device_class="pressure", state_class="measurement",
-        when="direct_tpms",
+        data_path="tpms.3.psi", unit="psi", device_class="pressure",
+        state_class="measurement", when="direct_tpms",
     ),
     EntitySpec(
         key="tyre_rr_temp", platform="sensor", name="Rear right temp",
-        data_path="tpms.3.temp", unit="°C", device_class="temperature", state_class="measurement",
-        when="direct_tpms",
+        data_path="tpms.3.temp", unit="°C", device_class="temperature",
+        state_class="measurement", when="direct_tpms",
     ),
     # --- config numbers ---
     EntitySpec(
@@ -298,17 +301,25 @@ ENTITY_SPECS: tuple[EntitySpec, ...] = (
     EntitySpec(
         key="windows", platform="cover", name="Windows",
         resolve="windows_state", when="cap:windows",
-        commands={"open": "740600", "close": "740500", "vent": "740E00"},
+        commands={"open": "740600", "close": "740500"},
     ),
     EntitySpec(
         key="sunroof", platform="cover", name="Sunroof",
         resolve="sunroof_state", when="cap:sunroof",
-        commands={"open": "740F01", "close": "740F00", "tilt": "740F02"},
+        commands={"open": "740F01", "close": "740F00"},
     ),
     EntitySpec(
         key="liftgate", platform="cover", name="Liftgate",
         resolve="liftgate_state", when="cap:liftgate",
         commands={"open": "740300", "close": "740A00"},
+    ),
+    EntitySpec(
+        key="windows_vent", platform="button", name="Windows vent",
+        when="cap:windows.vent", commands={"press": "740E00"},
+    ),
+    EntitySpec(
+        key="sunroof_tilt", platform="button", name="Sunroof tilt",
+        when="cap:sunroof.tilt", commands={"press": "740F02"},
     ),
     EntitySpec(
         key="find", platform="button", name="Find car",
@@ -350,24 +361,28 @@ ENTITY_SPECS: tuple[EntitySpec, ...] = (
         when="cap:ac.purify",
         commands={"on": "742501", "off": "742500"},
     ),
-    # Seat selects: commands only until live seat levels exist in VehicleState.
+    # Front seats: live levels from blob. Rear seats: command-only (no blob yet).
     EntitySpec(
         key="seat_heatL", platform="select", name="Driver seat heat",
+        data_path="seat_heat_l", resolve="seat_level",
         options=("off", "L1", "L2", "L3"), when="cap:seats.heatL",
         commands={"off": "741500", "L1": "741501", "L2": "741502", "L3": "741503"},
     ),
     EntitySpec(
         key="seat_ventL", platform="select", name="Driver seat vent",
+        data_path="seat_vent_l", resolve="seat_level",
         options=("off", "L1", "L2", "L3"), when="cap:seats.ventL",
         commands={"off": "741A00", "L1": "741A01", "L2": "741A02", "L3": "741A03"},
     ),
     EntitySpec(
         key="seat_heatR", platform="select", name="Passenger seat heat",
+        data_path="seat_heat_r", resolve="seat_level",
         options=("off", "L1", "L2", "L3"), when="cap:seats.heatR",
         commands={"off": "741600", "L1": "741601", "L2": "741602", "L3": "741603"},
     ),
     EntitySpec(
         key="seat_ventR", platform="select", name="Passenger seat vent",
+        data_path="seat_vent_r", resolve="seat_level",
         options=("off", "L1", "L2", "L3"), when="cap:seats.ventR",
         commands={"off": "741B00", "L1": "741B01", "L2": "741B02", "L3": "741B03"},
     ),

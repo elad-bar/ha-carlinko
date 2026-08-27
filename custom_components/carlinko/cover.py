@@ -30,10 +30,9 @@ class CarlinkoCover(CarlinkoEntity, CoverEntity):
         self, coordinator: CarlinkoCoordinator, spec: EntitySpec, vehicle_id: str
     ) -> None:
         super().__init__(coordinator, spec, vehicle_id)
-        features = CoverEntityFeature.OPEN | CoverEntityFeature.CLOSE
-        if "vent" in (spec.commands or {}) or "tilt" in (spec.commands or {}):
-            features |= CoverEntityFeature.SET_POSITION
-        self._attr_supported_features = features
+        self._attr_supported_features = (
+            CoverEntityFeature.OPEN | CoverEntityFeature.CLOSE
+        )
 
     @property
     def is_closed(self) -> bool | None:

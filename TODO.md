@@ -123,22 +123,22 @@ HA Settings → General → Currency (`hass.config.currency`). Amounts are numbe
 Expand beyond the current 9 rules. Mark each `done` / `todo` / `exempt` with a one-line reason when exempt.
 
 - [ ] `brands` — custom icons in [home-assistant/brands](https://github.com/home-assistant/brands)
-- [ ] `reconfiguration-flow`
-- [ ] `entity-translations` / `icon-translations`
-- [ ] `entity-category`
-- [ ] `entity-event-setup`
-- [ ] `stale-devices`
+- [x] `reconfiguration-flow`
+- [x] `entity-translations` / `icon-translations`
+- [x] `entity-category`
+- [x] `entity-event-setup`
+- [x] `stale-devices`
 - [ ] `repair-issues` — HA issue registry in addition to `async_start_reauth`
-- [ ] `log-when-unavailable`
+- [x] `log-when-unavailable`
 - [ ] `docs-*` (installation, configuration, known limitations)
-- [ ] `test-before-setup`
-- [ ] `config-entry-unloading` (verify after lifecycle work)
-- [ ] Remaining Core scale rules Dolphin tracks (appropriate-polling exempt for `cloud_push`, discovery exempt if no DHCP, etc.)
+- [x] `test-before-setup`
+- [x] `config-entry-unloading` (verify after lifecycle work)
+- [x] Remaining Core scale rules Dolphin tracks (appropriate-polling exempt for `cloud_push`, discovery exempt if no DHCP, etc.)
 
 ### `manifest.json` / HACS
 
 - [x] `issue_tracker` / `documentation` / `codeowners` → [elad-bar/ha-carlinko](https://github.com/elad-bar/ha-carlinko)
-- [ ] `loggers`
+- [x] `loggers`
 - [x] `integration_type: hub` (one entry per account; many vehicle devices)
 - [ ] Align `hacs.json` with Dolphin (`iot_class`, and `filename` / `zip_release` if you ship GitHub releases)
 
@@ -152,26 +152,28 @@ Expand beyond the current 9 rules. Mark each `done` / `todo` / `exempt` with a o
 
 ### Tests
 
-- [ ] `async_setup_entry` / `async_unload_entry` (including listener unsub and store cleanup)
-- [ ] WS connect / reconnect / auth failure after setup
+- [x] `async_setup_entry` / `async_unload_entry` (including listener unsub and store cleanup)
+- [x] WS connect / reconnect / auth failure after setup
 - [ ] Spec / description factory add/remove when caps or PHEV/TPMS flags change
 - [ ] One test per platform entity class (lock, climate, cover, switch, select, number, button, sensors)
 - [x] Config flow: cannot_connect, already_configured (account), reconfigure, multi-vehicle auto-add (no picker)
 - [ ] Diagnostics: device-level if added
 - [ ] After layout: `engine/` still imports the HA-free slice; platforms go through `common` setup helper
+- [x] Sensor/cover/seat/climate semantics (energy_storage, TPMS unit, distance, timestamp, no SET_POSITION)
+- Note: full HA pytest plugin suite is skipped on Windows (`fcntl`); CI Linux runs everything.
 
 ---
 
 ## P2 — entity correctness (hassfest / HA semantics)
 
-- [ ] **Cover:** do not set `SET_POSITION` unless `async_set_cover_position` exists. Vent/tilt → extra buttons or tilt position, not fake position
-- [ ] **Climate:** use caps `ac.min` / `ac.max` / `ac.step` and blob `ac_temp`; target temperature; heat/auto if opcodes exist
-- [ ] **`energy_left`:** `device_class=energy` + `state_class=measurement` is invalid; use a storage-appropriate class or drop energy class
-- [ ] **TPMS:** `device_class=pressure` requires a native unit (PSI or kPa)
-- [ ] **Range / odometer:** `UnitOfLength.KILOMETERS` and `SensorDeviceClass.DISTANCE` where applicable (not raw `"km"`)
-- [ ] **`updated`:** timestamp device class needs a timezone-aware `datetime`, not a raw string path
-- [ ] **Seat selects:** no live `current_option` until levels exist — hide, unknown, or binary until state is real
-- [ ] Prefer HA unit / device-class constants in `common/entity_descriptions.py` (Dolphin style); the HA-free catalog may stay stringly typed
+- [x] **Cover:** do not set `SET_POSITION` unless `async_set_cover_position` exists. Vent/tilt → extra buttons or tilt position, not fake position
+- [x] **Climate:** use caps `ac.min` / `ac.max` / `ac.step` and blob `ac_temp`; target temperature; heat/auto if opcodes exist
+- [x] **`energy_left`:** `device_class=energy` + `state_class=measurement` is invalid; use a storage-appropriate class or drop energy class
+- [x] **TPMS:** `device_class=pressure` requires a native unit (PSI or kPa)
+- [x] **Range / odometer:** `UnitOfLength.KILOMETERS` and `SensorDeviceClass.DISTANCE` where applicable (not raw `"km"`)
+- [x] **`updated`:** timestamp device class needs a timezone-aware `datetime`, not a raw string path
+- [x] **Seat selects:** no live `current_option` until levels exist — hide, unknown, or binary until state is real
+- [x] Prefer HA unit / device-class constants in `common/entity_descriptions.py` (Dolphin style); the HA-free catalog may stay stringly typed
 
 ---
 

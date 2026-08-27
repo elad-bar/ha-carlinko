@@ -21,6 +21,16 @@ from homeassistant.components.sensor import (
     SensorStateClass,
 )
 from homeassistant.components.switch import SwitchEntityDescription
+from homeassistant.const import (
+    PERCENTAGE,
+    UnitOfEnergy,
+    UnitOfLength,
+    UnitOfPower,
+    UnitOfPressure,
+    UnitOfTemperature,
+    UnitOfTime,
+    UnitOfElectricPotential,
+)
 from homeassistant.helpers.entity import EntityCategory, EntityDescription
 
 from ..models.entity_specs import EntitySpec
@@ -28,6 +38,17 @@ from ..models.entity_specs import EntitySpec
 _SENSOR_DEVICE_CLASS = {v.value: v for v in SensorDeviceClass}
 _SENSOR_STATE_CLASS = {v.value: v for v in SensorStateClass}
 _BINARY_DEVICE_CLASS = {v.value: v for v in BinarySensorDeviceClass}
+
+_UNIT_MAP: dict[str, str] = {
+    "km": UnitOfLength.KILOMETERS,
+    "psi": UnitOfPressure.PSI,
+    "kWh": UnitOfEnergy.KILO_WATT_HOUR,
+    "°C": UnitOfTemperature.CELSIUS,
+    "V": UnitOfElectricPotential.VOLT,
+    "kW": UnitOfPower.KILO_WATT,
+    "min": UnitOfTime.MINUTES,
+    "%": PERCENTAGE,
+}
 
 # Cost knobs (account-level).
 _CONFIG_KEYS = frozenset({"tariff", "petrol_price", "petrol_kml"})
@@ -49,6 +70,12 @@ _DIAGNOSTIC_KEYS = frozenset(
         "charge_mode",
     }
 )
+
+
+def _map_unit(unit: str | None) -> str | None:
+    if unit is None:
+        return None
+    return _UNIT_MAP.get(unit, unit)
 
 
 def _category_kwargs(spec: EntitySpec) -> dict:
@@ -75,8 +102,9 @@ def get_entity_description(spec: EntitySpec) -> EntityDescription:
     platform = spec.platform
     if platform == "sensor":
         kwargs = dict(base)
-        if spec.unit:
-            kwargs["native_unit_of_measurement"] = spec.unit
+        unit = _map_unit(spec.unit)
+        if unit:
+            kwargs["native_unit_of_measurement"] = unit
         if spec.device_class:
             kwargs["device_class"] = _SENSOR_DEVICE_CLASS.get(spec.device_class)
         if spec.state_class:
@@ -95,8 +123,10 @@ def get_entity_description(spec: EntitySpec) -> EntityDescription:
         kwargs = dict(base)
         if spec.key in ("tariff", "petrol_price"):
             kwargs["device_class"] = NumberDeviceClass.MONETARY
-        elif spec.unit:
-            kwargs["native_unit_of_measurement"] = spec.unit
+        else:
+            unit = _map_unit(spec.unit)
+            if unit:
+                kwargs["native_unit_of_measurement"] = unit
         return NumberEntityDescription(**kwargs)
 
     if platform == "select":

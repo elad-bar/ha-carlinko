@@ -7,6 +7,7 @@
   "issue_tracker": "https://github.com/elad-bar/ha-carlinko/issues",
   "integration_type": "hub",
   "iot_class": "cloud_push",
+  "loggers": ["custom_components.carlinko"],
   "requirements": [],
   "version": "0.1.0"
 }

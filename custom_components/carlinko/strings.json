@@ -275,6 +275,12 @@
       "charge_stop": {
         "name": "Stop charging"
       },
+      "windows_vent": {
+        "name": "Windows vent"
+      },
+      "sunroof_tilt": {
+        "name": "Sunroof tilt"
+      },
       "quick_cool": {
         "name": "Quick cool"
       },
