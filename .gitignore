@@ -1,0 +1,23 @@
+apk/
+*.xapk
+capture/
+carlinko.db
+.playwright-mcp/
+dash-*.png
+token.txt
+creds.json
+engine/creds.json
+engine/token.txt
+.env
+
+# Python
+__pycache__/
+*.pyc
+venv/
+.venv/
+
+# Local CLI data dir (config.json + token)
+data/
+
+# Demo video — hosted as a GitHub release asset, not committed
+*.mp4

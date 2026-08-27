@@ -1,0 +1,42 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "CarLinko",
+        "description": "Sign in with your CarLinko app account.",
+        "data": {
+          "email": "Email",
+          "password": "Password",
+          "region": "Region (e.g. sea)"
+        }
+      },
+      "reauth_confirm": {
+        "title": "Re-authenticate CarLinko",
+        "description": "Your CarLinko session expired or the password changed. Enter your current password.",
+        "data": {
+          "password": "Password"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Could not reach CarLinko.",
+      "invalid_auth": "Invalid email or password.",
+      "unknown": "Unexpected error."
+    },
+    "abort": {
+      "already_configured": "This CarLinko account is already configured.",
+      "reauth_successful": "Re-authentication successful."
+    }
+  },
+  "exceptions": {
+    "auth_failed": {
+      "message": "CarLinko authentication failed. Please re-authenticate."
+    },
+    "cannot_connect": {
+      "message": "Could not reach CarLinko."
+    },
+    "control_failed": {
+      "message": "Remote control failed: {error}"
+    }
+  }
+}

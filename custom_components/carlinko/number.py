@@ -1,0 +1,60 @@
+"""CarLinko number entities (cost knobs)."""
+from __future__ import annotations
+
+from homeassistant.components.number import NumberEntity, NumberMode
+from homeassistant.config_entries import ConfigEntry
+from homeassistant.core import HomeAssistant
+from homeassistant.helpers.entity_platform import AddEntitiesCallback
+
+from .const import DOMAIN
+from .coordinator import CarlinkoCoordinator
+from .entity import CarlinkoEntity
+from .entity_setup import async_setup_spec_platform
+from .protocol.entity_specs import EntitySpec
+
+PARALLEL_UPDATES = 1
+
+_LIMITS = {
+    "tariff": (0, 1e7, 1),
+    "petrol_price": (0, 1e7, 1),
+    "petrol_kml": (0.1, 100, 0.1),
+}
+
+
+async def async_setup_entry(
+    hass: HomeAssistant,
+    entry: ConfigEntry,
+    async_add_entities: AddEntitiesCallback,
+) -> None:
+    coordinator: CarlinkoCoordinator = hass.data[DOMAIN][entry.entry_id]
+    async_setup_spec_platform(
+        hass, coordinator, "number", async_add_entities, CarlinkoNumber
+    )
+
+
+class CarlinkoNumber(CarlinkoEntity, NumberEntity):
+    _attr_mode = NumberMode.BOX
+
+    def __init__(self, coordinator: CarlinkoCoordinator, spec: EntitySpec) -> None:
+        super().__init__(coordinator, spec)
+        if spec.unit:
+            self._attr_native_unit_of_measurement = spec.unit
+        lo, hi, step = _LIMITS.get(spec.config_key or spec.key, (0, 1e7, 1))
+        self._attr_native_min_value = lo
+        self._attr_native_max_value = hi
+        self._attr_native_step = step
+
+    @property
+    def native_value(self) -> float | None:
+        value = self._state_value()
+        if value is None:
+            return None
+        return float(value)
+
+    async def async_set_native_value(self, value: float) -> None:
+        key = self.spec.config_key or self.spec.key
+        result = self.coordinator.store.set_cost_config(key, value)
+        if not result.get("ok"):
+            raise ValueError(result.get("error") or "set failed")
+        await self.coordinator.store.async_save()
+        self.async_write_ha_state()

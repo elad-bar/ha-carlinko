@@ -1,0 +1,6 @@
+# Test-only dependencies for the CarLinko HA integration.
+# Runtime (including Home Assistant for IDE / local typing): requirements.txt
+pre-commit
+pytest
+pytest-asyncio
+pytest-homeassistant-custom-component

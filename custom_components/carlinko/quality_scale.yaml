@@ -1,0 +1,10 @@
+rules:
+  config_flow: done
+  entity_unique_id: done
+  entity_unavailable: done
+  brands: todo
+  diagnostics: done
+  parallel_updates: done
+  reauthentication: done
+  action_setup: exempt
+  exception_translations: done
