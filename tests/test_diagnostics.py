@@ -52,6 +52,11 @@ def _mock_entry_and_coordinator():
     }
     coordinator.caps_for.return_value = {"lock": True, "ac": {}}
     coordinator.current_spec_keys.return_value = {"battery", "lock"}
+    coordinator.vehicle_data.return_value = {
+        "battery": 72,
+        "vehicle": {"plate": "ABC123", "model": "J5", "vin": "VINSECRET"},
+    }
+    coordinator.store.get_cost_config.return_value = {}
 
     entry.runtime_data = coordinator
     return entry, coordinator
@@ -72,6 +77,10 @@ async def test_diagnostics_redacts_secrets() -> None:
     assert diag["runtime"]["connected"] is True
     assert diag["runtime"]["vehicle_count"] == 1
     assert "battery" in diag["runtime"]["spec_keys"]
+    vehicle = diag["runtime"]["vehicles"][0]
+    assert vehicle["live_state"]["battery"] == 72
+    assert "VINSECRET" not in str(vehicle["live_state"])
+    assert "battery" in vehicle["entity_values"]
     assert CONF_PASSWORD not in diag["data"] or diag["data"].get(CONF_PASSWORD) in (
         None,
         "**REDACTED**",
@@ -97,6 +106,8 @@ async def test_device_diagnostics_redacts_and_scopes() -> None:
     assert diag["vehicle"]["connected"] is True
     assert "battery" in diag["vehicle"]["spec_keys"]
     assert "lock" in diag["vehicle"]["caps_keys"]
+    assert diag["vehicle"]["live_state"]["battery"] == 72
+    assert "battery" in diag["vehicle"]["entity_values"]
     assert diag["store_vehicle"]["model"] == "J5"
 
 

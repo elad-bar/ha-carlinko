@@ -161,13 +161,21 @@ class CarlinkoStore:
 
     def get_cost_config(self) -> dict[str, Any]:
         c = self.data
-        raw = c.get("tariff")
-        t = float(raw if raw is not None else DEFAULT_TARIFF)
+        raw_tariff = c.get("tariff")
+        t = float(raw_tariff if raw_tariff is not None else DEFAULT_TARIFF)
         tariff = int(t) if t == int(t) else t
+        raw_petrol_price = c.get("petrol_price")
+        raw_petrol_kml = c.get("petrol_kml")
         return {
             "tariff": tariff,
-            "petrol_price": float(c.get("petrol_price") or DEFAULT_PETROL_PRICE),
-            "petrol_kml": float(c.get("petrol_kml") or DEFAULT_PETROL_KML),
+            "petrol_price": float(
+                raw_petrol_price
+                if raw_petrol_price is not None
+                else DEFAULT_PETROL_PRICE
+            ),
+            "petrol_kml": float(
+                raw_petrol_kml if raw_petrol_kml is not None else DEFAULT_PETROL_KML
+            ),
         }
 
     def set_cost_config(self, key: str, value: Any) -> dict[str, Any]:

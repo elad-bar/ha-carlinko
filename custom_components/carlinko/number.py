@@ -17,7 +17,7 @@ PARALLEL_UPDATES = 1
 _LIMITS = {
     "tariff": (0, 1e7, 1),
     "petrol_price": (0, 1e7, 1),
-    "petrol_kml": (0.1, 100, 0.1),
+    "petrol_kml": (0, 100, 0.1),
 }
 
 

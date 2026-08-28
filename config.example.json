@@ -8,9 +8,9 @@
   "wltp_kwh_100": 14.8,
 
   "_optional": "everything below is OPTIONAL — defaults are the Jaecoo J5 / Indonesia values",
-  "tariff": 2540,
-  "petrol_price": 16250,
-  "petrol_kml": 12.0,
+  "tariff": 0,
+  "petrol_price": 0,
+  "petrol_kml": 0,
   "tyre_unit": "psi",
   "tpms_scale": 1.373,
   "powertrain": "auto",

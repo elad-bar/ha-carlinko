@@ -46,12 +46,12 @@ def test_cost_config_amounts() -> None:
     try:
         store = CarlinkoStore(path=path)
         cfg = store.get_cost_config()
-        assert "tariff" in cfg
-        assert "petrol_price" in cfg
-        assert "petrol_kml" in cfg
+        assert cfg == {"tariff": 0, "petrol_price": 0.0, "petrol_kml": 0.0}
         assert "currency" not in cfg
         assert store.set_cost_config("tariff", 100)["ok"]
         assert store.get_cost_config()["tariff"] == 100
+        assert store.set_cost_config("petrol_price", 0)["ok"]
+        assert store.get_cost_config()["petrol_price"] == 0.0
     finally:
         if os.path.isfile(path):
             os.unlink(path)

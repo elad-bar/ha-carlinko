@@ -4,6 +4,20 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.1.2] - 2026-08-28
+
+### Added
+
+- Diagnostics export includes redacted live vehicle state, resolved entity values, and registered Home Assistant entities (`entity_id`, state, attributes) per vehicle
+
+### Changed
+
+- Diagnostic sensors (12V, HV state, tyre temps, charge details, consumption, last updated, and related) are enabled by default on new installs; they remain under the Diagnostic entity category
+
+### Fixed
+
+- Cost configuration numbers (charging tariff, petrol price, petrol economy) default to **0** when unset instead of hard-coded regional sample values
+
 ## [0.1.1] - 2026-08-28
 
 ### Added

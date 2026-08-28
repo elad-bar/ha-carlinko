@@ -56,7 +56,7 @@ _UNIT_MAP: dict[str, str] = {
 # Cost knobs (account-level).
 _CONFIG_KEYS = frozenset({"tariff", "petrol_price", "petrol_kml"})
 
-# Noisy / derived sensors — diagnostic + disabled by default.
+# Derived / detail sensors — diagnostic category (enabled by default).
 _DIAGNOSTIC_KEYS = frozenset(
     {
         "updated",
@@ -85,10 +85,7 @@ def _category_kwargs(spec: EntitySpec) -> dict:
     if spec.key in _CONFIG_KEYS:
         return {"entity_category": EntityCategory.CONFIG}
     if spec.key in _DIAGNOSTIC_KEYS:
-        return {
-            "entity_category": EntityCategory.DIAGNOSTIC,
-            "entity_registry_enabled_default": False,
-        }
+        return {"entity_category": EntityCategory.DIAGNOSTIC}
     return {}
 
 
