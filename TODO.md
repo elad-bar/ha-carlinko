@@ -4,7 +4,7 @@ Tracked against [sh00t2kill/dolphin-robot](https://github.com/sh00t2kill/dolphin
 
 Checkboxes are work items, not a claim that Dolphin has climate/covers. Platform-specific bugs are still listed because hassfest and users will hit them.
 
-Suggested order: **P0 → P1 → P2 → P3** (P0 closed; next is P1 quality scale / CI / tests).
+Suggested order: **P0 → P1 → P2 → P3** (P0 closed; P1 mostly closed — brands awaits merge).
 
 ---
 
@@ -43,6 +43,7 @@ models/       # wire consts, exceptions, vehicle/blob DTOs, entity catalog
 
 - [x] Password field via HA **password** text selector (masked)
 - [x] Region via **Select** (known codes + optional custom), not a free-form string
+- [ ] Region select polish: full codes (`sea`, `ap`, `emea`, `me`, `sam`, `saf`, `naf`, `uzb`, `vn`); drop `custom_value`; sort by English expansion; `selector.region` translations for display names; README marks region **required**
 - [x] **Reconfigure** flow (`SOURCE_RECONFIGURE`); README mentions it, only reauth exists
 - [x] **Options flow**: region, stream backstop, availability window, similar knobs
 - [x] Unique id = **account email**; abort when that account is already configured (Dolphin-style)
@@ -122,15 +123,15 @@ HA Settings → General → Currency (`hass.config.currency`). Amounts are numbe
 
 Expand beyond the current 9 rules. Mark each `done` / `todo` / `exempt` with a one-line reason when exempt.
 
-- [ ] `brands` — custom icons in [home-assistant/brands](https://github.com/home-assistant/brands)
+- [ ] `brands` — source in [`www/`](www/); PR open: [home-assistant/brands#11056](https://github.com/home-assistant/brands/pull/11056) (flip to done after merge)
 - [x] `reconfiguration-flow`
 - [x] `entity-translations` / `icon-translations`
 - [x] `entity-category`
 - [x] `entity-event-setup`
 - [x] `stale-devices`
-- [ ] `repair-issues` — HA issue registry in addition to `async_start_reauth`
+- [x] `repair-issues` — exempt (reauth covers auth; no separate issue-registry repairs)
 - [x] `log-when-unavailable`
-- [ ] `docs-*` (installation, configuration, known limitations)
+- [x] `docs-*` (installation, configuration, known limitations in README)
 - [x] `test-before-setup`
 - [x] `config-entry-unloading` (verify after lifecycle work)
 - [x] Remaining Core scale rules Dolphin tracks (appropriate-polling exempt for `cloud_push`, discovery exempt if no DHCP, etc.)
@@ -140,25 +141,25 @@ Expand beyond the current 9 rules. Mark each `done` / `todo` / `exempt` with a o
 - [x] `issue_tracker` / `documentation` / `codeowners` → [elad-bar/ha-carlinko](https://github.com/elad-bar/ha-carlinko)
 - [x] `loggers`
 - [x] `integration_type: hub` (one entry per account; many vehicle devices)
-- [ ] Align `hacs.json` with Dolphin (`iot_class`, and `filename` / `zip_release` if you ship GitHub releases)
+- [x] Align `hacs.json` with Dolphin (`iot_class: Cloud Push`; no `filename` / `zip_release` until release zips ship)
 
 ### CI (Dolphin develop is merge-gated)
 
 - [x] GitHub Actions: **pre-commit**, **hassfest**, **HACS**, **pytest** ([`.github/workflows/ci.yml`](.github/workflows/ci.yml))
 - [x] Pre-commit config covering `custom_components/`, `engine/`, `tests/` ([`.pre-commit-config.yaml`](.pre-commit-config.yaml))
 - [x] PR / issue templates ([`.github/`](.github/))
-- [ ] Make CI green (hassfest / quality-scale / entity issues from P0–P2 will fail until those land)
-- [ ] `pre-commit install` locally after clone (`pip install -r requirements-dev.txt && pre-commit install`)
+- [x] Make CI green (hassfest / quality-scale / entity issues from P0–P2)
+- [x] `pre-commit install` locally after clone (documented in [CONTRIBUTING.md](CONTRIBUTING.md))
 
 ### Tests
 
 - [x] `async_setup_entry` / `async_unload_entry` (including listener unsub and store cleanup)
 - [x] WS connect / reconnect / auth failure after setup
-- [ ] Spec / description factory add/remove when caps or PHEV/TPMS flags change
-- [ ] One test per platform entity class (lock, climate, cover, switch, select, number, button, sensors)
+- [x] Spec / description factory add/remove when caps or PHEV/TPMS flags change
+- [x] One test per platform entity class (lock, climate, cover, switch, select, number, button, sensors)
 - [x] Config flow: cannot_connect, already_configured (account), reconfigure, multi-vehicle auto-add (no picker)
 - [ ] Diagnostics: device-level if added
-- [ ] After layout: `engine/` still imports the HA-free slice; platforms go through `common` setup helper
+- [x] After layout: `engine/` still imports the HA-free slice; platforms go through `common` setup helper
 - [x] Sensor/cover/seat/climate semantics (energy_storage, TPMS unit, distance, timestamp, no SET_POSITION)
 - Note: full HA pytest plugin suite is skipped on Windows (`fcntl`); CI Linux runs everything.
 
@@ -202,10 +203,10 @@ Keep these; they already match the Dolphin *behavior* shape:
 - `PARALLEL_UPDATES = 1`
 - Exception translations for auth / control failures
 - A HA-free catalog / wire layer in `models/` (+ API/WS in `managers/`) usable from `engine/`
-- HACS detail via `hacs.json` `render_readme: true` (no separate `info.md` / `www/`)
+- HACS detail via `hacs.json` `render_readme: true` (no separate `info.md`; repo-root `www/` is brand source only)
 - HA currency from Settings → General; monetary number device class on tariff / petrol_price
 
-Not done (P1+): quality_scale expansion, remaining CI green, platform hassfest fixes (P2), device diagnostics / repair issues (P3).
+Not done: `brands` until [brands#11056](https://github.com/home-assistant/brands/pull/11056) merges; P3 device diagnostics / device_tracker / speed sensors.
 
 ---
 
@@ -215,4 +216,4 @@ Not done (P1+): quality_scale expansion, remaining CI green, platform hassfest f
 - Entity copy lives in `strings.json` / `translations/*.json`; description / catalog `key` is the lookup, not a display `name`.
 - House currency comes from HA General (`hass.config.currency`); CarLinko never stores a currency code.
 - Custom domain services are optional; empty `services.yaml` + `action_setup: exempt` is fine if everything stays on entities.
-- Core brands icons are an external PR to `home-assistant/brands` (not local repo assets).
+- Core brands icons: source in `www/`; HA UI icons after merge of `home-assistant/brands` PR (see P1 `brands`).

@@ -1,5 +1,9 @@
 # CarLinko
 
+<p align="center">
+  <img src="www/logo.png" alt="CarLinko" width="320" />
+</p>
+
 Home Assistant custom integration for Chery Group / CarLinko connected cars
 (BEV and PHEV). Live state over the CarLinko WebSocket (`cloud_push`), with
 remote controls through the official cloud API.
@@ -10,10 +14,14 @@ Based on
 [GodrezJr2/j5-ev-dashboard](https://github.com/GodrezJr2/j5-ev-dashboard),
 used as the starting point for this custom component.
 
-## Requirements
+Home Assistant UI brand icons are served from
+[home-assistant/brands](https://github.com/home-assistant/brands) once merged;
+source assets live in [`www/`](www/).
+
+## Prerequisites
 
 - Home Assistant (see `hacs.json` for the tested version)
-- A CarLinko app account with a paired vehicle you own
+- A CarLinko app account with **at least one** paired vehicle you own
 - Network access from Home Assistant to CarLinko cloud services
 
 ## Install
@@ -33,6 +41,8 @@ Copy `custom_components/carlinko/` into
 
 ## Configuration
 
+### Setup
+
 | Field    | Required | Description                                      |
 |----------|----------|--------------------------------------------------|
 | Email    | yes      | CarLinko account email                           |
@@ -40,8 +50,12 @@ Copy `custom_components/carlinko/` into
 | Region   | no       | Region code used by the app (default / example: `sea`) |
 
 On submit, the integration logs in against CarLinko and stores the session.
+One config entry is created **per account** (hub): every vehicle on that account
+is added automatically as HA devices/entities — there is no vehicle picker.
+
 If the token goes stale, Home Assistant prompts for **re-authentication**
-(password only; email/region kept).
+(password only; email/region kept). Use **Reconfigure** to change password and
+region without removing the integration.
 
 | Error                     | Meaning                          |
 |---------------------------|----------------------------------|
@@ -49,6 +63,17 @@ If the token goes stale, Home Assistant prompts for **re-authentication**
 | Could not reach CarLinko  | Network / upstream failure       |
 | Unexpected error          | See logs                         |
 | Already configured        | Same account already added       |
+| No vehicles               | Account has no paired cars       |
+
+### Options
+
+After setup, configure via the integration’s **Configure** options flow:
+
+| Option | Default | Description |
+|--------|---------|-------------|
+| Region | `sea` | Cloud region code |
+| Stream backstop (seconds) | `20` | WS keepalive / re-request interval |
+| Availability window (seconds) | `2400` (~40 min) | Entities go unavailable if no frame within this window |
 
 ## Behaviour
 
@@ -57,9 +82,20 @@ If the token goes stale, Home Assistant prompts for **re-authentication**
   [`models/entity_specs.py`](custom_components/carlinko/models/entity_specs.py).
 - PHEV, direct TPMS, and capability-gated controls appear when the car reports
   them; entities are added/removed as that set changes.
-- Entities go unavailable after ~40 minutes without a frame.
 - Cost knobs (`tariff`, `petrol_price`, `petrol_kml`) persist in HA storage.
+- Currency for monetary amounts comes from Home Assistant **Settings → General**;
+  CarLinko does not store a currency code or convert amounts on currency change.
+
+## Known limitations
+
+- Undocumented vendor API — no warranty; backends can change without notice.
+- Entities are capability-gated: only features the car reports are created.
 - Remote actions are real cloud actuation — use only on a car you own.
+- API does not expose OEM brand, `sw_version` / `hw_version`, or a useful
+  `configuration_url`.
+- Entities go unavailable after the availability window without a fresh frame
+  (default ~40 minutes).
+- No `device_tracker` yet (coordinates not wired).
 
 ## Entities (overview)
 
@@ -121,6 +157,7 @@ cd engine && python entrypoint.py
 |------|------|
 | [`custom_components/carlinko/`](custom_components/carlinko/) | HA integration (`common` / `managers` / `models`) |
 | [`engine/`](engine/) | Dev harness (single-file CLI, no HA) |
+| [`www/`](www/) | Brand icon/logo source (for home-assistant/brands) |
 | [`docs/`](docs/) | API map, opcodes |
 
 ## Docs

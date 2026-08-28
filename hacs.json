@@ -1,5 +1,6 @@
 {
   "name": "CarLinko",
-  "render_readme": true,
-  "homeassistant": "2026.8.3"
+  "iot_class": "Cloud Push",
+  "homeassistant": "2026.8.3",
+  "render_readme": true
 }
