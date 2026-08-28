@@ -43,7 +43,7 @@ models/       # wire consts, exceptions, vehicle/blob DTOs, entity catalog
 
 - [x] Password field via HA **password** text selector (masked)
 - [x] Region via **Select** (known codes + optional custom), not a free-form string
-- [ ] Region select polish: full codes (`sea`, `ap`, `emea`, `me`, `sam`, `saf`, `naf`, `uzb`, `vn`); drop `custom_value`; sort by English expansion; `selector.region` translations for display names; README marks region **required**
+- [x] Region select polish: full codes (`sea`, `ap`, `emea`, `me`, `sam`, `saf`, `naf`, `uzb`, `vn`); drop `custom_value`; sort by English expansion; `selector.region` translations for display names; README marks region **required**
 - [x] **Reconfigure** flow (`SOURCE_RECONFIGURE`); README mentions it, only reauth exists
 - [x] **Options flow**: region, stream backstop, availability window, similar knobs
 - [x] Unique id = **account email**; abort when that account is already configured (Dolphin-style)

@@ -46,7 +46,7 @@ def _user_schema(defaults: dict[str, Any] | None = None) -> vol.Schema:
             vol.Required(CONF_REGION, default=region): selector.SelectSelector(
                 selector.SelectSelectorConfig(
                     options=list(KNOWN_REGIONS),
-                    custom_value=True,
+                    translation_key="region",
                     mode=selector.SelectSelectorMode.DROPDOWN,
                 )
             ),
@@ -73,7 +73,7 @@ def _options_schema(entry: config_entries.ConfigEntry) -> vol.Schema:
             vol.Required(CONF_REGION, default=region): selector.SelectSelector(
                 selector.SelectSelectorConfig(
                     options=list(KNOWN_REGIONS),
-                    custom_value=True,
+                    translation_key="region",
                     mode=selector.SelectSelectorMode.DROPDOWN,
                 )
             ),
@@ -207,7 +207,7 @@ class CarlinkoConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                     ): selector.SelectSelector(
                         selector.SelectSelectorConfig(
                             options=list(KNOWN_REGIONS),
-                            custom_value=True,
+                            translation_key="region",
                             mode=selector.SelectSelectorMode.DROPDOWN,
                         )
                     ),

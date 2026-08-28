@@ -32,7 +32,7 @@ source assets live in [`www/`](www/).
    Add this repo as type **Integration** (until it is listed in HACS).
 2. Install **CarLinko**, then restart Home Assistant.
 3. Settings → Devices & services → Add integration → **CarLinko**.
-4. Enter email, password, and region (e.g. `sea`).
+4. Enter email, password, and region (e.g. Southeast Asia / `sea`).
 
 ### Manual
 
@@ -47,7 +47,22 @@ Copy `custom_components/carlinko/` into
 |----------|----------|--------------------------------------------------|
 | Email    | yes      | CarLinko account email                           |
 | Password | yes      | CarLinko account password                        |
-| Region   | no       | Region code used by the app (default / example: `sea`) |
+| Region   | yes      | Cloud region matching the CarLinko app (see below) |
+
+Must match the region used in the CarLinko app. Stored value is the code;
+the UI shows the full name.
+
+| Code | Region |
+|------|--------|
+| `ap` | Asia Pacific |
+| `emea` | Europe, Middle East & Africa |
+| `me` | Middle East |
+| `naf` | North Africa |
+| `saf` | South Africa |
+| `sam` | South America |
+| `sea` | Southeast Asia |
+| `uzb` | Uzbekistan |
+| `vn` | Vietnam |
 
 On submit, the integration logs in against CarLinko and stores the session.
 One config entry is created **per account** (hub): every vehicle on that account
@@ -71,7 +86,7 @@ After setup, configure via the integration’s **Configure** options flow:
 
 | Option | Default | Description |
 |--------|---------|-------------|
-| Region | `sea` | Cloud region code |
+| Region | `sea` | Cloud region (one of the known codes above) |
 | Stream backstop (seconds) | `20` | WS keepalive / re-request interval |
 | Availability window (seconds) | `2400` (~40 min) | Entities go unavailable if no frame within this window |
 

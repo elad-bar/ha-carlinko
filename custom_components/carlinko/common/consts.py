@@ -18,7 +18,18 @@ AVAILABILITY_SECONDS = 2400
 WS_SETUP_TIMEOUT_S = 60
 CAPS_REFRESH_INTERVAL_S = 3300
 
-KNOWN_REGIONS = ("sea",)
+# Sorted by English display name (see selector.region translations).
+KNOWN_REGIONS = (
+    "ap",    # Asia Pacific
+    "emea",  # Europe, Middle East & Africa
+    "me",    # Middle East
+    "naf",   # North Africa
+    "saf",   # South Africa
+    "sam",   # South America
+    "sea",   # Southeast Asia
+    "uzb",   # Uzbekistan
+    "vn",    # Vietnam
+)
 # Platform names; __init__ maps these to homeassistant.const.Platform.
 PLATFORMS = (
     "sensor",
