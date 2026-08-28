@@ -1,8 +1,9 @@
 """Spec-driven platform setup helpers (Dolphin-style factory)."""
+
 from __future__ import annotations
 
-import logging
 from collections.abc import Callable
+import logging
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant, callback
@@ -14,9 +15,7 @@ from .base_entity import CarlinkoEntity
 
 _LOGGER = logging.getLogger(__name__)
 
-EntityFactory = Callable[
-    [CarlinkoCoordinator, EntitySpec, str], CarlinkoEntity
-]
+EntityFactory = Callable[[CarlinkoCoordinator, EntitySpec, str], CarlinkoEntity]
 
 
 def async_setup_entities(
@@ -59,9 +58,7 @@ def async_setup_entities(
     _add_new(_wanted())
 
     @callback
-    def _on_specs_changed(
-        vehicle_id: str, added: set[str], removed: set[str]
-    ) -> None:
+    def _on_specs_changed(vehicle_id: str, added: set[str], removed: set[str]) -> None:
         if vehicle_id == "":
             # Fleet membership changed: reconcile full wanted set.
             wanted = {(vid, s.key): s for vid, s in _wanted()}
@@ -81,13 +78,7 @@ def async_setup_entities(
                 hass.async_create_task(entity.async_remove(force_remove=True))
         if added:
             wanted_map = {s.key: s for vid, s in _wanted() if vid == vehicle_id}
-            _add_new(
-                [
-                    (vehicle_id, wanted_map[k])
-                    for k in added
-                    if k in wanted_map
-                ]
-            )
+            _add_new([(vehicle_id, wanted_map[k]) for k in added if k in wanted_map])
 
     unsub = coordinator.register_entity_listener(_on_specs_changed)
     entry.async_on_unload(unsub)

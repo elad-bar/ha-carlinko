@@ -7,8 +7,8 @@ tests there; CI (Linux) still runs the full suite.
 
 from __future__ import annotations
 
-import sys
 from pathlib import Path
+import sys
 
 import pytest
 

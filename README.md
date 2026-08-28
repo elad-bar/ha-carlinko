@@ -14,9 +14,9 @@ Based on
 [GodrezJr2/j5-ev-dashboard](https://github.com/GodrezJr2/j5-ev-dashboard),
 used as the starting point for this custom component.
 
-Home Assistant UI brand icons are served from
-[home-assistant/brands](https://github.com/home-assistant/brands) once merged;
-source assets live in [`www/`](www/).
+Home Assistant UI brand icons ship in
+[`custom_components/carlinko/brand/`](custom_components/carlinko/brand/)
+(HA 2026.3+ local brand images; mirrored from [`www/`](www/)).
 
 ## Prerequisites
 
@@ -28,7 +28,7 @@ source assets live in [`www/`](www/).
 
 ### HACS (recommended)
 
-1. HACS → Integrations → ⋮ → Custom repositories  
+1. HACS → Integrations → ⋮ → Custom repositories
    Add this repo as type **Integration** (until it is listed in HACS).
 2. Install **CarLinko**, then restart Home Assistant.
 3. Settings → Devices & services → Add integration → **CarLinko**.
@@ -43,26 +43,26 @@ Copy `custom_components/carlinko/` into
 
 ### Setup
 
-| Field    | Required | Description                                      |
-|----------|----------|--------------------------------------------------|
-| Email    | yes      | CarLinko account email                           |
-| Password | yes      | CarLinko account password                        |
+| Field    | Required | Description                                        |
+| -------- | -------- | -------------------------------------------------- |
+| Email    | yes      | CarLinko account email                             |
+| Password | yes      | CarLinko account password                          |
 | Region   | yes      | Cloud region matching the CarLinko app (see below) |
 
 Must match the region used in the CarLinko app. Stored value is the code;
 the UI shows the full name.
 
-| Code | Region |
-|------|--------|
-| `ap` | Asia Pacific |
+| Code   | Region                       |
+| ------ | ---------------------------- |
+| `ap`   | Asia Pacific                 |
 | `emea` | Europe, Middle East & Africa |
-| `me` | Middle East |
-| `naf` | North Africa |
-| `saf` | South Africa |
-| `sam` | South America |
-| `sea` | Southeast Asia |
-| `uzb` | Uzbekistan |
-| `vn` | Vietnam |
+| `me`   | Middle East                  |
+| `naf`  | North Africa                 |
+| `saf`  | South Africa                 |
+| `sam`  | South America                |
+| `sea`  | Southeast Asia               |
+| `uzb`  | Uzbekistan                   |
+| `vn`   | Vietnam                      |
 
 On submit, the integration logs in against CarLinko and stores the session.
 One config entry is created **per account** (hub): every vehicle on that account
@@ -72,22 +72,22 @@ If the token goes stale, Home Assistant prompts for **re-authentication**
 (password only; email/region kept). Use **Reconfigure** to change password and
 region without removing the integration.
 
-| Error                     | Meaning                          |
-|---------------------------|----------------------------------|
-| Invalid email or password | Auth rejected                    |
-| Could not reach CarLinko  | Network / upstream failure       |
-| Unexpected error          | See logs                         |
-| Already configured        | Same account already added       |
-| No vehicles               | Account has no paired cars       |
+| Error                     | Meaning                    |
+| ------------------------- | -------------------------- |
+| Invalid email or password | Auth rejected              |
+| Could not reach CarLinko  | Network / upstream failure |
+| Unexpected error          | See logs                   |
+| Already configured        | Same account already added |
+| No vehicles               | Account has no paired cars |
 
 ### Options
 
 After setup, configure via the integration’s **Configure** options flow:
 
-| Option | Default | Description |
-|--------|---------|-------------|
-| Region | `sea` | Cloud region (one of the known codes above) |
-| Stream backstop (seconds) | `20` | WS keepalive / re-request interval |
+| Option                        | Default          | Description                                            |
+| ----------------------------- | ---------------- | ------------------------------------------------------ |
+| Region                        | `sea`            | Cloud region (one of the known codes above)            |
+| Stream backstop (seconds)     | `20`             | WS keepalive / re-request interval                     |
 | Availability window (seconds) | `2400` (~40 min) | Entities go unavailable if no frame within this window |
 
 ## Behaviour
@@ -115,7 +115,7 @@ After setup, configure via the integration’s **Configure** options flow:
 ## Entities (overview)
 
 | Platform        | Examples                                      |
-|-----------------|-----------------------------------------------|
+| --------------- | --------------------------------------------- |
 | Sensor          | Battery, range, odometer, charge power, tyres |
 | Binary sensor   | Charging, online, doors, seat heat/vent       |
 | Lock / climate  | Door lock, climate                            |
@@ -168,12 +168,12 @@ cd engine && python entrypoint.py
 
 ## Repo layout
 
-| Path | Role |
-|------|------|
-| [`custom_components/carlinko/`](custom_components/carlinko/) | HA integration (`common` / `managers` / `models`) |
-| [`engine/`](engine/) | Dev harness (single-file CLI, no HA) |
-| [`www/`](www/) | Brand icon/logo source (for home-assistant/brands) |
-| [`docs/`](docs/) | API map, opcodes |
+| Path                                                         | Role                                                        |
+| ------------------------------------------------------------ | ----------------------------------------------------------- |
+| [`custom_components/carlinko/`](custom_components/carlinko/) | HA integration (`common` / `managers` / `models` / `brand`) |
+| [`engine/`](engine/)                                         | Dev harness (single-file CLI, no HA)                        |
+| [`www/`](www/)                                               | Brand icon/logo copy for README (same as `brand/`)          |
+| [`docs/`](docs/)                                             | API map, opcodes                                            |
 
 ## Docs
 

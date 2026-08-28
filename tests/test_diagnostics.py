@@ -1,14 +1,20 @@
 """Diagnostics redaction smoke tests."""
+
 from __future__ import annotations
 
 from unittest.mock import MagicMock
 
 import pytest
-from homeassistant.core import HomeAssistant
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
-from custom_components.carlinko.common.consts import CONF_EMAIL, CONF_PASSWORD, CONF_REGION, DOMAIN
+from custom_components.carlinko.common.consts import (
+    CONF_EMAIL,
+    CONF_PASSWORD,
+    CONF_REGION,
+    DOMAIN,
+)
 from custom_components.carlinko.diagnostics import async_get_config_entry_diagnostics
+from homeassistant.core import HomeAssistant
 
 
 @pytest.mark.asyncio

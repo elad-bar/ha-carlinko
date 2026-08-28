@@ -5,6 +5,7 @@ HA path: pass a pre-built ``homeassistant.helpers.storage.Store`` via ``ha_store
 
 Engine: JSON file under ``CARLINKO_DATA`` / repo ``data/``.
 """
+
 from __future__ import annotations
 
 import json

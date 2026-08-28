@@ -1,4 +1,5 @@
 """CarLinko covers (windows / sunroof / liftgate)."""
+
 from __future__ import annotations
 
 from homeassistant.components.cover import CoverEntity, CoverEntityFeature

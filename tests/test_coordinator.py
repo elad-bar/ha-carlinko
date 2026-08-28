@@ -1,11 +1,10 @@
 """Coordinator auth-failure and multi-vehicle tests."""
+
 from __future__ import annotations
 
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
-from homeassistant.core import HomeAssistant
-from homeassistant.exceptions import ConfigEntryAuthFailed
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.carlinko.common.consts import (
@@ -22,6 +21,8 @@ from custom_components.carlinko.managers.coordinator import (
 from custom_components.carlinko.managers.store import CarlinkoStore, ha_storage_key
 from custom_components.carlinko.models.exceptions import AuthError
 from custom_components.carlinko.models.vehicle_state import VehicleState
+from homeassistant.core import HomeAssistant
+from homeassistant.exceptions import ConfigEntryAuthFailed
 from homeassistant.helpers.storage import Store
 
 _VEHICLES = [
@@ -92,7 +93,9 @@ async def test_async_start_multi_vehicle(hass: HomeAssistant) -> None:
     coordinator = CarlinkoCoordinator(hass, entry, store, session)
 
     with (
-        patch.object(coordinator.api, "login", new_callable=AsyncMock, return_value="tok"),
+        patch.object(
+            coordinator.api, "login", new_callable=AsyncMock, return_value="tok"
+        ),
         patch.object(
             coordinator.api,
             "async_list_vehicles",
@@ -122,7 +125,9 @@ async def test_vehicle_list_add_remove(hass: HomeAssistant) -> None:
     coordinator = CarlinkoCoordinator(hass, entry, store, session)
 
     with (
-        patch.object(coordinator.api, "login", new_callable=AsyncMock, return_value="tok"),
+        patch.object(
+            coordinator.api, "login", new_callable=AsyncMock, return_value="tok"
+        ),
         patch.object(
             coordinator.api,
             "async_list_vehicles",

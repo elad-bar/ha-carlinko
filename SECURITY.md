@@ -2,16 +2,16 @@
 
 This project is a **Home Assistant custom integration**. There is no server operated by
 the maintainers and no telemetry phoning home. Everything below describes what the
-integration does on *your* Home Assistant instance.
+integration does on _your_ Home Assistant instance.
 
 ## What data the integration touches
 
-| Data | Stored | Leaves your machine? |
-| --- | --- | --- |
-| CarLinko email + password | Home Assistant config entry | Only to **CarLinko's own cloud** over HTTPS, to log in — like the official app |
-| Auth token | HA storage (`CarlinkoStore`) | Sent back to CarLinko's cloud on each request |
-| Live telemetry | In-memory (coordinator / entities) | No (unless you log or export it yourself) |
-| Cost knobs (tariff, petrol price, …) | HA storage | No |
+| Data                                 | Stored                             | Leaves your machine?                                                           |
+| ------------------------------------ | ---------------------------------- | ------------------------------------------------------------------------------ |
+| CarLinko email + password            | Home Assistant config entry        | Only to **CarLinko's own cloud** over HTTPS, to log in — like the official app |
+| Auth token                           | HA storage (`CarlinkoStore`)       | Sent back to CarLinko's cloud on each request                                  |
+| Live telemetry                       | In-memory (coordinator / entities) | No (unless you log or export it yourself)                                      |
+| Cost knobs (tariff, petrol price, …) | HA storage                         | No                                                                             |
 
 **Optional `engine/` CLI** (dev / debugging only): email/password/region in a gitignored
 `.env`; token and vehicle ids via the same `CarlinkoStore` class, file-backed to
@@ -38,6 +38,6 @@ cloud only (WebSocket + REST for login and remote control).
 Found something? **Please report it privately first** — don't open a public issue with
 exploit details. Use
 [GitHub private vulnerability reporting](https://github.com/elad-bar/ha-carlinko/security/advisories/new)
-(Security tab → *Report a vulnerability*).
+(Security tab → _Report a vulnerability_).
 
 This is a hobby project with no warranty — see [LICENSE](LICENSE).

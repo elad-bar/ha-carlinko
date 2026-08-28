@@ -1,14 +1,16 @@
 """CarLinko data coordinator — hub multi-vehicle WebSocket push + caps refresh."""
+
 from __future__ import annotations
 
 import asyncio
-import logging
-import time
 from collections.abc import Callable
 from dataclasses import dataclass, field
+import logging
+import time
 from typing import Any
 
 from aiohttp import ClientSession
+
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.exceptions import ConfigEntryAuthFailed, HomeAssistantError
@@ -33,10 +35,10 @@ from ..common.consts import (
     WS_SETUP_TIMEOUT_S,
 )
 from ..managers.api_client import ApiClient, device_sn_of, vehicle_id_of
+from ..managers.ws_client import WsClient
 from ..models.entity_specs import get_entity_specs
 from ..models.exceptions import AuthError
 from ..models.vehicle_state import VehicleState
-from ..managers.ws_client import WsClient
 from .store import CarlinkoStore, ha_storage_key
 
 _LOGGER = logging.getLogger(__name__)
@@ -168,8 +170,7 @@ class CarlinkoCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             rt = self._vehicles.get(str(vehicle_id))
             state = dict(rt.vehicle_state.data) if rt else {}
         return {
-            s.key
-            for s in get_entity_specs(state=state, caps=self.caps_for(vehicle_id))
+            s.key for s in get_entity_specs(state=state, caps=self.caps_for(vehicle_id))
         }
 
     def _meta_from_api_row(self, veh: dict[str, Any]) -> dict[str, Any]:
@@ -178,7 +179,10 @@ class CarlinkoCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             "vehicle_id": vid,
             "device_sn": device_sn_of(veh),
             "plate": veh.get("licenseNumber") or veh.get("plate") or "—",
-            "model": veh.get("model") or veh.get("modelName") or veh.get("oldModel") or "EV",
+            "model": veh.get("model")
+            or veh.get("modelName")
+            or veh.get("oldModel")
+            or "EV",
             "vin": veh.get("vin") or veh.get("VIN") or "—",
         }
 

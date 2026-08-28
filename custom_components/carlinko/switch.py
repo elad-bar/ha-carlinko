@@ -1,4 +1,5 @@
 """CarLinko switches."""
+
 from __future__ import annotations
 
 from homeassistant.components.switch import SwitchEntity

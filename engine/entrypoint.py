@@ -7,6 +7,7 @@ custom_components/carlinko/{managers,models}/.
 Usage:
   python entrypoint.py
 """
+
 from __future__ import annotations
 
 import asyncio
@@ -18,9 +19,6 @@ import sys
 from typing import Any, Callable
 
 import aiohttp
-from dotenv import load_dotenv
-
-import ha_free_path  # noqa: F401  # mounts synthetic carlinko package
 from carlinko.common.consts import USER_AGENT
 from carlinko.managers.api_client import ApiClient
 from carlinko.managers.store import CarlinkoStore
@@ -28,6 +26,8 @@ from carlinko.managers.ws_client import WsClient
 from carlinko.models.entity_specs import ENTITY_SPECS, get_entity_specs
 from carlinko.models.entity_values import EntityValueResolver
 from carlinko.models.vehicle_state import VehicleState
+from dotenv import load_dotenv
+import ha_free_path  # noqa: F401  # mounts synthetic carlinko package
 
 try:
     sys.stdout.reconfigure(encoding="utf-8", errors="replace")
@@ -139,7 +139,9 @@ async def _caps_refresh_loop(api: ApiClient, stop: asyncio.Event) -> None:
             _LOGGER.exception("vehicle cache refresh failed")
 
 
-def _register_stop_handlers(loop: asyncio.AbstractEventLoop, stop: asyncio.Event) -> None:
+def _register_stop_handlers(
+    loop: asyncio.AbstractEventLoop, stop: asyncio.Event
+) -> None:
     def request_stop(*_):
         _LOGGER.info("shutting down")
         stop.set()

@@ -38,7 +38,7 @@ This project reads a private vehicle API, so a few things matter more here than 
 - **Respect people's vehicle privacy.** Never ask someone to post an unredacted VIN, number plate,
   token, password, or location trace. When helping someone debug, ask for the smallest data that
   answers the question, and say what's safe to redact.
-- **Don't encourage misuse.** This is for accessing *your own* car and *your own* account. Requests
+- **Don't encourage misuse.** This is for accessing _your own_ car and _your own_ account. Requests
   to access other people's vehicles, bypass authentication, or abuse the vendor's infrastructure at
   scale are out of scope and will be closed.
 - **Be honest about accuracy.** Don't present a guess as a validated fact. If a byte offset or a

@@ -4,7 +4,7 @@ Tracked against [sh00t2kill/dolphin-robot](https://github.com/sh00t2kill/dolphin
 
 Checkboxes are work items, not a claim that Dolphin has climate/covers. Platform-specific bugs are still listed because hassfest and users will hit them.
 
-Suggested order: **P0 → P1 → P2 → P3** (P0 closed; P1 mostly closed — brands awaits merge).
+Suggested order: **P0 → P1 → P2 → P3** (P0–P1 closed; next is P3 product extras).
 
 ---
 
@@ -123,7 +123,7 @@ HA Settings → General → Currency (`hass.config.currency`). Amounts are numbe
 
 Expand beyond the current 9 rules. Mark each `done` / `todo` / `exempt` with a one-line reason when exempt.
 
-- [ ] `brands` — source in [`www/`](www/); PR open: [home-assistant/brands#11056](https://github.com/home-assistant/brands/pull/11056) (flip to done after merge)
+- [x] `brands` — local [`brand/`](custom_components/carlinko/brand/) icons (HA 2026.3+; brands CDN PR no longer accepted for custom integrations)
 - [x] `reconfiguration-flow`
 - [x] `entity-translations` / `icon-translations`
 - [x] `entity-category`
@@ -191,7 +191,7 @@ Expand beyond the current 9 rules. Mark each `done` / `todo` / `exempt` with a o
 
 ## Already done (do not re-litigate)
 
-Keep these; they already match the Dolphin *behavior* shape:
+Keep these; they already match the Dolphin _behavior_ shape:
 
 - Config flow + unique id + reauth (+ reconfigure / options; schemas stay in `config_flow.py`)
 - Coordinator owns REST + WS (setup waits for first WS session)
@@ -206,14 +206,14 @@ Keep these; they already match the Dolphin *behavior* shape:
 - HACS detail via `hacs.json` `render_readme: true` (no separate `info.md`; repo-root `www/` is brand source only)
 - HA currency from Settings → General; monetary number device class on tariff / petrol_price
 
-Not done: `brands` until [brands#11056](https://github.com/home-assistant/brands/pull/11056) merges; P3 device diagnostics / device_tracker / speed sensors.
+Not done: P3 device diagnostics / device_tracker / speed sensors.
 
 ---
 
 ## Notes
 
-- HA-free modules (`models/` + `managers/api_client.py` / `ws_client.py` / `store.py`) must not import Home Assistant at all (`CarlinkoStore` takes a pre-built HA ``Store`` from HA-facing callers). HA-facing code lives in `common/`, HA parts of `managers/` (coordinator), and package-root platforms. `engine/entrypoint.py` mounts a synthetic `carlinko` parent so those packages import without loading the integration `__init__`.
+- HA-free modules (`models/` + `managers/api_client.py` / `ws_client.py` / `store.py`) must not import Home Assistant at all (`CarlinkoStore` takes a pre-built HA `Store` from HA-facing callers). HA-facing code lives in `common/`, HA parts of `managers/` (coordinator), and package-root platforms. `engine/entrypoint.py` mounts a synthetic `carlinko` parent so those packages import without loading the integration `__init__`.
 - Entity copy lives in `strings.json` / `translations/*.json`; description / catalog `key` is the lookup, not a display `name`.
 - House currency comes from HA General (`hass.config.currency`); CarLinko never stores a currency code.
 - Custom domain services are optional; empty `services.yaml` + `action_setup: exempt` is fine if everything stays on entities.
-- Core brands icons: source in `www/`; HA UI icons after merge of `home-assistant/brands` PR (see P1 `brands`).
+- Brand icons live in `custom_components/carlinko/brand/` (HA 2026.3+ local brand images); `www/` is the repo README source copy.

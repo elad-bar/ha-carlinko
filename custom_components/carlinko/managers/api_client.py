@@ -9,6 +9,7 @@ NOT validated by the server, so we omit it.
 Must not import homeassistant. Credentials come from the caller (HA config entry or
 engine CLI/.env); token + vehicle ids from CarlinkoStore.
 """
+
 from __future__ import annotations
 
 import base64
@@ -36,8 +37,8 @@ from ..common.consts import (
     WIN_BOOLS,
     WS_HOST_TMPL,
 )
-from ..models.exceptions import AuthError
 from ..common.helpers import flag, flags, parse_control_cfg, seat_max
+from ..models.exceptions import AuthError
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -82,7 +83,9 @@ class ApiClient:
     def reload_ids_from_store(self):
         self.store.load()
         self.token = (self.store.data.get("token") or "").strip() or self.token
-        self.vehicle_id = str(self.store.data.get("vehicle_id") or "") or self.vehicle_id
+        self.vehicle_id = (
+            str(self.store.data.get("vehicle_id") or "") or self.vehicle_id
+        )
         self.device_sn = str(self.store.data.get("device_sn") or "") or self.device_sn
         sk = self.store.data.get("sign_key") or DEFAULT_SIGN_KEY
         self.sign_key = sk.encode() if isinstance(sk, str) else sk
@@ -97,7 +100,9 @@ class ApiClient:
         m = {k: ("" if v is None else str(v)) for k, v in params.items()}
         ordered = {k: m[k] for k in sorted(m.keys())}
         msg = json.dumps(ordered, separators=(",", ":"), ensure_ascii=False).encode()
-        return base64.b64encode(hmac.new(self.sign_key, msg, hashlib.sha256).digest()).decode()
+        return base64.b64encode(
+            hmac.new(self.sign_key, msg, hashlib.sha256).digest()
+        ).decode()
 
     def headers_for(self, params, token=None):
         ts = self.now_ms()
@@ -164,9 +169,7 @@ class ApiClient:
             "max": ac.get("SetTemperatureMax"),
             "step": ac.get("TemperatureStepValue"),
         }
-        out["seats"] = {
-            oid: seat_max(ac, fkey, lkey) for oid, fkey, lkey in SEAT_CAPS
-        }
+        out["seats"] = {oid: seat_max(ac, fkey, lkey) for oid, fkey, lkey in SEAT_CAPS}
         out["plate"] = v.get("licenseNumber") or ""
         return out
 
@@ -195,11 +198,7 @@ class ApiClient:
 
     async def async_list_vehicles(self, force: bool = False) -> list[dict[str, Any]]:
         """Fetch full /user/vehicle list and refresh per-vehicle caps (~1h TTL)."""
-        if (
-            not force
-            and self._veh_list
-            and (time.time() - self._list_cache_t) < 3600
-        ):
+        if not force and self._veh_list and (time.time() - self._list_cache_t) < 3600:
             return list(self._veh_list)
 
         async def _fetch(tok):
@@ -262,8 +261,14 @@ class ApiClient:
         vid = str(vehicle_id or self.vehicle_id or "")
         dsn = str(device_sn or "")
         if not dsn and vid:
-            meta = self.store.get_vehicle_meta(vid) if hasattr(self.store, "get_vehicle_meta") else {}
-            dsn = str(meta.get("device_sn") or "") or device_sn_of(self._veh_by_id.get(vid))
+            meta = (
+                self.store.get_vehicle_meta(vid)
+                if hasattr(self.store, "get_vehicle_meta")
+                else {}
+            )
+            dsn = str(meta.get("device_sn") or "") or device_sn_of(
+                self._veh_by_id.get(vid)
+            )
         if not dsn:
             dsn = self.device_sn
         if not vid or not dsn:
@@ -272,14 +277,23 @@ class ApiClient:
             timeout = int(timeout)
         except Exception:
             timeout = 20
-        body = {"vehicleId": vid, "deviceSn": dsn, "data": str(opcode), "timeOut": timeout}
+        body = {
+            "vehicleId": vid,
+            "deviceSn": dsn,
+            "data": str(opcode),
+            "timeOut": timeout,
+        }
         post_timeout = aiohttp.ClientTimeout(total=timeout + 8)
 
         async def _post(tok):
             ts = self.now_ms()
-            ordered = {k: v for k, v in sorted({**body, "timestamp": ts}.items())}
-            msg = json.dumps(ordered, separators=(",", ":"), ensure_ascii=False).encode()
-            sig = base64.b64encode(hmac.new(self.sign_key, msg, hashlib.sha256).digest()).decode()
+            ordered = dict(sorted({**body, "timestamp": ts}.items()))
+            msg = json.dumps(
+                ordered, separators=(",", ":"), ensure_ascii=False
+            ).encode()
+            sig = base64.b64encode(
+                hmac.new(self.sign_key, msg, hashlib.sha256).digest()
+            ).decode()
             h = {
                 "timestamp": ts,
                 "signature": sig,

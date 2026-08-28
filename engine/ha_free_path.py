@@ -3,6 +3,7 @@
 Import this module before any ``from carlinko...`` so managers/models load
 without executing the HA integration ``__init__``.
 """
+
 from __future__ import annotations
 
 import os
@@ -14,8 +15,7 @@ _REPO = os.path.dirname(_HERE)
 _ROOT = os.path.join(_REPO, "custom_components", "carlinko")
 
 if not (
-    "carlinko" in sys.modules
-    and getattr(sys.modules["carlinko"], "__path__", None)
+    "carlinko" in sys.modules and getattr(sys.modules["carlinko"], "__path__", None)
 ):
     _pkg = types.ModuleType("carlinko")
     _pkg.__file__ = os.path.join(_ROOT, "__init__.py")

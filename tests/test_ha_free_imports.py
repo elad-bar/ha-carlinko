@@ -1,9 +1,10 @@
 """HA-free import boundary for models / managers used by engine."""
+
 from __future__ import annotations
 
 import importlib
-import sys
 from pathlib import Path
+import sys
 
 import pytest
 
@@ -40,7 +41,9 @@ def test_ha_free_modules_import_without_homeassistant() -> None:
     # If HA was already imported by other tests, we still verify our modules
     # do not list homeassistant in their co_names / dependency chain via
     # module-level imports recorded after a clean mount of carlinko.*.
-    before = {k for k in sys.modules if k == "homeassistant" or k.startswith("homeassistant.")}
+    before = {
+        k for k in sys.modules if k == "homeassistant" or k.startswith("homeassistant.")
+    }
 
     for mod_name in _HA_FREE_MODULES:
         mod = importlib.import_module(mod_name)
@@ -48,7 +51,9 @@ def test_ha_free_modules_import_without_homeassistant() -> None:
         # Module file must live under custom_components/carlinko (mounted as carlinko).
         assert "custom_components" in (mod.__file__ or "").replace("\\", "/")
 
-    after = {k for k in sys.modules if k == "homeassistant" or k.startswith("homeassistant.")}
+    after = {
+        k for k in sys.modules if k == "homeassistant" or k.startswith("homeassistant.")
+    }
     # Importing HA-free slice must not introduce new homeassistant modules.
     assert after == before or had_ha
     newly = after - before

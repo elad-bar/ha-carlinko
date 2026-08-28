@@ -1,11 +1,15 @@
 """Shared decode helpers: tyre conversion + vehicleControlConfig parsing."""
+
 from __future__ import annotations
 
 import json
 
 from .consts import (
-    DEFAULT_TPMS_SCALE, KPA_TO_PSI,
-    TYRE_INVALID, TYRE_TEMP_OFFSET, TYRE_TEMP_SCALE,
+    DEFAULT_TPMS_SCALE,
+    KPA_TO_PSI,
+    TYRE_INVALID,
+    TYRE_TEMP_OFFSET,
+    TYRE_TEMP_SCALE,
 )
 
 
@@ -23,7 +27,9 @@ def pressure(x, scale=None, unit=None):
 
 
 def temp(x):
-    return None if x == TYRE_INVALID else round(x * TYRE_TEMP_SCALE + TYRE_TEMP_OFFSET, 1)
+    return (
+        None if x == TYRE_INVALID else round(x * TYRE_TEMP_SCALE + TYRE_TEMP_OFFSET, 1)
+    )
 
 
 def parse_control_cfg(raw):

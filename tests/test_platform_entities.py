@@ -1,10 +1,10 @@
 """Smoke tests for each platform entity class."""
+
 from __future__ import annotations
 
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
-from homeassistant.components.climate import HVACMode
 
 from custom_components.carlinko.binary_sensor import CarlinkoBinarySensor
 from custom_components.carlinko.button import CarlinkoButton
@@ -16,6 +16,7 @@ from custom_components.carlinko.number import CarlinkoNumber
 from custom_components.carlinko.select import CarlinkoSelect
 from custom_components.carlinko.sensor import CarlinkoSensor
 from custom_components.carlinko.switch import CarlinkoSwitch
+from homeassistant.components.climate import HVACMode
 
 
 def _spec(key: str):
@@ -61,9 +62,7 @@ def test_sensor_native_value() -> None:
 
 
 def test_binary_sensor_is_on() -> None:
-    entity = CarlinkoBinarySensor(
-        _coordinator(online=True), _spec("online"), "veh-1"
-    )
+    entity = CarlinkoBinarySensor(_coordinator(online=True), _spec("online"), "veh-1")
     assert entity._attr_translation_key == "online"
     assert entity.is_on is True
 
@@ -87,9 +86,7 @@ async def test_lock_lock_unlock() -> None:
     entity = CarlinkoLock(coordinator, _spec("lock"), "veh-1")
     assert entity.is_locked is True
     await entity.async_unlock()
-    coordinator.async_send_control.assert_awaited_with(
-        "740200", vehicle_id="veh-1"
-    )
+    coordinator.async_send_control.assert_awaited_with("740200", vehicle_id="veh-1")
     await entity.async_lock()
     assert coordinator.async_send_control.await_count == 2
 
@@ -100,9 +97,7 @@ async def test_climate_turn_off() -> None:
     entity = CarlinkoClimate(coordinator, _spec("climate"), "veh-1")
     assert entity.target_temperature == 22.0
     await entity.async_set_hvac_mode(HVACMode.OFF)
-    coordinator.async_send_control.assert_awaited_with(
-        "741000", vehicle_id="veh-1"
-    )
+    coordinator.async_send_control.assert_awaited_with("741000", vehicle_id="veh-1")
 
 
 @pytest.mark.asyncio
@@ -111,9 +106,7 @@ async def test_cover_open_close() -> None:
     entity = CarlinkoCover(coordinator, _spec("windows"), "veh-1")
     assert entity.is_closed is True
     await entity.async_open_cover()
-    coordinator.async_send_control.assert_awaited_with(
-        "740600", vehicle_id="veh-1"
-    )
+    coordinator.async_send_control.assert_awaited_with("740600", vehicle_id="veh-1")
 
 
 @pytest.mark.asyncio
@@ -121,9 +114,7 @@ async def test_button_press() -> None:
     coordinator = _coordinator()
     entity = CarlinkoButton(coordinator, _spec("find"), "veh-1")
     await entity.async_press()
-    coordinator.async_send_control.assert_awaited_with(
-        "740400", vehicle_id="veh-1"
-    )
+    coordinator.async_send_control.assert_awaited_with("740400", vehicle_id="veh-1")
 
 
 @pytest.mark.asyncio
@@ -132,9 +123,7 @@ async def test_switch_turn_on_off() -> None:
     entity = CarlinkoSwitch(coordinator, _spec("engine"), "veh-1")
     assert entity.is_on is True
     await entity.async_turn_off()
-    coordinator.async_send_control.assert_awaited_with(
-        "740800", vehicle_id="veh-1"
-    )
+    coordinator.async_send_control.assert_awaited_with("740800", vehicle_id="veh-1")
 
 
 @pytest.mark.asyncio
@@ -143,6 +132,4 @@ async def test_select_option() -> None:
     entity = CarlinkoSelect(coordinator, _spec("seat_heatL"), "veh-1")
     assert entity.current_option == "L1"
     await entity.async_select_option("off")
-    coordinator.async_send_control.assert_awaited_with(
-        "741500", vehicle_id="veh-1"
-    )
+    coordinator.async_send_control.assert_awaited_with("741500", vehicle_id="veh-1")

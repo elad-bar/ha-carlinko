@@ -1,11 +1,11 @@
 """Live vehicle state manager: status blob → enriched live dict (no SQLite)."""
+
 from __future__ import annotations
 
 import copy
 import re
 import time
 
-from .blob_fields import BlobFields
 from ..common.consts import (
     DEFAULT_BATTERY_KWH,
     DEFAULT_CHEMISTRY,
@@ -13,6 +13,7 @@ from ..common.consts import (
     EMPTY_VEHICLE_STATE,
     KNOWN_CAR_OVERRIDES,
 )
+from .blob_fields import BlobFields
 from .enrichments import Enrichments
 
 
@@ -30,8 +31,10 @@ def _match_car_overrides(table, model):
     best = None
     for key, val in table.items():
         words = _norm_model_name(key).split()
-        if words and all(f" {w} " in name for w in words) and (
-            best is None or len(words) > best[0]
+        if (
+            words
+            and all(f" {w} " in name for w in words)
+            and (best is None or len(words) > best[0])
         ):
             best = (len(words), val)
     return best[1] if best else None

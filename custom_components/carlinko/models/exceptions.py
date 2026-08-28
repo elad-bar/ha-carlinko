@@ -1,4 +1,5 @@
 """Protocol-layer errors (HA-free)."""
+
 from __future__ import annotations
 
 

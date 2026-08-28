@@ -36,6 +36,4 @@ rules:
     status: exempt
     comment: Auth failures use reauthentication flow; no separate repair issues.
 
-  brands:
-    status: todo
-    comment: Source in repo www/; PR home-assistant/brands#11056 (custom_integrations/carlinko).
+  brands: done

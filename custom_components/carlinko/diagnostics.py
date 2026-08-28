@@ -1,4 +1,5 @@
 """Diagnostics for CarLinko config entries."""
+
 from __future__ import annotations
 
 from typing import Any
@@ -48,7 +49,9 @@ async def async_get_config_entry_diagnostics(
             vehicles_out.append(
                 {
                     "vehicle_id": _partial_id(vid),
-                    "device_sn": _partial_id(meta.get("device_sn") or (rt.device_sn if rt else None)),
+                    "device_sn": _partial_id(
+                        meta.get("device_sn") or (rt.device_sn if rt else None)
+                    ),
                     "model": meta.get("model"),
                     "plate": meta.get("plate"),
                     "connected": bool(rt.connected) if rt else False,

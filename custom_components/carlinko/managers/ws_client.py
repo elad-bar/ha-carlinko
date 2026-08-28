@@ -6,18 +6,26 @@ Auth / vehicle ids come from ApiClient + explicit vehicle_id / device_sn.
 
 Must not import homeassistant. Engine CLI owns stdout encoding setup.
 """
+
 from __future__ import annotations
 
 import asyncio
+from collections.abc import Callable
 import json
 import logging
 import time
-from collections.abc import Callable
 from typing import Any
 
 import aiohttp
 
-from ..common.consts import HEARTBEAT, OK_CODE, RECONNECT_WAIT, STREAM_BACKSTOP, TOUCH, USER_AGENT
+from ..common.consts import (
+    HEARTBEAT,
+    OK_CODE,
+    RECONNECT_WAIT,
+    STREAM_BACKSTOP,
+    TOUCH,
+    USER_AGENT,
+)
 from ..models.exceptions import AuthError
 
 _LOGGER = logging.getLogger(__name__)
@@ -134,10 +142,13 @@ class WsClient:
         dsn = self.device_sn or self.api.device_sn
         ws = await self.connect()
         try:
-            await self.ws_send(ws, {
-                "action": 1,
-                "data": {"token": self.api.token, "vehicleId": vid},
-            })
+            await self.ws_send(
+                ws,
+                {
+                    "action": 1,
+                    "data": {"token": self.api.token, "vehicleId": vid},
+                },
+            )
             login_raw = await self.ws_recv(ws)
             login = json.loads(login_raw) if login_raw else {}
             if login.get("code") != OK_CODE:
@@ -152,10 +163,13 @@ class WsClient:
                     raise
                 except Exception:
                     _LOGGER.exception("vehicle cache refresh after login failed")
-                await self.ws_send(ws, {
-                    "action": 1,
-                    "data": {"token": self.api.token, "vehicleId": vid},
-                })
+                await self.ws_send(
+                    ws,
+                    {
+                        "action": 1,
+                        "data": {"token": self.api.token, "vehicleId": vid},
+                    },
+                )
                 login_raw = await self.ws_recv(ws)
                 login = json.loads(login_raw) if login_raw else {}
                 if login.get("code") != OK_CODE:

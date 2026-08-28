@@ -3,6 +3,7 @@
 May import homeassistant. Platforms should use descriptions from here rather than
 building HA attrs from the catalog directly.
 """
+
 from __future__ import annotations
 
 from homeassistant.components.binary_sensor import (
@@ -23,13 +24,13 @@ from homeassistant.components.sensor import (
 from homeassistant.components.switch import SwitchEntityDescription
 from homeassistant.const import (
     PERCENTAGE,
+    UnitOfElectricPotential,
     UnitOfEnergy,
     UnitOfLength,
     UnitOfPower,
     UnitOfPressure,
     UnitOfTemperature,
     UnitOfTime,
-    UnitOfElectricPotential,
 )
 from homeassistant.helpers.entity import EntityCategory, EntityDescription
 

@@ -26,9 +26,9 @@ in `.env` for verbose WebSocket lines.
 
 ## Layout
 
-| Path | Role |
-|------|------|
-| `engine/entrypoint.py` | Only engine Python file — mount + CLI + delta logs |
+| Path                                   | Role                                                     |
+| -------------------------------------- | -------------------------------------------------------- |
+| `engine/entrypoint.py`                 | Only engine Python file — mount + CLI + delta logs       |
 | `custom_components/carlinko/managers/` | API / WS / **shared** `CarlinkoStore` (+ HA coordinator) |
-| `custom_components/carlinko/models/` | Wire consts, catalog, vehicle state, exceptions |
-| `custom_components/carlinko/common/` | HA-facing shared (consts, base entity, setup) |
+| `custom_components/carlinko/models/`   | Wire consts, catalog, vehicle state, exceptions          |
+| `custom_components/carlinko/common/`   | HA-facing shared (consts, base entity, setup)            |

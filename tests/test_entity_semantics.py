@@ -1,20 +1,24 @@
 """Entity description / resolver / platform semantics (P2)."""
+
 from __future__ import annotations
 
 from datetime import UTC, datetime
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
-from homeassistant.components.cover import CoverEntityFeature
-from homeassistant.components.sensor import SensorDeviceClass, SensorStateClass
-from homeassistant.const import UnitOfLength, UnitOfPressure
 
 from custom_components.carlinko.climate import CarlinkoClimate
 from custom_components.carlinko.common.entity_descriptions import get_entity_description
 from custom_components.carlinko.cover import CarlinkoCover
-from custom_components.carlinko.models.entity_specs import ENTITY_SPECS, get_entity_specs
+from custom_components.carlinko.models.entity_specs import (
+    ENTITY_SPECS,
+    get_entity_specs,
+)
 from custom_components.carlinko.models.entity_values import EntityValueResolver
 from custom_components.carlinko.select import CarlinkoSelect
+from homeassistant.components.cover import CoverEntityFeature
+from homeassistant.components.sensor import SensorDeviceClass, SensorStateClass
+from homeassistant.const import UnitOfLength, UnitOfPressure
 
 
 def _spec(key: str):

@@ -1,4 +1,5 @@
 """Derived live-state enrichments (charging, fuel, TPMS, moving, …)."""
+
 from __future__ import annotations
 
 from ..common.consts import BLOB, BLOB_ENRICHMENTS, KPA_TO_PSI, TPMS_POS, TYRE_INVALID
@@ -12,14 +13,18 @@ class Enrichments:
         self.blob = blob
         self.new_data = new_data
         self.ctx = ctx or {}
-        self.enrich_fns = enrich_fns if enrich_fns is not None else {
-            "charging": self.enrich_charging,
-            "powertrain": self.enrich_powertrain,
-            "fuel": self.enrich_fuel,
-            "tpms": self.enrich_tpms,
-            "moving": self.enrich_moving,
-            "volt12_status": self.enrich_volt12_status,
-        }
+        self.enrich_fns = (
+            enrich_fns
+            if enrich_fns is not None
+            else {
+                "charging": self.enrich_charging,
+                "powertrain": self.enrich_powertrain,
+                "fuel": self.enrich_fuel,
+                "tpms": self.enrich_tpms,
+                "moving": self.enrich_moving,
+                "volt12_status": self.enrich_volt12_status,
+            }
+        )
 
     def enrich_charging(self):
         charge_mode = self.new_data.get("charge_mode")
@@ -86,9 +91,7 @@ class Enrichments:
         if raw_psi:
             self.new_data["tyre_indirect"] = False
             self.new_data["tyre_status"] = (
-                "check_tyres"
-                if any(p < 28 or p > 40 for p in raw_psi)
-                else "normal"
+                "check_tyres" if any(p < 28 or p > 40 for p in raw_psi) else "normal"
             )
 
     def enrich_moving(self):

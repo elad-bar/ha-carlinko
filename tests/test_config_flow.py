@@ -1,12 +1,10 @@
 """Config flow and reauth tests for CarLinko."""
+
 from __future__ import annotations
 
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
-from homeassistant import config_entries
-from homeassistant.core import HomeAssistant
-from homeassistant.data_entry_flow import FlowResultType
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.carlinko.common.consts import (
@@ -20,6 +18,9 @@ from custom_components.carlinko.common.consts import (
 from custom_components.carlinko.models.entity_specs import ENTITY_SPECS
 from custom_components.carlinko.models.entity_values import EntityValueResolver
 from custom_components.carlinko.models.exceptions import AuthError
+from homeassistant import config_entries
+from homeassistant.core import HomeAssistant
+from homeassistant.data_entry_flow import FlowResultType
 
 _VEHICLE = {
     "vehicleId": "veh-1",

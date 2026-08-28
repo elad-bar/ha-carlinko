@@ -2,6 +2,7 @@
 
 May import homeassistant. HA-free catalog lives in ``models/entity_specs``.
 """
+
 from __future__ import annotations
 
 from homeassistant.helpers.device_registry import DeviceInfo

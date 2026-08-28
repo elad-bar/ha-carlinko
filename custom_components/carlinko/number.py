@@ -1,4 +1,5 @@
 """CarLinko number entities (cost knobs)."""
+
 from __future__ import annotations
 
 from homeassistant.components.number import NumberEntity, NumberMode

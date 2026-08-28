@@ -1,4 +1,5 @@
 """Section-gated status-blob field extract + optional scaling."""
+
 from __future__ import annotations
 
 from ..common.consts import BLOB, BLOB_FIELDS
@@ -10,20 +11,28 @@ class BlobFields:
     def __init__(self, blob, new_data, readers=None, calcs=None):
         self.blob = blob
         self.new_data = new_data
-        self.readers = readers if readers is not None else {
-            "byte": self.blob_byte,
-            "int": self.blob_int,
-            "flag": self.blob_flag,
-        }
-        self.calcs = calcs if calcs is not None else {
-            "volt12": self.calc_volt12,
-            "speed": self.calc_speed,
-            "consumption": self.calc_consumption,
-            "fuel_l_100": self.calc_fuel_l_100,
-            "charge_remain": self.calc_charge_remain,
-            "charge_power": self.calc_charge_power,
-            "ac_temp": self.calc_ac_temp,
-        }
+        self.readers = (
+            readers
+            if readers is not None
+            else {
+                "byte": self.blob_byte,
+                "int": self.blob_int,
+                "flag": self.blob_flag,
+            }
+        )
+        self.calcs = (
+            calcs
+            if calcs is not None
+            else {
+                "volt12": self.calc_volt12,
+                "speed": self.calc_speed,
+                "consumption": self.calc_consumption,
+                "fuel_l_100": self.calc_fuel_l_100,
+                "charge_remain": self.calc_charge_remain,
+                "charge_power": self.calc_charge_power,
+                "ac_temp": self.calc_ac_temp,
+            }
+        )
 
     def blob_int(self, key):
         s, e = BLOB[key]

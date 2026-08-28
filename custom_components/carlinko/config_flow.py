@@ -1,4 +1,5 @@
 """Config flow for CarLinko (one hub entry per account; all vehicles auto-added)."""
+
 from __future__ import annotations
 
 import logging
@@ -6,6 +7,7 @@ from typing import Any
 
 import aiohttp
 import voluptuous as vol
+
 from homeassistant import config_entries
 from homeassistant.const import CONF_PASSWORD
 from homeassistant.core import callback
@@ -13,7 +15,6 @@ from homeassistant.data_entry_flow import FlowResult
 from homeassistant.helpers import selector
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
-from .managers.api_client import ApiClient
 from .common.consts import (
     AVAILABILITY_SECONDS,
     CONF_AVAILABILITY_SECONDS,
@@ -25,6 +26,7 @@ from .common.consts import (
     KNOWN_REGIONS,
     STREAM_BACKSTOP,
 )
+from .managers.api_client import ApiClient
 from .models.exceptions import AuthError
 
 _LOGGER = logging.getLogger(__name__)
@@ -65,7 +67,9 @@ def _reauth_schema() -> vol.Schema:
 
 
 def _options_schema(entry: config_entries.ConfigEntry) -> vol.Schema:
-    region = entry.options.get(CONF_REGION) or entry.data.get(CONF_REGION) or DEFAULT_REGION
+    region = (
+        entry.options.get(CONF_REGION) or entry.data.get(CONF_REGION) or DEFAULT_REGION
+    )
     backstop = entry.options.get(CONF_STREAM_BACKSTOP, STREAM_BACKSTOP)
     availability = entry.options.get(CONF_AVAILABILITY_SECONDS, AVAILABILITY_SECONDS)
     return vol.Schema(
@@ -119,7 +123,7 @@ class CarlinkoConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 errors["base"] = "invalid_auth"
             except ValueError:
                 return self.async_abort(reason="no_vehicles")
-            except Exception as err:  # noqa: BLE001
+            except Exception as err:
                 _LOGGER.debug("login failed: %s", err)
                 errors["base"] = "invalid_auth"
             else:
@@ -150,10 +154,12 @@ class CarlinkoConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             password = user_input[CONF_PASSWORD]
             region = entry.data.get(CONF_REGION) or DEFAULT_REGION
             try:
-                await self._validate_login(email, password, region, require_vehicles=False)
+                await self._validate_login(
+                    email, password, region, require_vehicles=False
+                )
             except AuthError:
                 errors["base"] = "invalid_auth"
-            except Exception:  # noqa: BLE001
+            except Exception:
                 errors["base"] = "invalid_auth"
             else:
                 return self.async_update_reload_and_abort(
@@ -176,12 +182,14 @@ class CarlinkoConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             password = user_input[CONF_PASSWORD]
             region = (user_input.get(CONF_REGION) or DEFAULT_REGION).strip()
             try:
-                await self._validate_login(email, password, region, require_vehicles=False)
+                await self._validate_login(
+                    email, password, region, require_vehicles=False
+                )
             except aiohttp.ClientError:
                 errors["base"] = "cannot_connect"
             except AuthError:
                 errors["base"] = "invalid_auth"
-            except Exception:  # noqa: BLE001
+            except Exception:
                 errors["base"] = "invalid_auth"
             else:
                 return self.async_update_reload_and_abort(

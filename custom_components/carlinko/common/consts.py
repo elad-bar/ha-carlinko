@@ -1,4 +1,5 @@
 """All CarLinko constants (integration + wire). Keep HA-free — no homeassistant imports."""
+
 from enum import Enum
 
 # ---------------------------------------------------------------------------
@@ -20,15 +21,15 @@ CAPS_REFRESH_INTERVAL_S = 3300
 
 # Sorted by English display name (see selector.region translations).
 KNOWN_REGIONS = (
-    "ap",    # Asia Pacific
+    "ap",  # Asia Pacific
     "emea",  # Europe, Middle East & Africa
-    "me",    # Middle East
-    "naf",   # North Africa
-    "saf",   # South Africa
-    "sam",   # South America
-    "sea",   # Southeast Asia
-    "uzb",   # Uzbekistan
-    "vn",    # Vietnam
+    "me",  # Middle East
+    "naf",  # North Africa
+    "saf",  # South Africa
+    "sam",  # South America
+    "sea",  # Southeast Asia
+    "uzb",  # Uzbekistan
+    "vn",  # Vietnam
 )
 # Platform names; __init__ maps these to homeassistant.const.Platform.
 PLATFORMS = (
@@ -116,6 +117,7 @@ BLOB = {
     "headline_range": (70, 72),
 }
 
+
 # Blob field extract tiers: apply a row when len(blob) > section.value.
 class BlobSection(Enum):
     CORE = 30
@@ -133,13 +135,33 @@ BLOB_FIELDS = (
     ("unlocked", "flag", None, BlobSection.CORE),
     ("volt12", "int", ("volt12_calculated", "volt12"), BlobSection.CORE),
     ("speed", "int", ("speed_calculated", "speed"), BlobSection.CORE),
-    ("consumption", "byte", ("consumption_calculated", "consumption"), BlobSection.EXTENDED),
+    (
+        "consumption",
+        "byte",
+        ("consumption_calculated", "consumption"),
+        BlobSection.EXTENDED,
+    ),
     ("fuel_pct", "byte", None, BlobSection.EXTENDED),
-    ("fuel_l_100", "byte", ("fuel_l_100_calculated", "fuel_l_100"), BlobSection.EXTENDED),
+    (
+        "fuel_l_100",
+        "byte",
+        ("fuel_l_100_calculated", "fuel_l_100"),
+        BlobSection.EXTENDED,
+    ),
     ("charge_mode", "byte", None, BlobSection.EXTENDED),
     ("charge_state", "byte", None, BlobSection.EXTENDED),
-    ("charge_remain", "int", ("charge_remain_calculated", "charge_remain"), BlobSection.EXTENDED),
-    ("charge_power", "int", ("charge_power_calculated", "charge_power"), BlobSection.EXTENDED),
+    (
+        "charge_remain",
+        "int",
+        ("charge_remain_calculated", "charge_remain"),
+        BlobSection.EXTENDED,
+    ),
+    (
+        "charge_power",
+        "int",
+        ("charge_power_calculated", "charge_power"),
+        BlobSection.EXTENDED,
+    ),
     ("ac_on", "flag", None, BlobSection.EXTENDED),
     ("doors", "byte", None, BlobSection.EXTENDED),
     ("trunk", "flag", None, BlobSection.EXTENDED),
@@ -168,11 +190,23 @@ BLOB_ENRICHMENTS = (
     ("volt12_status", BlobSection.CORE),
 )
 
-CHARGE_STATE = {0: "idle", 1: "charging", 2: "complete", 3: "canceled", 4: "hot", 5: "stop"}
+CHARGE_STATE = {
+    0: "idle",
+    1: "charging",
+    2: "complete",
+    3: "canceled",
+    4: "hot",
+    5: "stop",
+}
 HV_STATE = {0: "off", 1: "lv", 2: "ready"}
 TPMS_POS = ["FL", "FR", "RL", "RR"]
 # MQTT discovery labels (lowercase ids) + door bitmask bits.
-TYRE_POS = (("fl", "Front left"), ("fr", "Front right"), ("rl", "Rear left"), ("rr", "Rear right"))
+TYRE_POS = (
+    ("fl", "Front left"),
+    ("fr", "Front right"),
+    ("rl", "Rear left"),
+    ("rr", "Rear right"),
+)
 DOOR_BITS = (
     ("door_driver", "Driver door", 1),
     ("door_passenger", "Passenger door", 2),
@@ -204,7 +238,11 @@ CFG_BOOLS = (
     ("windshieldHeat", "FrontWindshieldHeater"),
     ("steerHeat", "SteeringWheelHeater"),
 )
-WIN_BOOLS = (("open", "WindowsOpen"), ("close", "WindowsClose"), ("vent", "WindowsVent"))
+WIN_BOOLS = (
+    ("open", "WindowsOpen"),
+    ("close", "WindowsClose"),
+    ("vent", "WindowsVent"),
+)
 ROOF_BOOLS = (("open", "Sunroof"), ("tilt", "SunroofTilting"))
 AC_BOOLS = (
     ("switch", "Switch"),
@@ -228,7 +266,7 @@ DEFAULT_TARIFF = 2540
 DEFAULT_PETROL_KML = 12.0
 DEFAULT_PETROL_PRICE = 16250.0
 CHG_EFF_AVG = 0.89
-CONS_NORMAL_MAX = 18          # kWh/100km: below = normal, at/above = "boros"
+CONS_NORMAL_MAX = 18  # kWh/100km: below = normal, at/above = "boros"
 KPA_TO_PSI = 0.145038
 TYRE_TEMP_SCALE = 0.65
 TYRE_TEMP_OFFSET = -40
@@ -238,13 +276,33 @@ TYRE_INVALID = 0xFF
 # VehicleState matches model strings word-wise (most specific key wins). Owner-confirmed
 # values — add yours: https://github.com/elad-bar/ha-carlinko/issues/new?template=compatibility.md
 KNOWN_CAR_OVERRIDES = {
-    "jaecoo j5 ev": {"battery_kwh": 58.9, "wltp_kwh_100": 14.8, "chemistry": "lfp"},   # reference (ID)
-    "tiggo 8 phev": {"battery_kwh": 18.3, "tpms_scale": 1.779, "powertrain": "phev"},  # issue #1 (ZA)
-    "tiggo 7 phev": {"battery_kwh": 18.3, "tpms_scale": 1.779, "powertrain": "phev",
-                     "wltp_kwh_100": 19.68},                                           # issue #3 (MY)
-    "tiggo 7 csh": {"battery_kwh": 18.3, "tpms_scale": 1.779, "powertrain": "phev",
-                    "wltp_kwh_100": 19.68},  # Malaysia badges the same car "TIGGO 7 CSH" (#3)
-    "omoda e5": {"battery_kwh": 61, "wltp_kwh_100": 15.5, "chemistry": "lfp"},   # issue #5 (UY)
+    "jaecoo j5 ev": {
+        "battery_kwh": 58.9,
+        "wltp_kwh_100": 14.8,
+        "chemistry": "lfp",
+    },  # reference (ID)
+    "tiggo 8 phev": {
+        "battery_kwh": 18.3,
+        "tpms_scale": 1.779,
+        "powertrain": "phev",
+    },  # issue #1 (ZA)
+    "tiggo 7 phev": {
+        "battery_kwh": 18.3,
+        "tpms_scale": 1.779,
+        "powertrain": "phev",
+        "wltp_kwh_100": 19.68,
+    },  # issue #3 (MY)
+    "tiggo 7 csh": {
+        "battery_kwh": 18.3,
+        "tpms_scale": 1.779,
+        "powertrain": "phev",
+        "wltp_kwh_100": 19.68,
+    },  # Malaysia badges the same car "TIGGO 7 CSH" (#3)
+    "omoda e5": {
+        "battery_kwh": 61,
+        "wltp_kwh_100": 15.5,
+        "chemistry": "lfp",
+    },  # issue #5 (UY)
 }
 
 # Empty live-state skeleton for VehicleState (deepcopy before use — nested mutables).
@@ -313,15 +371,15 @@ EMPTY_VEHICLE_STATE = {
 # Analytics / session thresholds (server)
 # ---------------------------------------------------------------------------
 SESSION_TTL = 30 * 86400
-IDLE_GAP = 1800               # parked + no SoC rise for 30 min => charge session ended
-CHARGE_PARK_MIN = 600         # real charge sits odo-flat >=10 min
-MIN_GAIN_PCT = 2              # net SoC gain floor
-TRIP_GAP = 180                # parked >3 min => a trip ends
-MAX_PAIR_GAP = 1800           # >30 min between frames = logging hole
+IDLE_GAP = 1800  # parked + no SoC rise for 30 min => charge session ended
+CHARGE_PARK_MIN = 600  # real charge sits odo-flat >=10 min
+MIN_GAIN_PCT = 2  # net SoC gain floor
+TRIP_GAP = 180  # parked >3 min => a trip ends
+MAX_PAIR_GAP = 1800  # >30 min between frames = logging hole
 ODO_MAX_KMH = 160
 ODO_RESYNC_KM = 12
-CHG_KW_AVG = 55               # fallback DC power when station kW unknown
-CAR_DC_CAP = 68               # J5 real-world DC ceiling (avg)
+CHG_KW_AVG = 55  # fallback DC power when station kW unknown
+CAR_DC_CAP = 68  # J5 real-world DC ceiling (avg)
 
 # ---------------------------------------------------------------------------
 # Stream defaults (config.json can override stream_backstop)
@@ -346,26 +404,49 @@ KNOWN_OPCODES = [
     {"code": "77", "note": "captured"},
 ]
 
-PUBLIC_PATHS = frozenset({
-    "/login.html", "/icon.svg", "/manifest.webmanifest",
-    "/api/status", "/api/login", "/api/unlock",
-})
+PUBLIC_PATHS = frozenset(
+    {
+        "/login.html",
+        "/icon.svg",
+        "/manifest.webmanifest",
+        "/api/status",
+        "/api/login",
+        "/api/unlock",
+    }
+)
 
 _TIGGO7_SPECS = {
-    "label": "Chery Tiggo 7 PHEV", "source": "owner-reported, issue #3",
-    "performance": [["Power", 279, "PS"], ["Torque", 365, "Nm"], ["Battery", 18.3, "kWh"]],
+    "label": "Chery Tiggo 7 PHEV",
+    "source": "owner-reported, issue #3",
+    "performance": [
+        ["Power", 279, "PS"],
+        ["Torque", 365, "Nm"],
+        ["Battery", 18.3, "kWh"],
+    ],
     "dimensions": [["Length", 4553, "mm"]],
     "notes": ["owner_reported"],
 }
 
 MODEL_SPECS = {
     "jaecoo j5 ev": {
-        "label": "Jaecoo J5 EV", "source": "Andalan Motors",
-        "performance": [["Power", 210, "PS"], ["Torque", 288, "Nm"], ["0-100 km/h", 7.3, "s"],
-                        ["DC 10-80%", 28, "min"], ["Battery", 60.9, "kWh"],
-                        ["Range NEDC", 461, "km"], ["Drivetrain", "FWD", ""]],
-        "dimensions": [["Length", 4380, "mm"], ["Width", 1860, "mm"], ["Height", 1650, "mm"],
-                       ["Wheelbase", 2620, "mm"], ["Ground clearance", 200, "mm"]],
+        "label": "Jaecoo J5 EV",
+        "source": "Andalan Motors",
+        "performance": [
+            ["Power", 210, "PS"],
+            ["Torque", 288, "Nm"],
+            ["0-100 km/h", 7.3, "s"],
+            ["DC 10-80%", 28, "min"],
+            ["Battery", 60.9, "kWh"],
+            ["Range NEDC", 461, "km"],
+            ["Drivetrain", "FWD", ""],
+        ],
+        "dimensions": [
+            ["Length", 4380, "mm"],
+            ["Width", 1860, "mm"],
+            ["Height", 1650, "mm"],
+            ["Wheelbase", 2620, "mm"],
+            ["Ground clearance", 200, "mm"],
+        ],
         "notes": ["gross_vs_usable", "nedc_optimistic"],
     },
     "tiggo 7 phev": _TIGGO7_SPECS,

@@ -1,4 +1,5 @@
 """The CarLinko Home Assistant integration."""
+
 from __future__ import annotations
 
 from homeassistant.config_entries import ConfigEntry
@@ -7,9 +8,9 @@ from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ConfigEntryAuthFailed, ConfigEntryNotReady
 from homeassistant.helpers.storage import Store
 
+from .common.consts import DOMAIN, PLATFORMS as _PLATFORM_NAMES, STORAGE_VERSION
 from .managers.coordinator import CarlinkoCoordinator, async_create_coordinator
 from .managers.store import CarlinkoStore, ha_storage_key
-from .common.consts import DOMAIN, PLATFORMS as _PLATFORM_NAMES, STORAGE_VERSION
 
 PLATFORMS = [Platform(p) for p in _PLATFORM_NAMES]
 

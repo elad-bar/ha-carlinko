@@ -1,4 +1,5 @@
 """CarLinko climate (cool / off + optional target temperature)."""
+
 from __future__ import annotations
 
 from homeassistant.components.climate import (
@@ -49,7 +50,7 @@ class CarlinkoClimate(CarlinkoEntity, ClimateEntity):
 
     @property
     def _ac_caps(self) -> dict:
-        return dict((self.coordinator.caps_for(self.vehicle_id).get("ac") or {}))
+        return dict(self.coordinator.caps_for(self.vehicle_id).get("ac") or {})
 
     @property
     def _ac_temp_supported(self) -> bool:

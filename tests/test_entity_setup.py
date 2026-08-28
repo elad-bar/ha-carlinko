@@ -1,4 +1,5 @@
 """Spec-driven entity factory add/remove (caps / fleet)."""
+
 from __future__ import annotations
 
 from unittest.mock import MagicMock
@@ -47,9 +48,7 @@ async def test_initial_setup_adds_cap_gated_entities() -> None:
         state={"vehicle": {"plate": "P", "model": "M"}},
         caps={"lock": True},
     )
-    async_setup_entities(
-        hass, entry, coordinator, "lock", async_add_entities, _factory
-    )
+    async_setup_entities(hass, entry, coordinator, "lock", async_add_entities, _factory)
     keys = {e.spec.key for e in added}
     assert "lock" in keys
     entry.async_on_unload.assert_called_once()
@@ -66,12 +65,8 @@ async def test_caps_change_removes_and_adds_entities() -> None:
 
     state = {"vehicle": {"plate": "P", "model": "M"}}
     caps = {"lock": True}
-    coordinator = _mock_coordinator(
-        vehicle_ids=["veh-1"], state=state, caps=caps
-    )
-    async_setup_entities(
-        hass, entry, coordinator, "lock", async_add_entities, _factory
-    )
+    coordinator = _mock_coordinator(vehicle_ids=["veh-1"], state=state, caps=caps)
+    async_setup_entities(hass, entry, coordinator, "lock", async_add_entities, _factory)
     assert {e.spec.key for e in added} == {"lock"}
     lock_entity = added[0]
 
@@ -100,9 +95,7 @@ async def test_phev_flag_adds_fuel_sensors() -> None:
         added.extend(entities)
 
     state = {"vehicle": {"plate": "P", "model": "M"}, "powertrain": "bev"}
-    coordinator = _mock_coordinator(
-        vehicle_ids=["veh-1"], state=state, caps={}
-    )
+    coordinator = _mock_coordinator(vehicle_ids=["veh-1"], state=state, caps={})
     async_setup_entities(
         hass, entry, coordinator, "sensor", async_add_entities, _factory
     )
@@ -133,12 +126,8 @@ async def test_fleet_notify_reconciles_wanted_set() -> None:
 
     state = {"vehicle": {"plate": "P", "model": "M"}}
     caps = {"lock": True}
-    coordinator = _mock_coordinator(
-        vehicle_ids=["veh-1"], state=state, caps=caps
-    )
-    async_setup_entities(
-        hass, entry, coordinator, "lock", async_add_entities, _factory
-    )
+    coordinator = _mock_coordinator(vehicle_ids=["veh-1"], state=state, caps=caps)
+    async_setup_entities(hass, entry, coordinator, "lock", async_add_entities, _factory)
     assert len(added) == 1
     first = added[0]
 

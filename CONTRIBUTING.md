@@ -4,8 +4,8 @@ Thanks for taking a look. Contributions — especially from people with **other 
 regions, or firmware** — are very welcome.
 
 By participating, you agree to follow the [Code of Conduct](CODE_OF_CONDUCT.md). Pull requests
-get a [template](.github/PULL_REQUEST_TEMPLATE.md); *which car you validated against* and
-*confirmed vs inferred* matter most, because wrong telemetry silently lies about the vehicle.
+get a [template](.github/PULL_REQUEST_TEMPLATE.md); _which car you validated against_ and
+_confirmed vs inferred_ matter most, because wrong telemetry silently lies about the vehicle.
 
 ## Good first contributions
 

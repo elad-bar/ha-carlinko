@@ -1,4 +1,5 @@
 """Resolve EntitySpec values from live vehicle state + cost config (HA-free)."""
+
 from __future__ import annotations
 
 from datetime import UTC, datetime
@@ -17,6 +18,7 @@ class _StoreCostView(Protocol):
     """Minimal store surface used for cost knobs (CarlinkoStore)."""
 
     def get_cost_config(self) -> dict[str, Any]:
+        """Return persisted cost knobs."""
         ...
 
 

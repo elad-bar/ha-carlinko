@@ -1,4 +1,5 @@
 """Integration setup/unload and WebSocket availability tests."""
+
 from __future__ import annotations
 
 import logging
@@ -6,7 +7,6 @@ import time
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
-from homeassistant.core import HomeAssistant
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.carlinko.common.consts import (
@@ -23,6 +23,7 @@ from custom_components.carlinko.managers.coordinator import (
 from custom_components.carlinko.managers.store import CarlinkoStore, ha_storage_key
 from custom_components.carlinko.models.exceptions import AuthError
 from custom_components.carlinko.models.vehicle_state import VehicleState
+from homeassistant.core import HomeAssistant
 from homeassistant.helpers.storage import Store
 
 _VEHICLE = {
