@@ -178,7 +178,6 @@ cd engine && python entrypoint.py
 ## Docs
 
 - [Changelog](CHANGELOG.md)
-- [TODO vs dolphin-robot](TODO.md)
 - [Contributing](CONTRIBUTING.md) (pre-commit + [CI](.github/workflows/ci.yml))
 - [Control opcodes](docs/control-opcodes.md)
 - [API / blob map](docs/api-map.md)
