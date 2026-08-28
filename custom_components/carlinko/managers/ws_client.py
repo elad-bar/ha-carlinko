@@ -30,7 +30,7 @@ from ..models.exceptions import AuthError
 
 _LOGGER = logging.getLogger(__name__)
 
-_WS_CONNECT_TIMEOUT = aiohttp.ClientTimeout(total=20)
+_WS_CONNECT_TIMEOUT = aiohttp.ClientWSTimeout(ws_close=20)
 _RECV_TIMEOUT = 2.0
 
 
