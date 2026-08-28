@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import logging
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
@@ -192,3 +193,21 @@ async def test_async_send_control_auth_error(hass: HomeAssistant) -> None:
         with pytest.raises(ConfigEntryAuthFailed):
             await coordinator.async_send_control("740100", vehicle_id="v1")
         start_reauth.assert_called_once_with(hass)
+
+
+@pytest.mark.asyncio
+async def test_auth_failure_logs_warning(
+    hass: HomeAssistant, caplog: pytest.LogCaptureFixture
+) -> None:
+    entry = _entry()
+    entry.add_to_hass(hass)
+    store = _store(hass, entry)
+    coordinator = CarlinkoCoordinator(hass, entry, store, MagicMock())
+
+    with (
+        caplog.at_level(logging.WARNING),
+        patch.object(entry, "async_start_reauth"),
+    ):
+        await coordinator._async_handle_auth_failure(AuthError("token dead"))
+
+    assert any("auth failure" in r.message for r in caplog.records)

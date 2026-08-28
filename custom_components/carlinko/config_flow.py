@@ -116,15 +116,16 @@ class CarlinkoConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             self._abort_if_unique_id_configured()
             try:
                 await self._validate_login(email, password, region)
-            except aiohttp.ClientError:
+            except aiohttp.ClientError as err:
+                _LOGGER.debug(f"login cannot_connect: {err}")
                 errors["base"] = "cannot_connect"
             except AuthError as err:
-                _LOGGER.debug("login failed: %s", err)
+                _LOGGER.debug(f"login failed: {err}")
                 errors["base"] = "invalid_auth"
             except ValueError:
                 return self.async_abort(reason="no_vehicles")
             except Exception as err:
-                _LOGGER.debug("login failed: %s", err)
+                _LOGGER.debug(f"login failed: {err}")
                 errors["base"] = "invalid_auth"
             else:
                 return self.async_create_entry(
@@ -157,9 +158,11 @@ class CarlinkoConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 await self._validate_login(
                     email, password, region, require_vehicles=False
                 )
-            except AuthError:
+            except AuthError as err:
+                _LOGGER.debug(f"reauth login failed: {err}")
                 errors["base"] = "invalid_auth"
-            except Exception:
+            except Exception as err:
+                _LOGGER.debug(f"reauth login failed: {err}")
                 errors["base"] = "invalid_auth"
             else:
                 return self.async_update_reload_and_abort(

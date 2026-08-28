@@ -182,6 +182,11 @@ logger:
     custom_components.carlinko: debug
 ```
 
+To reduce noise, raise only the REST or WebSocket module (for example
+`custom_components.carlinko.managers.ws_client: warning` and
+`custom_components.carlinko.managers.api_client: info`) while keeping the
+integration at `info`.
+
 Then open an issue with logs **and** diagnostic details (Settings → Devices &
 services → CarLinko → ⋮ → Download diagnostics). If auth fails after a long idle
 period or after changing your CarLinko password, use **Reconfigure /

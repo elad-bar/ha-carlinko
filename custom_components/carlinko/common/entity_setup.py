@@ -53,6 +53,11 @@ def async_setup_entities(
             known[key] = entity
             to_add.append(entity)
         if to_add:
+            keys = [entity.spec.key for entity in to_add]
+            if len(keys) <= 12:
+                _LOGGER.debug(f"adding {len(to_add)} entities on {platform}: {keys}")
+            else:
+                _LOGGER.debug(f"adding {len(to_add)} entities on {platform}")
             async_add_entities(to_add)
 
     _add_new(_wanted())
@@ -60,6 +65,7 @@ def async_setup_entities(
     @callback
     def _on_specs_changed(vehicle_id: str, added: set[str], removed: set[str]) -> None:
         if vehicle_id == "":
+            _LOGGER.info(f"reconciling entities after fleet change on {platform}")
             # Fleet membership changed: reconcile full wanted set.
             wanted = {(vid, s.key): s for vid, s in _wanted()}
             wanted_keys = set(wanted)
@@ -71,6 +77,11 @@ def async_setup_entities(
             _add_new([(vid, wanted[(vid, k)]) for vid, k in wanted_keys - known_keys])
             return
 
+        if removed:
+            _LOGGER.debug(
+                f"removing {len(removed)} entities on {platform} "
+                f"for vehicle={vehicle_id}"
+            )
         for key_name in list(removed):
             key = (vehicle_id, key_name)
             entity = known.pop(key, None)

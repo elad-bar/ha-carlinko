@@ -110,6 +110,9 @@ class WsClient:
                 )
             except Exception as e:
                 last = e
+                _LOGGER.debug(
+                    f"websocket connect attempt {i + 1}/{attempts} failed: {e}"
+                )
                 await asyncio.sleep(2 + i * 2)
         raise last
 
@@ -153,8 +156,7 @@ class WsClient:
             login = json.loads(login_raw) if login_raw else {}
             if login.get("code") != OK_CODE:
                 _LOGGER.warning(
-                    "token invalid (code=%s); self-logging in",
-                    login.get("code"),
+                    f"token invalid (code={login.get('code')}); self-logging in"
                 )
                 await self.api.login()
                 try:
@@ -176,6 +178,7 @@ class WsClient:
                     raise AuthError(
                         f"websocket login failed after refresh (code={login.get('code')})"
                     )
+                _LOGGER.debug("websocket login ok after token refresh")
             await self.ws_send(ws, {"action": 6})
             await self.ws_send(ws, {"action": 0, "data": {"sn": dsn}})
             self._set_connected(True)
@@ -201,6 +204,8 @@ class WsClient:
                 try:
                     j = json.loads(msg)
                 except Exception:
+                    preview = msg[:120] if isinstance(msg, str) else repr(msg)[:120]
+                    _LOGGER.warning(f"websocket non-JSON message: {preview}")
                     continue
                 if j.get("action") == 6 and isinstance(j.get("data"), str):
                     blob = j["data"]
@@ -209,13 +214,10 @@ class WsClient:
                         d = self._emit(blob)
                         last_touch = time.time()
                         _LOGGER.debug(
-                            "%s  veh=%s  batt=%s%%  range=%skm  odo=%s  %s",
-                            time.strftime("%H:%M:%S"),
-                            vid,
-                            d.get("battery"),
-                            d.get("range"),
-                            d.get("odo"),
-                            "push" if changed else "touch",
+                            f"{time.strftime('%H:%M:%S')}  veh={vid}  "
+                            f"batt={d.get('battery')}%  range={d.get('range')}km  "
+                            f"odo={d.get('odo')}  "
+                            f"{'push' if changed else 'touch'}"
                         )
                     last_blob = blob
         finally:
@@ -226,9 +228,8 @@ class WsClient:
         """Persistent-socket ingest until stop is set. Reconnects on drop."""
         self.reload_config()
         _LOGGER.info(
-            "streaming CarLinko WS vehicle=%s (push + %ss heartbeat, auto-reconnect)",
-            self.vehicle_id or self.api.vehicle_id,
-            HEARTBEAT,
+            f"streaming CarLinko WS vehicle={self.vehicle_id or self.api.vehicle_id} "
+            f"(push + {HEARTBEAT}s heartbeat, auto-reconnect)"
         )
         while not stop.is_set():
             try:

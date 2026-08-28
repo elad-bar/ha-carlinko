@@ -10,18 +10,10 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.device_registry import DeviceEntry
 
 from .common.consts import CONF_EMAIL, CONF_PASSWORD, CONF_REGION, DOMAIN
+from .common.helpers import partial_id
 from .managers.coordinator import CarlinkoCoordinator
 
 TO_REDACT = {CONF_PASSWORD, "token", "password", "sign_key"}
-
-
-def _partial_id(value: str | None, keep: int = 4) -> str | None:
-    if not value:
-        return None
-    text = str(value)
-    if len(text) <= keep:
-        return "***"
-    return f"***{text[-keep:]}"
 
 
 def _email_domain(email: str | None) -> str | None:
@@ -46,8 +38,8 @@ def _vehicle_diagnostics(
     meta = coordinator.store.get_vehicle_meta(vehicle_id)
     rt = coordinator.vehicle_runtime(vehicle_id)
     return {
-        "vehicle_id": _partial_id(vehicle_id),
-        "device_sn": _partial_id(
+        "vehicle_id": partial_id(vehicle_id),
+        "device_sn": partial_id(
             meta.get("device_sn") or (rt.device_sn if rt else None)
         ),
         "model": meta.get("model"),

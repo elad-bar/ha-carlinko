@@ -13,6 +13,16 @@ from .consts import (
 )
 
 
+def partial_id(value: str | None, keep: int = 4) -> str | None:
+    """Redact an id for logs/diagnostics (last ``keep`` chars only)."""
+    if not value:
+        return None
+    text = str(value)
+    if len(text) <= keep:
+        return "***"
+    return f"***{text[-keep:]}"
+
+
 def pressure(x, scale=None, unit=None):
     if x == TYRE_INVALID:
         return None

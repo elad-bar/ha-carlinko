@@ -12,6 +12,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Translation key-parity tests (`tests/test_translations.py`, `tests/test_generate_translations.py`)
 - Scripts to machine-fill missing locale strings from `en.json` (`scripts/generate_translations.py`, `scripts/fix_translation_placeholders.py`); default run preserves existing non-empty strings; `--force` re-translates all
 - README language table and CONTRIBUTING translation workflow; `deep-translator` in `requirements-dev.txt`
+- Broader debug/info/warning logging for setup, REST, WebSocket, coordinator lifecycle, entity fleet changes, and config flow; shared `partial_id()` for redacted IDs in logs; README notes on optional sub-loggers
 
 ### Fixed
 

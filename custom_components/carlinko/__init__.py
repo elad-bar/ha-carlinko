@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import logging
+
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant
@@ -11,6 +13,8 @@ from homeassistant.helpers.storage import Store
 from .common.consts import DOMAIN, PLATFORMS as _PLATFORM_NAMES, STORAGE_VERSION
 from .managers.coordinator import CarlinkoCoordinator, async_create_coordinator
 from .managers.store import CarlinkoStore, ha_storage_key
+
+_LOGGER = logging.getLogger(__name__)
 
 PLATFORMS = [Platform(p) for p in _PLATFORM_NAMES]
 
@@ -37,6 +41,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: CarlinkoConfigEntry) -> 
         raise
     except Exception as err:
         await coordinator.async_stop()
+        _LOGGER.exception("CarLinko setup failed")
         raise ConfigEntryNotReady(
             translation_domain=DOMAIN,
             translation_key="cannot_connect",

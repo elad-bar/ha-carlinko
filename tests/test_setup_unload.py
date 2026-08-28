@@ -9,6 +9,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
+from custom_components.carlinko import async_setup_entry
 from custom_components.carlinko.common.consts import (
     CONF_EMAIL,
     CONF_PASSWORD,
@@ -24,6 +25,7 @@ from custom_components.carlinko.managers.store import CarlinkoStore, ha_storage_
 from custom_components.carlinko.models.exceptions import AuthError
 from custom_components.carlinko.models.vehicle_state import VehicleState
 from homeassistant.core import HomeAssistant
+from homeassistant.exceptions import ConfigEntryNotReady
 from homeassistant.helpers.storage import Store
 
 _VEHICLE = {
@@ -95,6 +97,28 @@ async def test_async_setup_and_unload_entry(hass: HomeAssistant) -> None:
 
 
 @pytest.mark.asyncio
+async def test_setup_failure_logs_exception(
+    hass: HomeAssistant, caplog: pytest.LogCaptureFixture
+) -> None:
+    entry = _entry()
+    entry.add_to_hass(hass)
+    coordinator = MagicMock()
+    coordinator.async_start = AsyncMock(side_effect=RuntimeError("setup boom"))
+    coordinator.async_stop = AsyncMock()
+
+    with patch(
+        "custom_components.carlinko.async_create_coordinator",
+        new=AsyncMock(return_value=coordinator),
+    ):
+        with caplog.at_level(logging.ERROR):
+            with pytest.raises(ConfigEntryNotReady):
+                await async_setup_entry(hass, entry)
+
+    coordinator.async_stop.assert_awaited_once()
+    assert any("setup failed" in r.message for r in caplog.records)
+
+
+@pytest.mark.asyncio
 async def test_ws_disconnect_then_reconnect_restores_availability(
     hass: HomeAssistant, caplog: pytest.LogCaptureFixture
 ) -> None:
@@ -139,10 +163,13 @@ async def test_ws_disconnect_then_reconnect_restores_availability(
     # Reconnect successfully: stream live again within the availability window.
     rt.connected = True
     rt.last_update_ts = time.time()
-    coordinator._log_availability_transition("veh-1")
+    coordinator._was_available["veh-1"] = False
+    with caplog.at_level(logging.INFO):
+        coordinator._log_availability_transition("veh-1")
 
     assert coordinator.is_available("veh-1") is True
     assert coordinator._was_available["veh-1"] is True
+    assert any("became available" in r.message for r in caplog.records)
 
 
 @pytest.mark.asyncio

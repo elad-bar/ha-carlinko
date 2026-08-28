@@ -37,7 +37,7 @@ from ..common.consts import (
     WIN_BOOLS,
     WS_HOST_TMPL,
 )
-from ..common.helpers import flag, flags, parse_control_cfg, seat_max
+from ..common.helpers import flag, flags, parse_control_cfg, partial_id, seat_max
 from ..models.exceptions import AuthError
 
 _LOGGER = logging.getLogger(__name__)
@@ -145,14 +145,20 @@ class ApiClient:
             timeout=_HTTP_TIMEOUT,
         ) as r:
             d = await r.json()
-        if str(d.get("code")) != OK_CODE:
+        code = str(d.get("code"))
+        if code != OK_CODE:
+            _LOGGER.warning(f"login failed code={d.get('code')} msg={d.get('msg')}")
             raise AuthError(f"login failed: {d}")
         data = d.get("data") or {}
         token = data.get("token") if isinstance(data, dict) else data
         if not token:
+            _LOGGER.warning(
+                f"login ok but no token code={d.get('code')} msg={d.get('msg')}"
+            )
             raise AuthError(f"login ok but no token in response: {d}")
         self.token = token
         self.store.set_token(token)
+        _LOGGER.debug(f"login ok region={self.region} api_base={self.api_base}")
         return token
 
     def _caps_from_vehicle(self, v: dict) -> dict:
@@ -185,6 +191,10 @@ class ApiClient:
             try:
                 self._caps_by_id[vid] = self._caps_from_vehicle(row)
             except Exception:
+                _LOGGER.warning(
+                    f"failed to parse vehicleControlConfig for vehicle={partial_id(vid)}",
+                    exc_info=True,
+                )
                 self._caps_by_id[vid] = {}
         self._list_cache_t = time.time()
         # Keep legacy single-vehicle pointers for engine / first car.
@@ -214,7 +224,13 @@ class ApiClient:
             tok = await self.login()
         d = await _fetch(tok)
         if str(d.get("code")) != OK_CODE:
+            _LOGGER.debug("stale token on /user/vehicle; re-login and retry")
             d = await _fetch(await self.login())
+        code = str(d.get("code"))
+        if code != OK_CODE:
+            _LOGGER.warning(
+                f"/user/vehicle failed code={d.get('code')} msg={d.get('msg')}"
+            )
         data = d.get("data")
         if isinstance(data, list):
             rows = [r for r in data if isinstance(r, dict)]
@@ -222,7 +238,11 @@ class ApiClient:
             rows = [data]
         else:
             rows = []
+        if not rows and code == OK_CODE:
+            _LOGGER.warning("/user/vehicle returned no vehicles")
         self._index_vehicles(rows)
+        if rows:
+            _LOGGER.info(f"vehicle list refreshed count={len(rows)}")
         return list(self._veh_list)
 
     async def refresh_vehicle_cache(self, force=False, vehicle_id: str | None = None):
@@ -315,11 +335,16 @@ class ApiClient:
             tok = await self.login()
         d = await _post(tok)
         if str(d.get("code")) in STALE_TOKEN_CODES:
+            _LOGGER.debug("stale token on remoteControl; re-login and retry")
             d = await _post(await self.login())
+        code = str(d.get("code") or "")
         _LOGGER.info(
-            "remoteControl opcode=%s vehicle=%s code=%s",
-            opcode,
-            vid,
-            d.get("code"),
+            f"remoteControl opcode={opcode} vehicle={partial_id(vid)} "
+            f"code={d.get('code')}"
         )
+        if code and code not in (OK_CODE, "0"):
+            _LOGGER.warning(
+                f"remoteControl failed opcode={opcode} vehicle={partial_id(vid)} "
+                f"code={d.get('code')} msg={d.get('msg')}"
+            )
         return d

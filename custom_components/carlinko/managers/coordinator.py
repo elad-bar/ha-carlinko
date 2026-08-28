@@ -34,6 +34,7 @@ from ..common.consts import (
     STREAM_BACKSTOP,
     WS_SETUP_TIMEOUT_S,
 )
+from ..common.helpers import partial_id
 from ..managers.api_client import ApiClient, device_sn_of, vehicle_id_of
 from ..managers.ws_client import WsClient
 from ..models.entity_specs import get_entity_specs
@@ -243,6 +244,15 @@ class CarlinkoCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         self._caps_task = self.hass.async_create_background_task(
             self._caps_refresh_loop(), name=f"{DOMAIN}_caps"
         )
+        region = (
+            self.entry.options.get(CONF_REGION)
+            or self.entry.data.get(CONF_REGION)
+            or ""
+        )
+        _LOGGER.info(
+            f"CarLinko started region={region} vehicles={len(self._vehicles)} "
+            f"ids={[partial_id(vid) for vid in self.vehicle_ids]}"
+        )
 
     async def _async_wait_for_stream(self) -> None:
         """Block setup until at least one vehicle WS session is live."""
@@ -253,6 +263,7 @@ class CarlinkoCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             if self._stop.is_set():
                 return
             await asyncio.sleep(0.25)
+        _LOGGER.warning(f"no vehicle websocket connected within {WS_SETUP_TIMEOUT_S}s")
         raise HomeAssistantError(
             translation_domain=DOMAIN,
             translation_key="cannot_connect",
@@ -270,8 +281,15 @@ class CarlinkoCoordinator(DataUpdateCoordinator[dict[str, Any]]):
 
         old_ids = set(self._vehicles)
         new_ids = set(metas)
+        added_ids = new_ids - old_ids
+        removed_ids = old_ids - new_ids
+        if added_ids or removed_ids:
+            _LOGGER.debug(
+                f"fleet sync added={sorted(partial_id(v) for v in added_ids)} "
+                f"removed={sorted(partial_id(v) for v in removed_ids)}"
+            )
 
-        for vid in old_ids - new_ids:
+        for vid in removed_ids:
             self._stop_ws(vid)
             removed_keys = set(self._vehicles[vid].spec_keys)
             del self._vehicles[vid]
@@ -409,8 +427,7 @@ class CarlinkoCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         except Exception:
             # Should be rare: WsClient.run reconnects on generic errors.
             _LOGGER.exception(
-                "WebSocket runner stopped unexpectedly for %s; restarting",
-                vehicle_id,
+                f"WebSocket runner stopped unexpectedly for {vehicle_id}; restarting"
             )
             if not self._stop.is_set() and rt is self._vehicles.get(vehicle_id):
                 rt.ws_task = None
@@ -426,7 +443,9 @@ class CarlinkoCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         now = self.is_available(vehicle_id)
         was = self._was_available.get(vehicle_id)
         if was is True and now is False:
-            _LOGGER.info("CarLinko vehicle %s became unavailable", vehicle_id)
+            _LOGGER.info(f"CarLinko vehicle {vehicle_id} became unavailable")
+        if was is False and now is True:
+            _LOGGER.info(f"CarLinko vehicle {vehicle_id} became available")
         self._was_available[vehicle_id] = now
 
     async def _caps_refresh_loop(self) -> None:
@@ -470,6 +489,11 @@ class CarlinkoCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             return
         added = new_keys - rt.spec_keys
         removed = rt.spec_keys - new_keys
+        if added or removed:
+            _LOGGER.debug(
+                f"spec keys changed vehicle={partial_id(vehicle_id)} "
+                f"added={sorted(added)} removed={sorted(removed)}"
+            )
         rt.spec_keys = new_keys
         self._notify_listeners(vehicle_id, added, removed)
 
@@ -501,6 +525,9 @@ class CarlinkoCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             ) from err
         code = str(result.get("code") or "")
         if code in STALE_TOKEN_CODES:
+            _LOGGER.warning(
+                f"remote control stale token vehicle={partial_id(vid)} code={code}"
+            )
             await self._async_handle_auth_failure(
                 AuthError(f"token stale (code={code})")
             )
@@ -509,6 +536,10 @@ class CarlinkoCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 translation_key="auth_failed",
             )
         if code and code not in (OK_CODE, "0"):
+            _LOGGER.warning(
+                f"remote control failed vehicle={partial_id(vid)} opcode={opcode} "
+                f"code={code} msg={result.get('msg')}"
+            )
             raise HomeAssistantError(
                 translation_domain=DOMAIN,
                 translation_key="control_failed",
@@ -538,11 +569,12 @@ class CarlinkoCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             except asyncio.CancelledError:
                 pass
             except Exception:
-                pass
+                _LOGGER.exception("task failed during shutdown")
 
     async def _async_handle_auth_failure(self, err: Exception) -> None:
         """Clear dead token and prompt HA reauthentication."""
-        _LOGGER.debug("auth failure: %s", err)
+        _LOGGER.warning(f"auth failure: {err}")
+        _LOGGER.debug(f"auth failure detail: {err}")
         self.api.token = ""
         self.store.set_token("")
         self.entry.async_start_reauth(self.hass)
