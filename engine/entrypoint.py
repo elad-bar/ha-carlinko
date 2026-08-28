@@ -18,6 +18,8 @@ import socket
 import sys
 from typing import Any, Callable
 
+import ha_free_path  # noqa: F401  # mounts synthetic carlinko package before carlinko imports
+
 import aiohttp
 from carlinko.common.consts import USER_AGENT
 from carlinko.managers.api_client import ApiClient
@@ -27,7 +29,6 @@ from carlinko.models.entity_specs import ENTITY_SPECS, get_entity_specs
 from carlinko.models.entity_values import EntityValueResolver
 from carlinko.models.vehicle_state import VehicleState
 from dotenv import load_dotenv
-import ha_free_path  # noqa: F401  # mounts synthetic carlinko package
 
 try:
     sys.stdout.reconfigure(encoding="utf-8", errors="replace")
