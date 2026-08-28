@@ -135,6 +135,120 @@ welcome — see [Contributing](CONTRIBUTING.md#translations). Re-running the
 translation generator only fills **missing** keys; it does not replace strings
 people have already improved.
 
+## Entities
+
+Default English names (translated in the UI). Entities are grouped by the filter
+that decides whether they are created for your car. If a group does not apply, none
+of its rows appear on the device.
+
+### All vehicles
+
+Standard telemetry and cost settings for every paired BEV or PHEV — no extra
+powertrain, TPMS, or remote-control check.
+
+| Name             | Entity type   | Unit of measurement | Comments                                                         |
+| ---------------- | ------------- | ------------------- | ---------------------------------------------------------------- |
+| Battery          | Sensor        | %                   | —                                                                |
+| Range            | Sensor        | km                  | —                                                                |
+| Odometer         | Sensor        | km                  | —                                                                |
+| Speed            | Sensor        | km/h                | —                                                                |
+| 12V Battery      | Sensor        | V                   | Diagnostic category                                              |
+| 12V status       | Sensor        | —                   | Diagnostic category; available options: OK, Low, Critical        |
+| Charge Power     | Sensor        | kW                  | Diagnostic category                                              |
+| Consumption      | Sensor        | kWh/100km           | Diagnostic category                                              |
+| Charge remaining | Sensor        | min                 | Diagnostic category                                              |
+| Charge mode      | Sensor        | —                   | Diagnostic category; available options: None, AC, DC             |
+| Charge state     | Sensor        | —                   | Available options: Idle, Charging, Complete, Canceled, Hot, Stop |
+| Updated          | Sensor        | —                   | Diagnostic category; timestamp                                   |
+| HV state         | Sensor        | —                   | Diagnostic category; available options: Off, LV, Ready, Unknown  |
+| Rated range      | Sensor        | km                  | —                                                                |
+| Energy left      | Sensor        | kWh                 | —                                                                |
+| Tyre status      | Sensor        | —                   | Available options: Normal, Check tyres                           |
+| Charging         | Binary sensor | —                   | —                                                                |
+| Online           | Binary sensor | —                   | —                                                                |
+| Moving           | Binary sensor | —                   | —                                                                |
+| Tyre problem     | Binary sensor | —                   | —                                                                |
+| Any door         | Binary sensor | —                   | —                                                                |
+| Driver door      | Binary sensor | —                   | —                                                                |
+| Passenger door   | Binary sensor | —                   | —                                                                |
+| Rear left door   | Binary sensor | —                   | —                                                                |
+| Rear right door  | Binary sensor | —                   | —                                                                |
+| Seat heat left   | Binary sensor | —                   | —                                                                |
+| Seat heat right  | Binary sensor | —                   | —                                                                |
+| Seat vent left   | Binary sensor | —                   | —                                                                |
+| Seat vent right  | Binary sensor | —                   | —                                                                |
+| Defrost          | Binary sensor | —                   | —                                                                |
+| Charging tariff  | Number        | currency            | Config category; numeric 0–10,000,000 (step 1); HA currency      |
+| Petrol price     | Number        | currency            | Config category; numeric 0–10,000,000 (step 1); HA currency      |
+| Petrol economy   | Number        | km/L                | Config category; numeric 0–100 (step 0.1)                        |
+
+### PHEV
+
+Plug-in hybrid only (`powertrain == phev`): fuel tank and blended range from the
+status stream.
+
+| Name             | Entity type | Unit of measurement | Comments |
+| ---------------- | ----------- | ------------------- | -------- |
+| Fuel             | Sensor      | %                   | —        |
+| Fuel range       | Sensor      | km                  | —        |
+| Total range      | Sensor      | km                  | —        |
+| Fuel consumption | Sensor      | L/100km             | —        |
+
+### Direct TPMS
+
+Per-wheel tyre pressure and temperature in the status blob (`tyre_indirect` is
+false). Indirect “check tyres” warnings alone do not enable this group.
+
+| Name             | Entity type | Unit of measurement | Comments            |
+| ---------------- | ----------- | ------------------- | ------------------- |
+| Front left       | Sensor      | psi                 | —                   |
+| Front left temp  | Sensor      | °C                  | Diagnostic category |
+| Front right      | Sensor      | psi                 | —                   |
+| Front right temp | Sensor      | °C                  | Diagnostic category |
+| Rear left        | Sensor      | psi                 | —                   |
+| Rear left temp   | Sensor      | °C                  | Diagnostic category |
+| Rear right       | Sensor      | psi                 | —                   |
+| Rear right temp  | Sensor      | °C                  | Diagnostic category |
+
+### Remote control
+
+CarLinko exposes the function in `vehicleControlConfig` for your VIN (`cap:…` in
+the catalog). Includes actuators and **Engine on** (live state when engine remote
+is supported).
+
+| Name                | Entity type   | Unit of measurement | Comments                                          |
+| ------------------- | ------------- | ------------------- | ------------------------------------------------- |
+| Lock                | Lock          | —                   | —                                                 |
+| Climate             | Climate       | —                   | —                                                 |
+| Windows             | Cover         | —                   | —                                                 |
+| Sunroof             | Cover         | —                   | —                                                 |
+| Liftgate            | Cover         | —                   | —                                                 |
+| Windows vent        | Button        | —                   | —                                                 |
+| Sunroof tilt        | Button        | —                   | —                                                 |
+| Find car            | Button        | —                   | —                                                 |
+| Stop charging       | Button        | —                   | —                                                 |
+| Engine              | Switch        | —                   | —                                                 |
+| Engine on           | Binary sensor | —                   | —                                                 |
+| Gear                | Select        | —                   | Available options: Low, High                      |
+| Quick cool          | Button        | —                   | —                                                 |
+| Quick heat          | Button        | —                   | —                                                 |
+| Defog               | Switch        | —                   | —                                                 |
+| Air purify          | Switch        | —                   | —                                                 |
+| Driver seat heat    | Select        | —                   | Available options: Off, Level 1, Level 2, Level 3 |
+| Driver seat vent    | Select        | —                   | Available options: Off, Level 1, Level 2, Level 3 |
+| Passenger seat heat | Select        | —                   | Available options: Off, Level 1, Level 2, Level 3 |
+| Passenger seat vent | Select        | —                   | Available options: Off, Level 1, Level 2, Level 3 |
+| Rear L seat heat    | Select        | —                   | Available options: Off, Level 1, Level 2, Level 3 |
+| Rear L seat vent    | Select        | —                   | Available options: Off, Level 1, Level 2, Level 3 |
+| Rear R seat heat    | Select        | —                   | Available options: Off, Level 1, Level 2, Level 3 |
+| Rear R seat vent    | Select        | —                   | Available options: Off, Level 1, Level 2, Level 3 |
+
+Catalog source and opcodes: [`entity_specs.py`](custom_components/carlinko/models/entity_specs.py),
+[`docs/control-opcodes.md`](docs/control-opcodes.md).
+
+File a [compatibility report](https://github.com/elad-bar/ha-carlinko/issues/new?template=compatibility.md)
+if you try another model.
+
 ## Known limitations
 
 - Undocumented vendor API — no warranty; backends can change without notice.
@@ -145,24 +259,6 @@ people have already improved.
 - Entities go unavailable after the availability window without a fresh frame
   (default ~40 minutes).
 - No `device_tracker` yet (coordinates not wired).
-
-## Entities (overview)
-
-| Platform        | Examples                                             |
-| --------------- | ---------------------------------------------------- |
-| Sensor          | Battery, range, odometer, speed, charge power, tyres |
-| Binary sensor   | Charging, online, doors, seat heat/vent              |
-| Lock / climate  | Door lock, climate                                   |
-| Cover           | Windows, sunroof, liftgate                           |
-| Switch / select | Engine, defog, purify, seat heat/vent, gear          |
-| Button          | Find car, stop charging, quick cool/heat             |
-| Number          | Charging tariff, petrol price / economy              |
-
-Full catalog and opcodes: [`entity_specs.py`](custom_components/carlinko/models/entity_specs.py),
-[`docs/control-opcodes.md`](docs/control-opcodes.md).
-
-File a [compatibility report](https://github.com/elad-bar/ha-carlinko/issues/new?template=compatibility.md)
-if you try another model.
 
 ## Legal & ethics
 
