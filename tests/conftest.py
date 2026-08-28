@@ -1,8 +1,7 @@
 """Pytest configuration.
 
-On Windows, ``homeassistant.runner`` imports Unix-only ``fcntl``, which breaks
-``pytest-homeassistant-custom-component`` at collection time. Skip HA runtime
-tests there; CI (Linux) still runs the full suite.
+Loads ``pytest_homeassistant_custom_component.plugins`` on Unix (needs ``fcntl``).
+On Windows, skip HA runtime test modules; CI (Linux) runs the full suite.
 """
 
 from __future__ import annotations
@@ -28,7 +27,7 @@ except ImportError:
     _HASS_RUNTIME_AVAILABLE = False
 
 if _HASS_RUNTIME_AVAILABLE:
-    pytest_plugins = ("pytest_homeassistant_custom_component",)
+    pytest_plugins = ("pytest_homeassistant_custom_component.plugins",)
 else:
     pytest_plugins = ()
 

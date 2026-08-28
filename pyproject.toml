@@ -149,8 +149,8 @@ norecursedirs = [
     ".git",
     "testing_config",
 ]
-# Disable setuptools auto-load of pytest-homeassistant-custom-component.
-# conftest loads it explicitly on Unix; on Windows it is skipped (no fcntl).
+# Disable setuptools auto-load (entry point name: homeassistant). conftest loads
+# pytest_homeassistant_custom_component.plugins on Unix only.
 addopts = [
     "-p",
     "no:homeassistant",

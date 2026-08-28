@@ -10,7 +10,7 @@ from .entity_specs import EntitySpec
 
 DerivedResolver = Callable[[EntitySpec, dict], Any]
 
-_SEAT_LEVELS = {0: "off", 1: "L1", 2: "L2", 3: "L3"}
+_SEAT_LEVELS = {0: "off", 1: "l1", 2: "l2", 3: "l3"}
 
 
 @runtime_checkable

@@ -129,7 +129,7 @@ async def test_switch_turn_on_off() -> None:
 @pytest.mark.asyncio
 async def test_select_option() -> None:
     coordinator = _coordinator()
-    entity = CarlinkoSelect(coordinator, _spec("seat_heatL"), "veh-1")
-    assert entity.current_option == "L1"
+    entity = CarlinkoSelect(coordinator, _spec("seat_heat_l"), "veh-1")
+    assert entity.current_option == "l1"
     await entity.async_select_option("off")
     coordinator.async_send_control.assert_awaited_with("741500", vehicle_id="veh-1")

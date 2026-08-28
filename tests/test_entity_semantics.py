@@ -107,8 +107,8 @@ def test_seat_select_current_option_from_blob() -> None:
         "seat_heat_l": 1,
     }
     coordinator.store.get_cost_config.return_value = {}
-    select = CarlinkoSelect(coordinator, _spec("seat_heatL"), "veh-1")
-    assert select.current_option == "L1"
+    select = CarlinkoSelect(coordinator, _spec("seat_heat_l"), "veh-1")
+    assert select.current_option == "l1"
 
     coordinator.vehicle_data.return_value = {
         "vehicle": {"plate": "P", "model": "M"},
