@@ -29,6 +29,7 @@ from homeassistant.const import (
     UnitOfLength,
     UnitOfPower,
     UnitOfPressure,
+    UnitOfSpeed,
     UnitOfTemperature,
     UnitOfTime,
 )
@@ -42,6 +43,7 @@ _BINARY_DEVICE_CLASS = {v.value: v for v in BinarySensorDeviceClass}
 
 _UNIT_MAP: dict[str, str] = {
     "km": UnitOfLength.KILOMETERS,
+    "km/h": UnitOfSpeed.KILOMETERS_PER_HOUR,
     "psi": UnitOfPressure.PSI,
     "kWh": UnitOfEnergy.KILO_WATT_HOUR,
     "°C": UnitOfTemperature.CELSIUS,

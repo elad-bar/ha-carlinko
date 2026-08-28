@@ -18,7 +18,7 @@ from custom_components.carlinko.models.entity_values import EntityValueResolver
 from custom_components.carlinko.select import CarlinkoSelect
 from homeassistant.components.cover import CoverEntityFeature
 from homeassistant.components.sensor import SensorDeviceClass, SensorStateClass
-from homeassistant.const import UnitOfLength, UnitOfPressure
+from homeassistant.const import UnitOfLength, UnitOfPressure, UnitOfSpeed
 
 
 def _spec(key: str):
@@ -42,6 +42,13 @@ def test_distance_sensors_use_kilometers() -> None:
         desc = get_entity_description(_spec(key))
         assert desc.device_class == SensorDeviceClass.DISTANCE
         assert desc.native_unit_of_measurement == UnitOfLength.KILOMETERS
+
+
+def test_speed_sensor_uses_kmh() -> None:
+    desc = get_entity_description(_spec("speed"))
+    assert desc.device_class == SensorDeviceClass.SPEED
+    assert desc.native_unit_of_measurement == UnitOfSpeed.KILOMETERS_PER_HOUR
+    assert desc.state_class == SensorStateClass.MEASUREMENT
 
 
 def test_updated_resolver_returns_aware_datetime() -> None:

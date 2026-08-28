@@ -4,7 +4,7 @@ Tracked against [sh00t2kill/dolphin-robot](https://github.com/sh00t2kill/dolphin
 
 Checkboxes are work items, not a claim that Dolphin has climate/covers. Platform-specific bugs are still listed because hassfest and users will hit them.
 
-Suggested order: **P0 → P1 → P2 → P3** (P0–P1 closed; next is P3 product extras).
+Suggested order: **P0 → P1 → P2 → P3** (all closed).
 
 ---
 
@@ -87,7 +87,6 @@ HA Settings → General → Currency (`hass.config.currency`). Amounts are numbe
 - [x] Keep **amounts** as number entities (kWh tariff, petrol price)
 - [x] `petrol_kml` stays a normal number (`km/L`), not monetary
 - [x] Do **not** convert amounts when the user changes HA currency (label only, not FX)
-- [ ] Future derived cost sensors: `SensorDeviceClass.MONETARY` as well (P3 when added)
 
 ### Device registry
 
@@ -158,7 +157,6 @@ Expand beyond the current 9 rules. Mark each `done` / `todo` / `exempt` with a o
 - [x] Spec / description factory add/remove when caps or PHEV/TPMS flags change
 - [x] One test per platform entity class (lock, climate, cover, switch, select, number, button, sensors)
 - [x] Config flow: cannot_connect, already_configured (account), reconfigure, multi-vehicle auto-add (no picker)
-- [ ] Diagnostics: device-level if added
 - [x] After layout: `engine/` still imports the HA-free slice; platforms go through `common` setup helper
 - [x] Sensor/cover/seat/climate semantics (energy_storage, TPMS unit, distance, timestamp, no SET_POSITION)
 - Note: full HA pytest plugin suite is skipped on Windows (`fcntl`); CI Linux runs everything.
@@ -182,10 +180,10 @@ Expand beyond the current 9 rules. Mark each `done` / `todo` / `exempt` with a o
 
 - [x] Multi-vehicle hub runtime: per-vehicle devices/entities, caps/WS keyed by `vehicle_id`, store holds vehicles map (see P0 config flow)
 - [x] Reload after password/region change without deleting the integration
-- [ ] `async_get_device_diagnostics` in addition to config-entry diagnostics
-- [ ] `device_tracker` if the blob or REST payload has coordinates
-- [ ] Speed (and other blob fields already decoded) as sensors if useful
-- [ ] Repair issues for stale token / upstream outage (not only reauth popup)
+- [x] `async_get_device_diagnostics` in addition to config-entry diagnostics
+- [x] Speed sensor from decoded blob `speed_calculated` (`km/h`)
+
+Not pursued: `device_tracker` (no lat/lon in blob/REST); repair issues (quality scale exempt — reauth + unavailable cover auth/outage).
 
 ---
 
@@ -196,7 +194,7 @@ Keep these; they already match the Dolphin _behavior_ shape:
 - Config flow + unique id + reauth (+ reconfigure / options; schemas stay in `config_flow.py`)
 - Coordinator owns REST + WS (setup waits for first WS session)
 - Capability-gated entity add/remove (factory helper)
-- Diagnostics with redaction
+- Diagnostics with redaction (config entry + per-device)
 - `_attr_has_entity_name` + `_attr_translation_key` + `common/entity_descriptions.py`
 - Full `entity.*` trees in `strings.json` / `translations/en.json`
 - `iot_class: cloud_push`
@@ -205,8 +203,7 @@ Keep these; they already match the Dolphin _behavior_ shape:
 - A HA-free catalog / wire layer in `models/` (+ API/WS in `managers/`) usable from `engine/`
 - HACS detail via `hacs.json` `render_readme: true` (no separate `info.md`; repo-root `www/` is brand source only)
 - HA currency from Settings → General; monetary number device class on tariff / petrol_price
-
-Not done: P3 device diagnostics / device_tracker / speed sensors.
+- Speed sensor from live blob
 
 ---
 

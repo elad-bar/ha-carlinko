@@ -17,7 +17,6 @@ _HASS_TEST_FILES = frozenset(
     {
         "test_config_flow.py",
         "test_coordinator.py",
-        "test_diagnostics.py",
         "test_setup_unload.py",
     }
 )

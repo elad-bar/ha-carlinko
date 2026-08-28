@@ -112,6 +112,16 @@ ENTITY_SPECS: tuple[EntitySpec, ...] = (
         state_class="total_increasing",
     ),
     EntitySpec(
+        key="speed",
+        platform="sensor",
+        name="Speed",
+        data_path="speed_calculated",
+        unit="km/h",
+        device_class="speed",
+        icon="mdi:speedometer",
+        state_class="measurement",
+    ),
+    EntitySpec(
         key="volt12",
         platform="sensor",
         name="12V Battery",

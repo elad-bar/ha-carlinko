@@ -13,12 +13,13 @@ from custom_components.carlinko.common.consts import (
     CONF_REGION,
     DOMAIN,
 )
-from custom_components.carlinko.diagnostics import async_get_config_entry_diagnostics
-from homeassistant.core import HomeAssistant
+from custom_components.carlinko.diagnostics import (
+    async_get_config_entry_diagnostics,
+    async_get_device_diagnostics,
+)
 
 
-@pytest.mark.asyncio
-async def test_diagnostics_redacts_secrets(hass: HomeAssistant) -> None:
+def _mock_entry_and_coordinator():
     entry = MockConfigEntry(
         domain=DOMAIN,
         unique_id="user@example.com",
@@ -29,7 +30,6 @@ async def test_diagnostics_redacts_secrets(hass: HomeAssistant) -> None:
         },
         title="CarLinko (user@example.com)",
     )
-    entry.add_to_hass(hass)
 
     coordinator = MagicMock()
     coordinator.connected = True
@@ -42,6 +42,7 @@ async def test_diagnostics_redacts_secrets(hass: HomeAssistant) -> None:
         "model": "J5",
         "plate": "ABC123",
         "device_sn": "sn-12345678",
+        "vin": "VINSECRET",
     }
     coordinator.store.data = {
         "token": "tokensecret",
@@ -53,8 +54,14 @@ async def test_diagnostics_redacts_secrets(hass: HomeAssistant) -> None:
     coordinator.current_spec_keys.return_value = {"battery", "lock"}
 
     entry.runtime_data = coordinator
+    return entry, coordinator
 
-    diag = await async_get_config_entry_diagnostics(hass, entry)
+
+@pytest.mark.asyncio
+async def test_diagnostics_redacts_secrets() -> None:
+    entry, _coordinator = _mock_entry_and_coordinator()
+
+    diag = await async_get_config_entry_diagnostics(None, entry)
     blob = str(diag)
 
     assert "super-secret" not in blob
@@ -70,3 +77,49 @@ async def test_diagnostics_redacts_secrets(hass: HomeAssistant) -> None:
         "**REDACTED**",
         "REDACTED",
     )
+
+
+@pytest.mark.asyncio
+async def test_device_diagnostics_redacts_and_scopes() -> None:
+    entry, _coordinator = _mock_entry_and_coordinator()
+    device = MagicMock()
+    device.identifiers = {(DOMAIN, "vehicle-abcdef")}
+
+    diag = await async_get_device_diagnostics(None, entry, device)
+    blob = str(diag)
+
+    assert "super-secret" not in blob
+    assert "tokensecret" not in blob
+    assert "VINSECRET" not in blob
+    assert diag["entry"]["email_domain"] == "example.com"
+    assert diag["vehicle"]["model"] == "J5"
+    assert diag["vehicle"]["plate"] == "ABC123"
+    assert diag["vehicle"]["connected"] is True
+    assert "battery" in diag["vehicle"]["spec_keys"]
+    assert "lock" in diag["vehicle"]["caps_keys"]
+    assert diag["store_vehicle"]["model"] == "J5"
+
+
+@pytest.mark.asyncio
+async def test_device_diagnostics_unknown_device() -> None:
+    entry, _coordinator = _mock_entry_and_coordinator()
+    device = MagicMock()
+    device.identifiers = {(DOMAIN, "other-vehicle")}
+
+    diag = await async_get_device_diagnostics(None, entry, device)
+    blob = str(diag)
+
+    assert diag["error"] == "unknown_device"
+    assert "super-secret" not in blob
+    assert "tokensecret" not in blob
+    assert "vehicle" not in diag
+
+
+@pytest.mark.asyncio
+async def test_device_diagnostics_missing_identifier() -> None:
+    entry, _coordinator = _mock_entry_and_coordinator()
+    device = MagicMock()
+    device.identifiers = {("other_domain", "x")}
+
+    diag = await async_get_device_diagnostics(None, entry, device)
+    assert diag == {"error": "unknown_device"}

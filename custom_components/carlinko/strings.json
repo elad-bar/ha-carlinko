@@ -91,6 +91,10 @@
         "name": "Odometer",
         "icon": "mdi:counter"
       },
+      "speed": {
+        "name": "Speed",
+        "icon": "mdi:speedometer"
+      },
       "volt12": {
         "name": "12V Battery"
       },

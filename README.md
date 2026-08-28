@@ -114,15 +114,15 @@ After setup, configure via the integration’s **Configure** options flow:
 
 ## Entities (overview)
 
-| Platform        | Examples                                      |
-| --------------- | --------------------------------------------- |
-| Sensor          | Battery, range, odometer, charge power, tyres |
-| Binary sensor   | Charging, online, doors, seat heat/vent       |
-| Lock / climate  | Door lock, climate                            |
-| Cover           | Windows, sunroof, liftgate                    |
-| Switch / select | Engine, defog, purify, seat heat/vent, gear   |
-| Button          | Find car, stop charging, quick cool/heat      |
-| Number          | Charging tariff, petrol price / economy       |
+| Platform        | Examples                                             |
+| --------------- | ---------------------------------------------------- |
+| Sensor          | Battery, range, odometer, speed, charge power, tyres |
+| Binary sensor   | Charging, online, doors, seat heat/vent              |
+| Lock / climate  | Door lock, climate                                   |
+| Cover           | Windows, sunroof, liftgate                           |
+| Switch / select | Engine, defog, purify, seat heat/vent, gear          |
+| Button          | Find car, stop charging, quick cool/heat             |
+| Number          | Charging tariff, petrol price / economy              |
 
 Full catalog and opcodes: [`entity_specs.py`](custom_components/carlinko/models/entity_specs.py),
 [`docs/control-opcodes.md`](docs/control-opcodes.md).
