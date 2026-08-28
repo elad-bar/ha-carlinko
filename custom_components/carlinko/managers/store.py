@@ -162,12 +162,10 @@ class CarlinkoStore:
     def get_cost_config(self) -> dict[str, Any]:
         c = self.data
         raw_tariff = c.get("tariff")
-        t = float(raw_tariff if raw_tariff is not None else DEFAULT_TARIFF)
-        tariff = int(t) if t == int(t) else t
         raw_petrol_price = c.get("petrol_price")
         raw_petrol_kml = c.get("petrol_kml")
         return {
-            "tariff": tariff,
+            "tariff": float(raw_tariff if raw_tariff is not None else DEFAULT_TARIFF),
             "petrol_price": float(
                 raw_petrol_price
                 if raw_petrol_price is not None
@@ -194,10 +192,7 @@ class CarlinkoStore:
             return {"ok": False, "error": "petrol_kml must be > 0"}
         if self._path is not None:
             self.load()
-        if key == "tariff":
-            self.data["tariff"] = int(v) if v == int(v) else v
-        else:
-            self.data[key] = v
+        self.data[key] = v
         self.save()
         return {"ok": True, "key": key, "value": self.get_cost_config()[key]}
 

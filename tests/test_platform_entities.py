@@ -74,6 +74,7 @@ async def test_number_set_value() -> None:
     entity.hass = MagicMock()
     entity.async_write_ha_state = MagicMock()
     assert entity._attr_translation_key == "tariff"
+    assert entity._attr_native_step == 0.01
     assert entity.native_value == 1.0
     await entity.async_set_native_value(2.5)
     coordinator.store.set_cost_config.assert_called_once_with("tariff", 2.5)

@@ -49,9 +49,13 @@ def test_cost_config_amounts() -> None:
         assert cfg == {"tariff": 0, "petrol_price": 0.0, "petrol_kml": 0.0}
         assert "currency" not in cfg
         assert store.set_cost_config("tariff", 100)["ok"]
-        assert store.get_cost_config()["tariff"] == 100
+        assert store.get_cost_config()["tariff"] == 100.0
+        assert store.set_cost_config("tariff", 1.25)["ok"]
+        assert store.get_cost_config()["tariff"] == 1.25
         assert store.set_cost_config("petrol_price", 0)["ok"]
         assert store.get_cost_config()["petrol_price"] == 0.0
+        assert store.set_cost_config("petrol_price", 2.35)["ok"]
+        assert store.get_cost_config()["petrol_price"] == 2.35
     finally:
         if os.path.isfile(path):
             os.unlink(path)

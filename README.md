@@ -178,8 +178,8 @@ powertrain, TPMS, or remote-control check.
 | Seat vent left   | Binary sensor | —                   | —                                                                |
 | Seat vent right  | Binary sensor | —                   | —                                                                |
 | Defrost          | Binary sensor | —                   | —                                                                |
-| Charging tariff  | Number        | currency            | Config category; numeric 0–10,000,000 (step 1); HA currency      |
-| Petrol price     | Number        | currency            | Config category; numeric 0–10,000,000 (step 1); HA currency      |
+| Charging tariff  | Number        | currency            | Config category; numeric 0–10,000,000 (step 0.01); HA currency   |
+| Petrol price     | Number        | currency            | Config category; numeric 0–10,000,000 (step 0.01); HA currency   |
 | Petrol economy   | Number        | km/L                | Config category; numeric 0–100 (step 0.1)                        |
 
 ### PHEV

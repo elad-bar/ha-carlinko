@@ -15,8 +15,8 @@ from .models.entity_specs import EntitySpec
 PARALLEL_UPDATES = 1
 
 _LIMITS = {
-    "tariff": (0, 1e7, 1),
-    "petrol_price": (0, 1e7, 1),
+    "tariff": (0, 1e7, 0.01),
+    "petrol_price": (0, 1e7, 0.01),
     "petrol_kml": (0, 100, 0.1),
 }
 
@@ -39,7 +39,7 @@ class CarlinkoNumber(CarlinkoEntity, NumberEntity):
         self, coordinator: CarlinkoCoordinator, spec: EntitySpec, vehicle_id: str
     ) -> None:
         super().__init__(coordinator, spec, vehicle_id)
-        lo, hi, step = _LIMITS.get(spec.config_key or spec.key, (0, 1e7, 1))
+        lo, hi, step = _LIMITS.get(spec.config_key or spec.key, (0, 1e7, 0.01))
         self._attr_native_min_value = lo
         self._attr_native_max_value = hi
         self._attr_native_step = step
