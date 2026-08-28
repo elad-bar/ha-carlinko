@@ -63,8 +63,8 @@ jobs:
       - name: Run tests
         run: pytest
 
-  tag:
-    name: Create version tag
+  release:
+    name: Tag and GitHub release
     needs: [pre-commit, hassfest, hacs, pytest]
     if: >
       github.event_name == 'push' &&
@@ -84,15 +84,38 @@ jobs:
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
           echo "tag=v$VERSION" >> "$GITHUB_OUTPUT"
 
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.13"
+
+      - name: Extract release notes from CHANGELOG
+        run: |
+          python scripts/extract_changelog_section.py "${{ steps.ver.outputs.version }}" \
+            > release-notes.md
+
       - name: Create tag if missing
         env:
           TAG: ${{ steps.ver.outputs.tag }}
         run: |
-          if git rev-parse "$TAG" >/dev/null 2>&1; then
-            echo "Tag $TAG already exists — skipping"
+          git fetch --tags origin
+          if git rev-parse "refs/tags/$TAG" >/dev/null 2>&1; then
+            echo "Tag $TAG already exists"
             exit 0
           fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git tag -a "$TAG" -m "Release $TAG"
           git push origin "$TAG"
+
+      - name: Publish GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.ver.outputs.tag }}
+        run: |
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            echo "Release $TAG already exists — skipping"
+            exit 0
+          fi
+          gh release create "$TAG" \
+            --title "CarLinko ${{ steps.ver.outputs.tag }}" \
+            --notes-file release-notes.md

@@ -58,6 +58,20 @@ after bulk generation.
   To run everything against the tree: `pre-commit run --all-files`.
   Pull requests also run [CI](.github/workflows/ci.yml) (pre-commit, hassfest, HACS, pytest).
 
+## Releases
+
+Version lives in [`custom_components/carlinko/manifest.json`](custom_components/carlinko/manifest.json).
+When merging to `main` / `master`, CI runs the same checks, then (on success) creates `v<version>`
+if that tag is missing and publishes a [GitHub Release](https://docs.github.com/en/repositories/releasing-projects-on-github)
+whose notes come from the matching section in [`CHANGELOG.md`](CHANGELOG.md).
+
+Before bumping the manifest for a release:
+
+1. Add a `## [x.y.z] - YYYY-MM-DD` section to `CHANGELOG.md` (Keep a Changelog style).
+2. Run `pytest tests/test_changelog_release.py` — it fails if the manifest version has no changelog entry.
+
+Optional release assets (e.g. demo video) can be uploaded manually to the release on GitHub after CI publishes it.
+
 ## Pull requests
 
 1. Keep changes focused — one feature/fix per PR.
