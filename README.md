@@ -101,6 +101,40 @@ After setup, configure via the integration’s **Configure** options flow:
 - Currency for monetary amounts comes from Home Assistant **Settings → General**;
   CarLinko does not store a currency code or convert amounts on currency change.
 
+### Languages
+
+Entity names, config flow text, and enum state labels follow **Settings → System →
+General → Language**. Shipped UI translations live under
+[`custom_components/carlinko/translations/`](custom_components/carlinko/translations/).
+If your HA language has no matching file below, strings fall back to English.
+
+| HA locale | Language              |
+| --------- | --------------------- |
+| `en`      | English               |
+| `ar`      | Arabic                |
+| `es`      | Spanish               |
+| `fa`      | Persian (Farsi)       |
+| `fr`      | French                |
+| `he`      | Hebrew                |
+| `id`      | Indonesian            |
+| `kk`      | Kazakh                |
+| `ms`      | Malay                 |
+| `pt`      | Portuguese            |
+| `ru`      | Russian               |
+| `th`      | Thai                  |
+| `vi`      | Vietnamese            |
+| `zh-Hans` | Chinese (Simplified)  |
+| `zh-Hant` | Chinese (Traditional) |
+
+These locales align with the CarLinko mobile app language set, with Simplified and
+Traditional Chinese as separate HA files (`zh-Hans` / `zh-Hant`) instead of the app’s
+single `zh` code.
+
+Initial non-English strings were machine-translated; native-speaker fixes are
+welcome — see [Contributing](CONTRIBUTING.md#translations). Re-running the
+translation generator only fills **missing** keys; it does not replace strings
+people have already improved.
+
 ## Known limitations
 
 - Undocumented vendor API — no warranty; backends can change without notice.

@@ -1,0 +1,388 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "CarLinko",
+        "description": "היכנס עם חשבון אפליקציית CarLinko שלך. כל הרכבים בחשבון מתווספים אוטומטית.",
+        "data": {
+          "email": "אֶלֶקטרוֹנִי",
+          "password": "סִיסמָה",
+          "region": "אֵזוֹר"
+        }
+      },
+      "reauth_confirm": {
+        "title": "אימות מחדש של CarLinko",
+        "description": "פג תוקף הפעלת ה-CarLinko שלך או שהסיסמה שונתה. הזן את הסיסמה הנוכחית שלך.",
+        "data": {
+          "password": "סִיסמָה"
+        }
+      },
+      "reconfigure": {
+        "title": "הגדר מחדש את CarLinko",
+        "description": "עדכן את הסיסמה או האזור עבור חשבון CarLinko זה.",
+        "data": {
+          "password": "סִיסמָה",
+          "region": "אֵזוֹר"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "לא ניתן היה להגיע לCarLinko.",
+      "invalid_auth": "אימייל או סיסמה לא חוקיים.",
+      "no_vehicles": "לא נמצאו רכבים בחשבון CarLinko זה.",
+      "unknown": "שגיאה בלתי צפויה."
+    },
+    "abort": {
+      "already_configured": "חשבון CarLinko זה כבר מוגדר.",
+      "reauth_successful": "האימות מחדש הצליח.",
+      "reconfigure_successful": "הגדרה מחדש הצליחה.",
+      "no_vehicles": "לא נמצאו רכבים בחשבון CarLinko זה."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "אפשרויות CarLinko",
+        "description": "כוונן אזור ותזמון סטרימינג עבור חשבון זה.",
+        "data": {
+          "region": "אֵזוֹר",
+          "stream_backstop": "מעצור אחורי זרימה (שניות)",
+          "availability_seconds": "חלון זמינות (שניות)"
+        }
+      }
+    }
+  },
+  "selector": {
+    "region": {
+      "options": {
+        "ap": "אסיה פסיפיק",
+        "emea": "אירופה, המזרח התיכון ואפריקה",
+        "me": "מזרח תיכון",
+        "naf": "צפון אפריקה",
+        "saf": "דרום אפריקה",
+        "sam": "דרום אמריקה",
+        "sea": "דרום מזרח אסיה",
+        "uzb": "אוזבקיסטן",
+        "vn": "וייטנאם"
+      }
+    }
+  },
+  "exceptions": {
+    "auth_failed": {
+      "message": "אימות CarLinko נכשל. נא אימות מחדש."
+    },
+    "cannot_connect": {
+      "message": "לא ניתן היה להגיע לCarLinko."
+    },
+    "control_failed": {
+      "message": "השלט הרחוק נכשל: {error}"
+    }
+  },
+  "entity": {
+    "sensor": {
+      "battery": {
+        "name": "סוֹלְלָה"
+      },
+      "range": {
+        "name": "לָנוּעַ"
+      },
+      "odometer": {
+        "name": "מַד מֶרְחָק"
+      },
+      "speed": {
+        "name": "מְהִירוּת"
+      },
+      "volt12": {
+        "name": "סוללה 12V"
+      },
+      "volt12_status": {
+        "name": "מצב 12V",
+        "state": {
+          "ok": "OK",
+          "low": "נָמוּך",
+          "critical": "קרִיטִי"
+        }
+      },
+      "charge_power": {
+        "name": "כוח טעינה"
+      },
+      "consumption": {
+        "name": "צְרִיכָה"
+      },
+      "charge_remaining": {
+        "name": "מטען שנותר"
+      },
+      "charge_mode": {
+        "name": "מצב טעינה",
+        "state": {
+          "none": "אַף לֹא אֶחָד",
+          "ac": "AC",
+          "dc": "DC"
+        }
+      },
+      "charge_state": {
+        "name": "מצב טעינה",
+        "state": {
+          "idle": "לְהִתְבַּטֵל",
+          "charging": "טְעִינָה",
+          "complete": "לְהַשְׁלִים",
+          "canceled": "בּוּטלָה",
+          "hot": "חַם",
+          "stop": "לְהַפְסִיק"
+        }
+      },
+      "updated": {
+        "name": "מְעוּדכָּן"
+      },
+      "hv_state": {
+        "name": "מצב HV",
+        "state": {
+          "off": "כבוי",
+          "lv": "LV",
+          "ready": "מוּכָן",
+          "unknown": "לֹא יְדוּעַ"
+        }
+      },
+      "wltc_range": {
+        "name": "טווח מדורג"
+      },
+      "energy_left": {
+        "name": "נשארה אנרגיה"
+      },
+      "tyre_status": {
+        "name": "מצב הצמיג",
+        "state": {
+          "normal": "נוֹרמָלִי",
+          "check_tyres": "בדוק צמיגים"
+        }
+      },
+      "fuel": {
+        "name": "דֶלֶק"
+      },
+      "fuel_range": {
+        "name": "טווח דלק"
+      },
+      "total_range": {
+        "name": "טווח כולל"
+      },
+      "fuel_consumption": {
+        "name": "צריכת דלק"
+      },
+      "tyre_fl": {
+        "name": "קדמי שמאל"
+      },
+      "tyre_fl_temp": {
+        "name": "טמפ' שמאל קדמית"
+      },
+      "tyre_fr": {
+        "name": "ימין קדמי"
+      },
+      "tyre_fr_temp": {
+        "name": "טמפ' ימין קדמית"
+      },
+      "tyre_rl": {
+        "name": "שמאל מאחור"
+      },
+      "tyre_rl_temp": {
+        "name": "טמפ' שמאל אחורי"
+      },
+      "tyre_rr": {
+        "name": "אחורי ימינה"
+      },
+      "tyre_rr_temp": {
+        "name": "טמפ' ימנית מאחור"
+      }
+    },
+    "binary_sensor": {
+      "charging": {
+        "name": "טְעִינָה"
+      },
+      "online": {
+        "name": "באינטרנט"
+      },
+      "moving": {
+        "name": "נָע"
+      },
+      "tyres_ok": {
+        "name": "בעיה בצמיגים"
+      },
+      "door": {
+        "name": "כל דלת"
+      },
+      "door_driver": {
+        "name": "דלת הנהג"
+      },
+      "door_passenger": {
+        "name": "דלת נוסעים"
+      },
+      "door_rear_left": {
+        "name": "דלת שמאל אחורית"
+      },
+      "door_rear_right": {
+        "name": "דלת ימין אחורית"
+      },
+      "seat_heat_left": {
+        "name": "נותר חום המושב"
+      },
+      "seat_heat_right": {
+        "name": "חום מושב נכון"
+      },
+      "seat_vent_left": {
+        "name": "אוורור מושב שמאל"
+      },
+      "seat_vent_right": {
+        "name": "אוורור מושב ימינה"
+      },
+      "defrost": {
+        "name": "לְהַפְשִׁיר"
+      },
+      "engine_on": {
+        "name": "מנוע דולק"
+      }
+    },
+    "number": {
+      "tariff": {
+        "name": "תעריף חיוב"
+      },
+      "petrol_price": {
+        "name": "מחיר בנזין"
+      },
+      "petrol_kml": {
+        "name": "משק בנזין"
+      }
+    },
+    "lock": {
+      "lock": {
+        "name": "לִנְעוֹל"
+      }
+    },
+    "climate": {
+      "climate": {
+        "name": "אַקלִים"
+      }
+    },
+    "cover": {
+      "windows": {
+        "name": "חלונות"
+      },
+      "sunroof": {
+        "name": "גג שמש"
+      },
+      "liftgate": {
+        "name": "Liftgate"
+      }
+    },
+    "button": {
+      "find": {
+        "name": "מצא מכונית"
+      },
+      "charge_stop": {
+        "name": "תפסיק לטעון"
+      },
+      "windows_vent": {
+        "name": "פורקן של חלונות"
+      },
+      "sunroof_tilt": {
+        "name": "הטיית גג שמש"
+      },
+      "quick_cool": {
+        "name": "צינון מהיר"
+      },
+      "quick_heat": {
+        "name": "חום מהיר"
+      }
+    },
+    "switch": {
+      "engine": {
+        "name": "מָנוֹעַ"
+      },
+      "defrost_cmd": {
+        "name": "ערפל"
+      },
+      "purify": {
+        "name": "טיהור אוויר"
+      }
+    },
+    "select": {
+      "gear": {
+        "name": "צִיוּד",
+        "state": {
+          "low": "נָמוּך",
+          "high": "גָבוֹהַ"
+        }
+      },
+      "seat_heat_l": {
+        "name": "חום מושב הנהג",
+        "state": {
+          "off": "כבוי",
+          "l1": "רמה 1",
+          "l2": "רמה 2",
+          "l3": "רמה 3"
+        }
+      },
+      "seat_vent_l": {
+        "name": "אוורור מושב הנהג",
+        "state": {
+          "off": "כבוי",
+          "l1": "רמה 1",
+          "l2": "רמה 2",
+          "l3": "רמה 3"
+        }
+      },
+      "seat_heat_r": {
+        "name": "חום מושב הנוסע",
+        "state": {
+          "off": "כבוי",
+          "l1": "רמה 1",
+          "l2": "רמה 2",
+          "l3": "רמה 3"
+        }
+      },
+      "seat_vent_r": {
+        "name": "פתח אוורור של מושב הנוסע",
+        "state": {
+          "off": "כבוי",
+          "l1": "רמה 1",
+          "l2": "רמה 2",
+          "l3": "רמה 3"
+        }
+      },
+      "seat_heat_lr": {
+        "name": "חום מושב L אחורי",
+        "state": {
+          "off": "כבוי",
+          "l1": "רמה 1",
+          "l2": "רמה 2",
+          "l3": "רמה 3"
+        }
+      },
+      "seat_vent_lr": {
+        "name": "אוורור מושב L אחורי",
+        "state": {
+          "off": "כבוי",
+          "l1": "רמה 1",
+          "l2": "רמה 2",
+          "l3": "רמה 3"
+        }
+      },
+      "seat_heat_rr": {
+        "name": "חום מושב R אחורי",
+        "state": {
+          "off": "כבוי",
+          "l1": "רמה 1",
+          "l2": "רמה 2",
+          "l3": "רמה 3"
+        }
+      },
+      "seat_vent_rr": {
+        "name": "פתח אוורור למושב R מאחור",
+        "state": {
+          "off": "כבוי",
+          "l1": "רמה 1",
+          "l2": "רמה 2",
+          "l3": "רמה 3"
+        }
+      }
+    }
+  }
+}

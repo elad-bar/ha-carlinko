@@ -1,0 +1,388 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "CarLinko",
+        "description": "Connectez-vous avec votre compte d'application CarLinko. Tous les véhicules du compte sont ajoutés automatiquement.",
+        "data": {
+          "email": "E-mail",
+          "password": "Mot de passe",
+          "region": "Région"
+        }
+      },
+      "reauth_confirm": {
+        "title": "Ré-authentifier CarLinko",
+        "description": "Votre session CarLinko a expiré ou le mot de passe a changé. Entrez votre mot de passe actuel.",
+        "data": {
+          "password": "Mot de passe"
+        }
+      },
+      "reconfigure": {
+        "title": "Reconfigurer CarLinko",
+        "description": "Mettez à jour le mot de passe ou la région de ce compte CarLinko.",
+        "data": {
+          "password": "Mot de passe",
+          "region": "Région"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Impossible de joindre CarLinko.",
+      "invalid_auth": "Email ou mot de passe invalide.",
+      "no_vehicles": "Aucun véhicule trouvé sur ce compte CarLinko.",
+      "unknown": "Erreur inattendue."
+    },
+    "abort": {
+      "already_configured": "Ce compte CarLinko est déjà configuré.",
+      "reauth_successful": "Ré-authentification réussie.",
+      "reconfigure_successful": "Reconfiguration réussie.",
+      "no_vehicles": "Aucun véhicule trouvé sur ce compte CarLinko."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Options CarLinko",
+        "description": "Ajustez la région et la synchronisation de diffusion pour ce compte.",
+        "data": {
+          "region": "Région",
+          "stream_backstop": "Filet de sécurité pour le flux (secondes)",
+          "availability_seconds": "Fenêtre de disponibilité (secondes)"
+        }
+      }
+    }
+  },
+  "selector": {
+    "region": {
+      "options": {
+        "ap": "Asie-Pacifique",
+        "emea": "Europe, Moyen-Orient et Afrique",
+        "me": "Moyen-Orient",
+        "naf": "Afrique du Nord",
+        "saf": "Afrique du Sud",
+        "sam": "Amérique du Sud",
+        "sea": "Asie du Sud-Est",
+        "uzb": "Ouzbékistan",
+        "vn": "Viêt Nam"
+      }
+    }
+  },
+  "exceptions": {
+    "auth_failed": {
+      "message": "L'authentification CarLinko a échoué. Veuillez vous authentifier à nouveau."
+    },
+    "cannot_connect": {
+      "message": "Impossible de joindre CarLinko."
+    },
+    "control_failed": {
+      "message": "Échec de la télécommande : {error}"
+    }
+  },
+  "entity": {
+    "sensor": {
+      "battery": {
+        "name": "Batterie"
+      },
+      "range": {
+        "name": "Gamme"
+      },
+      "odometer": {
+        "name": "Odomètre"
+      },
+      "speed": {
+        "name": "Vitesse"
+      },
+      "volt12": {
+        "name": "Batterie 12V"
+      },
+      "volt12_status": {
+        "name": "État 12 V",
+        "state": {
+          "ok": "OK",
+          "low": "Faible",
+          "critical": "Critique"
+        }
+      },
+      "charge_power": {
+        "name": "Puissance de charge"
+      },
+      "consumption": {
+        "name": "Consommation"
+      },
+      "charge_remaining": {
+        "name": "Charge restante"
+      },
+      "charge_mode": {
+        "name": "Mode de chargement",
+        "state": {
+          "none": "Aucun",
+          "ac": "AC",
+          "dc": "DC"
+        }
+      },
+      "charge_state": {
+        "name": "État de charge",
+        "state": {
+          "idle": "Inactif",
+          "charging": "Chargement",
+          "complete": "Complet",
+          "canceled": "Annulé",
+          "hot": "Chaud",
+          "stop": "Arrêt"
+        }
+      },
+      "updated": {
+        "name": "Mis à jour"
+      },
+      "hv_state": {
+        "name": "état HT",
+        "state": {
+          "off": "Désactivé",
+          "lv": "LV",
+          "ready": "Prêt",
+          "unknown": "Inconnu"
+        }
+      },
+      "wltc_range": {
+        "name": "Plage nominale"
+      },
+      "energy_left": {
+        "name": "Énergie restante"
+      },
+      "tyre_status": {
+        "name": "État des pneus",
+        "state": {
+          "normal": "Normale",
+          "check_tyres": "Vérifier les pneus"
+        }
+      },
+      "fuel": {
+        "name": "Carburant"
+      },
+      "fuel_range": {
+        "name": "Gamme de carburant"
+      },
+      "total_range": {
+        "name": "Portée totale"
+      },
+      "fuel_consumption": {
+        "name": "Consommation de carburant"
+      },
+      "tyre_fl": {
+        "name": "Avant gauche"
+      },
+      "tyre_fl_temp": {
+        "name": "Température avant gauche"
+      },
+      "tyre_fr": {
+        "name": "Avant droit"
+      },
+      "tyre_fr_temp": {
+        "name": "Température avant droite"
+      },
+      "tyre_rl": {
+        "name": "Arrière gauche"
+      },
+      "tyre_rl_temp": {
+        "name": "Température arrière gauche"
+      },
+      "tyre_rr": {
+        "name": "Arrière droit"
+      },
+      "tyre_rr_temp": {
+        "name": "Température arrière droite"
+      }
+    },
+    "binary_sensor": {
+      "charging": {
+        "name": "Chargement"
+      },
+      "online": {
+        "name": "En ligne"
+      },
+      "moving": {
+        "name": "Mobile"
+      },
+      "tyres_ok": {
+        "name": "Problème de pneu"
+      },
+      "door": {
+        "name": "N'importe quelle porte"
+      },
+      "door_driver": {
+        "name": "Porte conducteur"
+      },
+      "door_passenger": {
+        "name": "Porte passager"
+      },
+      "door_rear_left": {
+        "name": "Porte arrière gauche"
+      },
+      "door_rear_right": {
+        "name": "Porte arrière droite"
+      },
+      "seat_heat_left": {
+        "name": "Chauffage du siège à gauche"
+      },
+      "seat_heat_right": {
+        "name": "Chauffage du siège droit"
+      },
+      "seat_vent_left": {
+        "name": "Aérateur de siège gauche"
+      },
+      "seat_vent_right": {
+        "name": "Aérateur de siège droit"
+      },
+      "defrost": {
+        "name": "Décongeler"
+      },
+      "engine_on": {
+        "name": "Moteur allumé"
+      }
+    },
+    "number": {
+      "tariff": {
+        "name": "Tarif de recharge"
+      },
+      "petrol_price": {
+        "name": "Prix ​​de l'essence"
+      },
+      "petrol_kml": {
+        "name": "Économie d'essence"
+      }
+    },
+    "lock": {
+      "lock": {
+        "name": "Verrouillage"
+      }
+    },
+    "climate": {
+      "climate": {
+        "name": "Climat"
+      }
+    },
+    "cover": {
+      "windows": {
+        "name": "Fenêtres"
+      },
+      "sunroof": {
+        "name": "Toit ouvrant"
+      },
+      "liftgate": {
+        "name": "Hayon"
+      }
+    },
+    "button": {
+      "find": {
+        "name": "Trouver une voiture"
+      },
+      "charge_stop": {
+        "name": "Arrêter de charger"
+      },
+      "windows_vent": {
+        "name": "Aération des fenêtres"
+      },
+      "sunroof_tilt": {
+        "name": "Inclinaison du toit ouvrant"
+      },
+      "quick_cool": {
+        "name": "Refroidissement rapide"
+      },
+      "quick_heat": {
+        "name": "Chaleur rapide"
+      }
+    },
+    "switch": {
+      "engine": {
+        "name": "Moteur"
+      },
+      "defrost_cmd": {
+        "name": "Désembuage"
+      },
+      "purify": {
+        "name": "Purifier l'air"
+      }
+    },
+    "select": {
+      "gear": {
+        "name": "Engrenage",
+        "state": {
+          "low": "Faible",
+          "high": "Haut"
+        }
+      },
+      "seat_heat_l": {
+        "name": "Chauffage du siège conducteur",
+        "state": {
+          "off": "Désactivé",
+          "l1": "Niveau 1",
+          "l2": "Niveau 2",
+          "l3": "Niveau 3"
+        }
+      },
+      "seat_vent_l": {
+        "name": "Aération du siège conducteur",
+        "state": {
+          "off": "Désactivé",
+          "l1": "Niveau 1",
+          "l2": "Niveau 2",
+          "l3": "Niveau 3"
+        }
+      },
+      "seat_heat_r": {
+        "name": "Chauffage du siège passager",
+        "state": {
+          "off": "Désactivé",
+          "l1": "Niveau 1",
+          "l2": "Niveau 2",
+          "l3": "Niveau 3"
+        }
+      },
+      "seat_vent_r": {
+        "name": "Aération du siège passager",
+        "state": {
+          "off": "Désactivé",
+          "l1": "Niveau 1",
+          "l2": "Niveau 2",
+          "l3": "Niveau 3"
+        }
+      },
+      "seat_heat_lr": {
+        "name": "Chauffage du siège arrière G",
+        "state": {
+          "off": "Désactivé",
+          "l1": "Niveau 1",
+          "l2": "Niveau 2",
+          "l3": "Niveau 3"
+        }
+      },
+      "seat_vent_lr": {
+        "name": "Aérateur de siège arrière G",
+        "state": {
+          "off": "Désactivé",
+          "l1": "Niveau 1",
+          "l2": "Niveau 2",
+          "l3": "Niveau 3"
+        }
+      },
+      "seat_heat_rr": {
+        "name": "Chauffage du siège arrière R",
+        "state": {
+          "off": "Désactivé",
+          "l1": "Niveau 1",
+          "l2": "Niveau 2",
+          "l3": "Niveau 3"
+        }
+      },
+      "seat_vent_rr": {
+        "name": "Aérateur de siège arrière R",
+        "state": {
+          "off": "Désactivé",
+          "l1": "Niveau 1",
+          "l2": "Niveau 2",
+          "l3": "Niveau 3"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,388 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "CarLinko",
+        "description": "با حساب برنامه CarLinko خود وارد شوید. تمام وسایل نقلیه موجود در حساب به طور خودکار اضافه می شوند.",
+        "data": {
+          "email": "ایمیل",
+          "password": "رمز عبور",
+          "region": "منطقه"
+        }
+      },
+      "reauth_confirm": {
+        "title": "CarLinko را دوباره احراز هویت کنید",
+        "description": "جلسه CarLinko شما منقضی شد یا رمز عبور تغییر کرد. رمز عبور فعلی خود را وارد کنید.",
+        "data": {
+          "password": "رمز عبور"
+        }
+      },
+      "reconfigure": {
+        "title": "CarLinko را دوباره پیکربندی کنید",
+        "description": "رمز عبور یا منطقه را برای این حساب CarLinko به روز کنید.",
+        "data": {
+          "password": "رمز عبور",
+          "region": "منطقه"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "نمی توان به CarLinko رسید.",
+      "invalid_auth": "ایمیل یا رمز عبور نامعتبر است.",
+      "no_vehicles": "هیچ وسیله نقلیه ای در این حساب CarLinko یافت نشد.",
+      "unknown": "خطای غیرمنتظره"
+    },
+    "abort": {
+      "already_configured": "این حساب CarLinko قبلاً پیکربندی شده است.",
+      "reauth_successful": "احراز هویت مجدد با موفقیت انجام شد.",
+      "reconfigure_successful": "پیکربندی مجدد با موفقیت انجام شد.",
+      "no_vehicles": "هیچ وسیله نقلیه ای در این حساب CarLinko یافت نشد."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "گزینه های CarLinko",
+        "description": "منطقه و زمان پخش جریانی را برای این حساب تنظیم کنید.",
+        "data": {
+          "region": "منطقه",
+          "stream_backstop": "استاپ جریان (ثانیه)",
+          "availability_seconds": "پنجره در دسترس بودن (ثانیه)"
+        }
+      }
+    }
+  },
+  "selector": {
+    "region": {
+      "options": {
+        "ap": "آسیا و اقیانوسیه",
+        "emea": "اروپا، خاورمیانه و آفریقا",
+        "me": "خاورمیانه",
+        "naf": "شمال آفریقا",
+        "saf": "آفریقای جنوبی",
+        "sam": "آمریکای جنوبی",
+        "sea": "آسیای جنوب شرقی",
+        "uzb": "ازبکستان",
+        "vn": "ویتنام"
+      }
+    }
+  },
+  "exceptions": {
+    "auth_failed": {
+      "message": "احراز هویت CarLinko ناموفق بود. لطفا احراز هویت مجدد"
+    },
+    "cannot_connect": {
+      "message": "نمی توان به CarLinko رسید."
+    },
+    "control_failed": {
+      "message": "کنترل از راه دور ناموفق بود: {error}"
+    }
+  },
+  "entity": {
+    "sensor": {
+      "battery": {
+        "name": "باتری"
+      },
+      "range": {
+        "name": "محدوده"
+      },
+      "odometer": {
+        "name": "کیلومتر شمار"
+      },
+      "speed": {
+        "name": "سرعت"
+      },
+      "volt12": {
+        "name": "باتری 12 ولت"
+      },
+      "volt12_status": {
+        "name": "وضعیت 12 ولت",
+        "state": {
+          "ok": "OK",
+          "low": "پایین",
+          "critical": "انتقادی"
+        }
+      },
+      "charge_power": {
+        "name": "قدرت شارژ"
+      },
+      "consumption": {
+        "name": "مصرف"
+      },
+      "charge_remaining": {
+        "name": "شارژ باقی مانده است"
+      },
+      "charge_mode": {
+        "name": "حالت شارژ",
+        "state": {
+          "none": "هیچ کدام",
+          "ac": "AC",
+          "dc": "DC"
+        }
+      },
+      "charge_state": {
+        "name": "وضعیت شارژ",
+        "state": {
+          "idle": "بیکار",
+          "charging": "شارژ کردن",
+          "complete": "کامل",
+          "canceled": "لغو شد",
+          "hot": "داغ",
+          "stop": "توقف کنید"
+        }
+      },
+      "updated": {
+        "name": "به روز شد"
+      },
+      "hv_state": {
+        "name": "وضعیت HV",
+        "state": {
+          "off": "خاموش",
+          "lv": "LV",
+          "ready": "آماده است",
+          "unknown": "ناشناس"
+        }
+      },
+      "wltc_range": {
+        "name": "محدوده رتبه بندی شده"
+      },
+      "energy_left": {
+        "name": "انرژی باقی مانده است"
+      },
+      "tyre_status": {
+        "name": "وضعیت تایر",
+        "state": {
+          "normal": "عادی",
+          "check_tyres": "لاستیک ها را چک کنید"
+        }
+      },
+      "fuel": {
+        "name": "سوخت"
+      },
+      "fuel_range": {
+        "name": "محدوده سوخت"
+      },
+      "total_range": {
+        "name": "محدوده کل"
+      },
+      "fuel_consumption": {
+        "name": "مصرف سوخت"
+      },
+      "tyre_fl": {
+        "name": "جلو چپ"
+      },
+      "tyre_fl_temp": {
+        "name": "دمای جلو چپ"
+      },
+      "tyre_fr": {
+        "name": "جلو سمت راست"
+      },
+      "tyre_fr_temp": {
+        "name": "دمای جلو سمت راست"
+      },
+      "tyre_rl": {
+        "name": "عقب سمت چپ"
+      },
+      "tyre_rl_temp": {
+        "name": "دمای عقب سمت چپ"
+      },
+      "tyre_rr": {
+        "name": "عقب سمت راست"
+      },
+      "tyre_rr_temp": {
+        "name": "دمای عقب سمت راست"
+      }
+    },
+    "binary_sensor": {
+      "charging": {
+        "name": "شارژ کردن"
+      },
+      "online": {
+        "name": "آنلاین"
+      },
+      "moving": {
+        "name": "در حال حرکت"
+      },
+      "tyres_ok": {
+        "name": "مشکل لاستیک"
+      },
+      "door": {
+        "name": "هر دری"
+      },
+      "door_driver": {
+        "name": "درب راننده"
+      },
+      "door_passenger": {
+        "name": "درب مسافر"
+      },
+      "door_rear_left": {
+        "name": "درب عقب سمت چپ"
+      },
+      "door_rear_right": {
+        "name": "درب عقب سمت راست"
+      },
+      "seat_heat_left": {
+        "name": "گرمای صندلی باقی مانده است"
+      },
+      "seat_heat_right": {
+        "name": "گرمای صندلی درست"
+      },
+      "seat_vent_left": {
+        "name": "دریچه صندلی سمت چپ"
+      },
+      "seat_vent_right": {
+        "name": "دریچه صندلی سمت راست"
+      },
+      "defrost": {
+        "name": "یخ زدایی کنید"
+      },
+      "engine_on": {
+        "name": "موتور روشن"
+      }
+    },
+    "number": {
+      "tariff": {
+        "name": "تعرفه شارژ"
+      },
+      "petrol_price": {
+        "name": "قیمت بنزین"
+      },
+      "petrol_kml": {
+        "name": "اقتصاد بنزینی"
+      }
+    },
+    "lock": {
+      "lock": {
+        "name": "قفل کنید"
+      }
+    },
+    "climate": {
+      "climate": {
+        "name": "آب و هوا"
+      }
+    },
+    "cover": {
+      "windows": {
+        "name": "ویندوز"
+      },
+      "sunroof": {
+        "name": "سانروف"
+      },
+      "liftgate": {
+        "name": "درب آسانسور"
+      }
+    },
+    "button": {
+      "find": {
+        "name": "ماشین پیدا کن"
+      },
+      "charge_stop": {
+        "name": "شارژ را متوقف کنید"
+      },
+      "windows_vent": {
+        "name": "دریچه پنجره"
+      },
+      "sunroof_tilt": {
+        "name": "شیب سانروف"
+      },
+      "quick_cool": {
+        "name": "سریع خنک"
+      },
+      "quick_heat": {
+        "name": "حرارت سریع"
+      }
+    },
+    "switch": {
+      "engine": {
+        "name": "موتور"
+      },
+      "defrost_cmd": {
+        "name": "یخ زدایی"
+      },
+      "purify": {
+        "name": "تصفیه هوا"
+      }
+    },
+    "select": {
+      "gear": {
+        "name": "دنده",
+        "state": {
+          "low": "پایین",
+          "high": "بالا"
+        }
+      },
+      "seat_heat_l": {
+        "name": "گرمای صندلی راننده",
+        "state": {
+          "off": "خاموش",
+          "l1": "سطح 1",
+          "l2": "سطح 2",
+          "l3": "سطح 3"
+        }
+      },
+      "seat_vent_l": {
+        "name": "هواکش صندلی راننده",
+        "state": {
+          "off": "خاموش",
+          "l1": "سطح 1",
+          "l2": "سطح 2",
+          "l3": "سطح 3"
+        }
+      },
+      "seat_heat_r": {
+        "name": "گرمای صندلی سرنشین",
+        "state": {
+          "off": "خاموش",
+          "l1": "سطح 1",
+          "l2": "سطح 2",
+          "l3": "سطح 3"
+        }
+      },
+      "seat_vent_r": {
+        "name": "هواکش صندلی سرنشین",
+        "state": {
+          "off": "خاموش",
+          "l1": "سطح 1",
+          "l2": "سطح 2",
+          "l3": "سطح 3"
+        }
+      },
+      "seat_heat_lr": {
+        "name": "گرمای صندلی L عقب",
+        "state": {
+          "off": "خاموش",
+          "l1": "سطح 1",
+          "l2": "سطح 2",
+          "l3": "سطح 3"
+        }
+      },
+      "seat_vent_lr": {
+        "name": "هواکش صندلی L عقب",
+        "state": {
+          "off": "خاموش",
+          "l1": "سطح 1",
+          "l2": "سطح 2",
+          "l3": "سطح 3"
+        }
+      },
+      "seat_heat_rr": {
+        "name": "گرمای صندلی R عقب",
+        "state": {
+          "off": "خاموش",
+          "l1": "سطح 1",
+          "l2": "سطح 2",
+          "l3": "سطح 3"
+        }
+      },
+      "seat_vent_rr": {
+        "name": "هواکش صندلی R عقب",
+        "state": {
+          "off": "خاموش",
+          "l1": "سطح 1",
+          "l2": "سطح 2",
+          "l3": "سطح 3"
+        }
+      }
+    }
+  }
+}

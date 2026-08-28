@@ -1,0 +1,388 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "CarLinko",
+        "description": "Đăng nhập bằng tài khoản ứng dụng CarLinko của bạn. Tất cả các phương tiện trong tài khoản đều được thêm tự động.",
+        "data": {
+          "email": "E-mail",
+          "password": "Mật khẩu",
+          "region": "Vùng đất"
+        }
+      },
+      "reauth_confirm": {
+        "title": "Xác thực lại CarLinko",
+        "description": "Phiên CarLinko của bạn đã hết hạn hoặc mật khẩu đã thay đổi. Nhập mật khẩu hiện tại của bạn.",
+        "data": {
+          "password": "Mật khẩu"
+        }
+      },
+      "reconfigure": {
+        "title": "Cấu hình lại CarLinko",
+        "description": "Cập nhật mật khẩu hoặc vùng cho tài khoản CarLinko này.",
+        "data": {
+          "password": "Mật khẩu",
+          "region": "Vùng đất"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Không thể truy cập CarLinko .",
+      "invalid_auth": "Email hoặc mật khẩu không hợp lệ.",
+      "no_vehicles": "Không tìm thấy xe nào trên tài khoản CarLinko này.",
+      "unknown": "Lỗi không mong muốn."
+    },
+    "abort": {
+      "already_configured": "Tài khoản CarLinko này đã được định cấu hình.",
+      "reauth_successful": "Xác thực lại thành công.",
+      "reconfigure_successful": "Cấu hình lại thành công.",
+      "no_vehicles": "Không tìm thấy xe nào trên tài khoản CarLinko này."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Tùy chọn CarLinko",
+        "description": "Điều chỉnh vùng và thời gian phát trực tuyến cho tài khoản này.",
+        "data": {
+          "region": "Vùng đất",
+          "stream_backstop": "Luồng lùi (giây)",
+          "availability_seconds": "Khoảng thời gian khả dụng (giây)"
+        }
+      }
+    }
+  },
+  "selector": {
+    "region": {
+      "options": {
+        "ap": "Châu Á Thái Bình Dương",
+        "emea": "Châu Âu, Trung Đông và Châu Phi",
+        "me": "Trung Đông",
+        "naf": "Bắc Phi",
+        "saf": "Nam Phi",
+        "sam": "Nam Mỹ",
+        "sea": "Đông Nam Á",
+        "uzb": "Uzbekistan",
+        "vn": "Việt Nam"
+      }
+    }
+  },
+  "exceptions": {
+    "auth_failed": {
+      "message": "Xác thực CarLinko không thành công. Vui lòng xác thực lại."
+    },
+    "cannot_connect": {
+      "message": "Không thể truy cập CarLinko ."
+    },
+    "control_failed": {
+      "message": "Điều khiển từ xa không thành công: {error}"
+    }
+  },
+  "entity": {
+    "sensor": {
+      "battery": {
+        "name": "Ắc quy"
+      },
+      "range": {
+        "name": "Phạm vi"
+      },
+      "odometer": {
+        "name": "Đồng hồ đo đường"
+      },
+      "speed": {
+        "name": "Tốc độ"
+      },
+      "volt12": {
+        "name": "Pin 12V"
+      },
+      "volt12_status": {
+        "name": "Trạng thái 12V",
+        "state": {
+          "ok": "OK",
+          "low": "Thấp",
+          "critical": "Phê bình"
+        }
+      },
+      "charge_power": {
+        "name": "Sạc điện"
+      },
+      "consumption": {
+        "name": "Sự tiêu thụ"
+      },
+      "charge_remaining": {
+        "name": "Phí còn lại"
+      },
+      "charge_mode": {
+        "name": "Chế độ sạc",
+        "state": {
+          "none": "Không có",
+          "ac": "AC",
+          "dc": "DC"
+        }
+      },
+      "charge_state": {
+        "name": "Trạng thái sạc",
+        "state": {
+          "idle": "Nhàn rỗi",
+          "charging": "Sạc",
+          "complete": "Hoàn thành",
+          "canceled": "Đã hủy",
+          "hot": "Nóng",
+          "stop": "Dừng lại"
+        }
+      },
+      "updated": {
+        "name": "Đã cập nhật"
+      },
+      "hv_state": {
+        "name": "trạng thái HV",
+        "state": {
+          "off": "Tắt",
+          "lv": "LV",
+          "ready": "Sẵn sàng",
+          "unknown": "Không xác định"
+        }
+      },
+      "wltc_range": {
+        "name": "Phạm vi đánh giá"
+      },
+      "energy_left": {
+        "name": "Năng lượng còn lại"
+      },
+      "tyre_status": {
+        "name": "Tình trạng lốp",
+        "state": {
+          "normal": "Bình thường",
+          "check_tyres": "Kiểm tra lốp xe"
+        }
+      },
+      "fuel": {
+        "name": "Nhiên liệu"
+      },
+      "fuel_range": {
+        "name": "Phạm vi nhiên liệu"
+      },
+      "total_range": {
+        "name": "Tổng phạm vi"
+      },
+      "fuel_consumption": {
+        "name": "Tiêu thụ nhiên liệu"
+      },
+      "tyre_fl": {
+        "name": "Phía trước bên trái"
+      },
+      "tyre_fl_temp": {
+        "name": "Nhiệt độ phía trước bên trái"
+      },
+      "tyre_fr": {
+        "name": "Phía trước bên phải"
+      },
+      "tyre_fr_temp": {
+        "name": "Nhiệt độ phía trước bên phải"
+      },
+      "tyre_rl": {
+        "name": "Phía sau bên trái"
+      },
+      "tyre_rl_temp": {
+        "name": "Nhiệt độ phía sau bên trái"
+      },
+      "tyre_rr": {
+        "name": "Phía sau bên phải"
+      },
+      "tyre_rr_temp": {
+        "name": "Nhiệt độ phía sau bên phải"
+      }
+    },
+    "binary_sensor": {
+      "charging": {
+        "name": "Sạc"
+      },
+      "online": {
+        "name": "Trực tuyến"
+      },
+      "moving": {
+        "name": "Di chuyển"
+      },
+      "tyres_ok": {
+        "name": "Vấn đề về lốp"
+      },
+      "door": {
+        "name": "Bất kỳ cửa nào"
+      },
+      "door_driver": {
+        "name": "Cửa tài xế"
+      },
+      "door_passenger": {
+        "name": "Cửa hành khách"
+      },
+      "door_rear_left": {
+        "name": "Cửa sau bên trái"
+      },
+      "door_rear_right": {
+        "name": "Cửa sau bên phải"
+      },
+      "seat_heat_left": {
+        "name": "Sưởi ghế còn lại"
+      },
+      "seat_heat_right": {
+        "name": "Sưởi ghế bên phải"
+      },
+      "seat_vent_left": {
+        "name": "Lỗ thông hơi ghế bên trái"
+      },
+      "seat_vent_right": {
+        "name": "Lỗ thông hơi ghế bên phải"
+      },
+      "defrost": {
+        "name": "rã đông"
+      },
+      "engine_on": {
+        "name": "Động cơ đang bật"
+      }
+    },
+    "number": {
+      "tariff": {
+        "name": "Biểu phí tính phí"
+      },
+      "petrol_price": {
+        "name": "Giá xăng dầu"
+      },
+      "petrol_kml": {
+        "name": "Kinh tế xăng dầu"
+      }
+    },
+    "lock": {
+      "lock": {
+        "name": "Khóa"
+      }
+    },
+    "climate": {
+      "climate": {
+        "name": "Khí hậu"
+      }
+    },
+    "cover": {
+      "windows": {
+        "name": "cửa sổ"
+      },
+      "sunroof": {
+        "name": "Cửa sổ trời"
+      },
+      "liftgate": {
+        "name": "Thang máy"
+      }
+    },
+    "button": {
+      "find": {
+        "name": "Tìm xe"
+      },
+      "charge_stop": {
+        "name": "Dừng sạc"
+      },
+      "windows_vent": {
+        "name": "Lỗ thông hơi của cửa sổ"
+      },
+      "sunroof_tilt": {
+        "name": "Cửa sổ trời nghiêng"
+      },
+      "quick_cool": {
+        "name": "Làm mát nhanh"
+      },
+      "quick_heat": {
+        "name": "Nhiệt nhanh"
+      }
+    },
+    "switch": {
+      "engine": {
+        "name": "Động cơ"
+      },
+      "defrost_cmd": {
+        "name": "Làm tan sương mù"
+      },
+      "purify": {
+        "name": "Thanh lọc không khí"
+      }
+    },
+    "select": {
+      "gear": {
+        "name": "Bánh răng",
+        "state": {
+          "low": "Thấp",
+          "high": "Cao"
+        }
+      },
+      "seat_heat_l": {
+        "name": "Sưởi ghế lái",
+        "state": {
+          "off": "Tắt",
+          "l1": "Cấp 1",
+          "l2": "Cấp độ 2",
+          "l3": "Cấp 3"
+        }
+      },
+      "seat_vent_l": {
+        "name": "Cửa gió ghế lái",
+        "state": {
+          "off": "Tắt",
+          "l1": "Cấp 1",
+          "l2": "Cấp độ 2",
+          "l3": "Cấp 3"
+        }
+      },
+      "seat_heat_r": {
+        "name": "Sưởi ghế hành khách",
+        "state": {
+          "off": "Tắt",
+          "l1": "Cấp 1",
+          "l2": "Cấp độ 2",
+          "l3": "Cấp 3"
+        }
+      },
+      "seat_vent_r": {
+        "name": "Cửa gió ghế hành khách",
+        "state": {
+          "off": "Tắt",
+          "l1": "Cấp 1",
+          "l2": "Cấp độ 2",
+          "l3": "Cấp 3"
+        }
+      },
+      "seat_heat_lr": {
+        "name": "Sưởi ghế sau L",
+        "state": {
+          "off": "Tắt",
+          "l1": "Cấp 1",
+          "l2": "Cấp độ 2",
+          "l3": "Cấp 3"
+        }
+      },
+      "seat_vent_lr": {
+        "name": "Cửa gió hàng ghế sau chữ L",
+        "state": {
+          "off": "Tắt",
+          "l1": "Cấp 1",
+          "l2": "Cấp độ 2",
+          "l3": "Cấp 3"
+        }
+      },
+      "seat_heat_rr": {
+        "name": "Sưởi ghế sau R",
+        "state": {
+          "off": "Tắt",
+          "l1": "Cấp 1",
+          "l2": "Cấp độ 2",
+          "l3": "Cấp 3"
+        }
+      },
+      "seat_vent_rr": {
+        "name": "Cửa gió hàng ghế sau R",
+        "state": {
+          "off": "Tắt",
+          "l1": "Cấp 1",
+          "l2": "Cấp độ 2",
+          "l3": "Cấp 3"
+        }
+      }
+    }
+  }
+}

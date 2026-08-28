@@ -15,6 +15,39 @@ _confirmed vs inferred_ matter most, because wrong telemetry silently lies about
   [`custom_components/carlinko/models/`](custom_components/carlinko/models/) —
   `helpers.py` / `enrichments.py` / `consts.py`).
 - **Docs** — setup friction, HA entity notes, opcode verification.
+- **Translations** — polish UI strings for your language (see below).
+
+## Translations
+
+UI strings are in [`custom_components/carlinko/strings.json`](custom_components/carlinko/strings.json)
+(English source) and [`custom_components/carlinko/translations/`](custom_components/carlinko/translations/)
+(one JSON file per HA locale). Non-English files were bootstrapped with machine
+translation; please open PRs to fix automotive wording, RTL phrasing, or brand
+usage (**CarLinko** stays untranslated).
+
+When you add or change entities in [`entity_specs.py`](custom_components/carlinko/models/entity_specs.py):
+
+1. Update `strings.json` and `translations/en.json` together.
+2. Fill **new keys only** in locale files (edit by hand or run the generator — see below).
+3. Run `pytest tests/test_translations.py`.
+
+To fill **missing** strings from English locally (optional, needs network; from
+[`requirements-dev.txt`](requirements-dev.txt)):
+
+```bash
+pip install -r requirements-dev.txt
+python scripts/generate_translations.py
+python scripts/fix_translation_placeholders.py
+prettier --write custom_components/carlinko/translations/*.json
+pytest tests/test_translations.py
+```
+
+The generator **does not overwrite** existing non-empty strings in a locale file, so
+contributor improvements are kept. It only machine-translates keys that are missing
+or empty. Use `--force` to re-translate everything (destructive — avoid on main).
+
+Do not commit API keys. Review safety-related labels (lock, charging stop, tyres)
+after bulk generation.
 
 ## Before you start
 
