@@ -352,6 +352,11 @@
           "l3": "Cao"
         }
       }
+    },
+    "device_tracker": {
+      "location": {
+        "name": "Vị trí"
+      }
     }
   },
   "selector": {

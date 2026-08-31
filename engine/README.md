@@ -10,6 +10,7 @@ without loading the Home Assistant integration. Native HA is the product surface
 cp .env.example .env                         # secrets
 mkdir -p data && cp config.example.json data/config.json
 cd engine && python entrypoint.py
+cd engine && python entrypoint.py --locate   # one-shot map locate probe
 ```
 
 Requires packages from the repo `requirements.txt` (`aiohttp`, `python-dotenv`).
@@ -23,6 +24,12 @@ in `.env` for verbose WebSocket lines.
 2. Streams the CarLinko realtime WebSocket
 3. Decodes each status frame into live state
 4. Logs entity value deltas when values change
+
+### `--locate`
+
+One-shot probe of `POST /maps/deviceLocate` via `ApiClient.device_locate`.
+Logs in, refreshes vehicles, prints `lat` / `lng` / `address` (or the error code),
+then exits. Does not start the WS stream.
 
 ## Layout
 

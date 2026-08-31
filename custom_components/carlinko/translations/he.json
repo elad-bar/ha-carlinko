@@ -367,6 +367,11 @@
           "l3": "גבוה"
         }
       }
+    },
+    "device_tracker": {
+      "location": {
+        "name": "מיקום"
+      }
     }
   }
 }

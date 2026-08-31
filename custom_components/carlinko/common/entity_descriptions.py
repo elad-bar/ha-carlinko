@@ -140,5 +140,7 @@ def get_entity_description(spec: EntitySpec) -> EntityDescription:
         return ButtonEntityDescription(**base)
     if platform == "switch":
         return SwitchEntityDescription(**base)
+    if platform == "device_tracker":
+        return EntityDescription(**base)
 
     return EntityDescription(**base)

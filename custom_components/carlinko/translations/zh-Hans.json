@@ -352,6 +352,11 @@
           "l3": "高"
         }
       }
+    },
+    "device_tracker": {
+      "location": {
+        "name": "位置"
+      }
     }
   },
   "selector": {

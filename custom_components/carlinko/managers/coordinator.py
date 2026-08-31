@@ -31,13 +31,18 @@ from ..common.consts import (
     CONF_PASSWORD,
     CONF_STREAM_BACKSTOP,
     DOMAIN,
+    LOCATION_POLL_INTERVAL_S,
     OK_CODE,
     STALE_TOKEN_CODES,
     STORAGE_VERSION,
     STREAM_BACKSTOP,
     WS_SETUP_TIMEOUT_S,
 )
-from ..common.helpers import partial_id, require_region_from_entry_data
+from ..common.helpers import (
+    interpret_device_locate_code,
+    partial_id,
+    require_region_from_entry_data,
+)
 from ..managers.api_client import ApiClient, device_sn_of, vehicle_id_of
 from ..managers.ws_client import WsClient
 from ..models.entity_specs import get_entity_specs
@@ -95,6 +100,7 @@ class CarlinkoCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         )
         self._stop = asyncio.Event()
         self._caps_task: asyncio.Task | None = None
+        self._location_task: asyncio.Task | None = None
         self._vehicles: dict[str, VehicleRuntime] = {}
         self._entity_listeners: list[EntityListener] = []
         self._was_available: dict[str, bool] = {}
@@ -120,9 +126,13 @@ class CarlinkoCoordinator(DataUpdateCoordinator[dict[str, Any]]):
 
     def caps_for(self, vehicle_id: str) -> dict:
         try:
-            return self.api.control_caps(vehicle_id) or {}
+            caps = dict(self.api.control_caps(vehicle_id) or {})
         except Exception:
-            return {}
+            caps = {}
+        meta = self.store.get_vehicle_meta(vehicle_id)
+        if meta.get("location_supported") is True:
+            caps["location"] = True
+        return caps
 
     @property
     def caps(self) -> dict:
@@ -196,6 +206,103 @@ class CarlinkoCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             "vin": veh.get("vin") or veh.get("VIN") or "—",
         }
 
+    def _apply_location_to_runtime(
+        self,
+        vehicle_id: str,
+        *,
+        lat: float | None = None,
+        lng: float | None = None,
+        address: str | None = None,
+    ) -> None:
+        """Write location into VehicleState + refresh meta from store."""
+        rt = self._vehicles.get(str(vehicle_id))
+        if rt is None:
+            return
+        rt.meta = self.store.get_vehicle_meta(vehicle_id)
+        loc = dict(rt.vehicle_state.data.get("location") or {})
+        if lat is not None:
+            loc["lat"] = lat
+        if lng is not None:
+            loc["lng"] = lng
+        if address is not None:
+            loc["address"] = address
+        # Seed from persisted meta when runtime has no coords yet.
+        if loc.get("lat") is None and rt.meta.get("location_lat") is not None:
+            loc["lat"] = rt.meta.get("location_lat")
+        if loc.get("lng") is None and rt.meta.get("location_lng") is not None:
+            loc["lng"] = rt.meta.get("location_lng")
+        if loc.get("address") is None and rt.meta.get("location_address"):
+            loc["address"] = rt.meta.get("location_address")
+        rt.vehicle_state.data["location"] = loc
+
+    def _seed_location_from_meta(self, vehicle_id: str) -> None:
+        self._apply_location_to_runtime(vehicle_id)
+
+    async def _probe_location(self, vehicle_id: str, *, force: bool = False) -> None:
+        """One locate call; update capability + coords. Never raises for setup."""
+        rt = self._vehicles.get(str(vehicle_id))
+        if rt is None or not rt.device_sn:
+            return
+        meta = self.store.get_vehicle_meta(vehicle_id)
+        if meta.get("location_supported") is False and not force:
+            return
+        try:
+            result = await self.api.device_locate(rt.device_sn)
+        except AuthError:
+            raise
+        except Exception:
+            _LOGGER.exception(
+                f"deviceLocate probe failed vehicle={partial_id(vehicle_id)}"
+            )
+            return
+        code = str(result.get("code") or "")
+        supported = interpret_device_locate_code(code)
+        if supported is None:
+            _LOGGER.debug(
+                f"deviceLocate inconclusive vehicle={partial_id(vehicle_id)} "
+                f"code={code}"
+            )
+            return
+        data = result.get("data") if isinstance(result.get("data"), dict) else {}
+        lat = lng = address = None
+        updated = None
+        if supported and code in (OK_CODE, "0") and data:
+            try:
+                lat = float(data["lat"]) if data.get("lat") is not None else None
+                lng = float(data["lng"]) if data.get("lng") is not None else None
+            except (TypeError, ValueError):
+                lat = lng = None
+            address = data.get("address")
+            if isinstance(address, str):
+                address = address.strip() or None
+            else:
+                address = None
+            if lat is not None and lng is not None:
+                updated = time.time()
+        self.store.update_vehicle_location_meta(
+            vehicle_id,
+            supported=supported,
+            lat=lat,
+            lng=lng,
+            address=address,
+            updated=updated,
+        )
+        self._apply_location_to_runtime(vehicle_id, lat=lat, lng=lng, address=address)
+        _LOGGER.info(
+            f"location capability vehicle={partial_id(vehicle_id)} "
+            f"supported={supported} code={code}"
+        )
+        self._maybe_notify_spec_changes(vehicle_id)
+
+    async def _probe_all_locations(self) -> None:
+        for vid in list(self._vehicles):
+            try:
+                await self._probe_location(vid)
+            except AuthError:
+                raise
+            except Exception:
+                _LOGGER.exception(f"location probe skipped vehicle={partial_id(vid)}")
+
     def _publish_data(self) -> None:
         vehicles: dict[str, Any] = {}
         for vid, rt in self._vehicles.items():
@@ -251,15 +358,31 @@ class CarlinkoCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             _LOGGER.debug(f"_start_ws vehicle={vid}")
             self._start_ws(vid)
             self._async_refresh_device(vid)
+            self._seed_location_from_meta(vid)
+        self._publish_data()
+        await self._async_wait_for_stream()
+        try:
+            await self._probe_all_locations()
+        except AuthError as err:
+            await self._async_handle_auth_failure(err, source="location_probe")
+            raise ConfigEntryAuthFailed(
+                translation_domain=DOMAIN,
+                translation_key="auth_failed",
+            ) from err
         self._publish_data()
         for vid, rt in self._vehicles.items():
             rt.spec_keys = self.current_spec_keys(vid)
-        await self._async_wait_for_stream()
         self._caps_task = self.hass.async_create_background_task(
             self._caps_refresh_loop(), name=f"{DOMAIN}_caps"
         )
+        self._location_task = self.hass.async_create_background_task(
+            self._location_poll_loop(), name=f"{DOMAIN}_location"
+        )
         _LOGGER.debug(
             f"_caps_refresh_loop task started interval={CAPS_REFRESH_INTERVAL_S}s"
+        )
+        _LOGGER.debug(
+            f"_location_poll_loop task started interval={LOCATION_POLL_INTERVAL_S}s"
         )
         region = require_region_from_entry_data(self.entry.data)
         _LOGGER.info(
@@ -314,11 +437,14 @@ class CarlinkoCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             self._notify_listeners(vid, set(), removed_keys)
             self._async_remove_device(vid)
 
-        for vid, meta in metas.items():
+        for vid in metas:
+            # Prefer store meta (includes preserved location_*).
+            meta = self.store.get_vehicle_meta(vid)
             if vid in self._vehicles:
                 self._vehicles[vid].meta = meta
                 self._vehicles[vid].device_sn = str(meta.get("device_sn") or "")
                 self._async_refresh_device(vid)
+                self._seed_location_from_meta(vid)
             else:
                 rt = VehicleRuntime(
                     vehicle_id=vid,
@@ -336,12 +462,14 @@ class CarlinkoCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                     }
                 )
                 self._vehicles[vid] = rt
+                self._seed_location_from_meta(vid)
                 self._async_refresh_device(vid)
                 plate = meta.get("plate") or "—"
                 _LOGGER.info(f"vehicle added starting ws vehicle={vid} plate={plate}")
                 if not self._stop.is_set() and self._caps_task is not None:
                     # Already running: start WS and notify entity add for all specs.
                     self._start_ws(vid)
+                    self.hass.async_create_task(self._async_probe_new_vehicle(vid))
                     keys = self.current_spec_keys(vid)
                     rt.spec_keys = keys
                     self._notify_listeners(vid, keys, set())
@@ -350,6 +478,18 @@ class CarlinkoCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             # Fleet membership changed — platforms may rebuild wanted set.
             self._notify_listeners("", set(), set())
             self._async_cleanup_stale_devices()
+
+    async def _async_probe_new_vehicle(self, vehicle_id: str) -> None:
+        try:
+            await self._probe_location(vehicle_id)
+            self._publish_data()
+            self._maybe_notify_spec_changes(vehicle_id)
+        except AuthError as err:
+            await self._async_handle_auth_failure(err, source="location_probe")
+        except Exception:
+            _LOGGER.exception(
+                f"location probe on fleet add failed vehicle={partial_id(vehicle_id)}"
+            )
 
     def _async_refresh_device(self, vehicle_id: str) -> None:
         """Update DeviceInfo fields when vehicle cache/meta changes."""
@@ -492,6 +632,38 @@ class CarlinkoCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             except Exception:
                 _LOGGER.exception("vehicle cache refresh failed")
 
+    async def _location_poll_loop(self) -> None:
+        while not self._stop.is_set():
+            try:
+                await asyncio.wait_for(
+                    self._stop.wait(), timeout=LOCATION_POLL_INTERVAL_S
+                )
+                return
+            except asyncio.TimeoutError:
+                pass
+            for vid, rt in list(self._vehicles.items()):
+                meta = self.store.get_vehicle_meta(vid)
+                if meta.get("location_supported") is not True:
+                    continue
+                try:
+                    online = await self.api.is_online(vid)
+                    if online is False:
+                        _LOGGER.debug(
+                            f"location poll deferred offline "
+                            f"vehicle={partial_id(vid)}"
+                        )
+                        continue
+                    await self._probe_location(vid)
+                except AuthError as err:
+                    await self._async_handle_auth_failure(err, source="location_poll")
+                    _LOGGER.error(
+                        "Location poll auth failed; reauthentication required"
+                    )
+                    return
+                except Exception:
+                    _LOGGER.exception(f"location poll failed vehicle={partial_id(vid)}")
+            self._publish_data()
+
     @callback
     def _handle_frame(self, vehicle_id: str, state: dict) -> None:
         rt = self._vehicles.get(vehicle_id)
@@ -576,8 +748,12 @@ class CarlinkoCoordinator(DataUpdateCoordinator[dict[str, Any]]):
     async def async_stop(self) -> None:
         ws_count = sum(1 for rt in self._vehicles.values() if rt.ws_task)
         caps = 1 if self._caps_task else 0
+        loc = 1 if self._location_task else 0
         _LOGGER.info(f"coordinator stopping vehicles={len(self._vehicles)}")
-        _LOGGER.debug(f"async_stop cancel ws tasks count={ws_count} caps_task={caps}")
+        _LOGGER.debug(
+            f"async_stop cancel ws tasks count={ws_count} "
+            f"caps_task={caps} location_task={loc}"
+        )
         self._stop.set()
         tasks: list[asyncio.Task] = []
         for vid in list(self._vehicles):
@@ -591,6 +767,10 @@ class CarlinkoCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             self._caps_task.cancel()
             tasks.append(self._caps_task)
             self._caps_task = None
+        if self._location_task:
+            self._location_task.cancel()
+            tasks.append(self._location_task)
+            self._location_task = None
         for task in tasks:
             try:
                 await task

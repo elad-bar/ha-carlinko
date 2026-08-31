@@ -18,6 +18,10 @@ AVAILABILITY_SECONDS = 2400
 # Max wait during setup for first successful WS session.
 WS_SETUP_TIMEOUT_S = 60
 CAPS_REFRESH_INTERVAL_S = 3300
+# REST poll for /maps/deviceLocate when location is supported (WS remains push).
+LOCATION_POLL_INTERVAL_S = 900
+# Cloud: vehicle control / locate function unavailable.
+LOCATION_UNSUPPORTED_CODES = frozenset({"50049"})
 
 # Sorted by English display name (see selector.region translations).
 KNOWN_REGIONS = (
@@ -42,6 +46,7 @@ PLATFORMS = (
     "button",
     "switch",
     "select",
+    "device_tracker",
 )
 
 STORAGE_VERSION = 1
@@ -57,6 +62,14 @@ API_HOST_TMPL = "https://cqr-api-{region}.hzhjcl.com"
 WS_HOST_TMPL = "ws://wss-cqr-{region}.hzhjcl.com:4002/"
 OK_CODE = "0000"
 STALE_TOKEN_CODES = frozenset({"9997", "40001", "40003", "401", "1001", "1002"})
+# Meta keys preserved across /user/vehicle fleet sync.
+LOCATION_META_KEYS = (
+    "location_supported",
+    "location_lat",
+    "location_lng",
+    "location_address",
+    "location_updated",
+)
 DEFAULT_PORT = 8088
 
 # Static device/app fields for POST /user/login (account/password/dateTime filled at call time).
@@ -365,6 +378,7 @@ EMPTY_VEHICLE_STATE = {
         "rate_kw": 0,
     },
     "volt12_status": "",
+    "location": {"lat": None, "lng": None, "address": None},
 }
 
 # ---------------------------------------------------------------------------

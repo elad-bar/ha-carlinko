@@ -105,6 +105,12 @@ async def test_async_start_multi_vehicle(hass: HomeAssistant) -> None:
         ),
         patch.object(coordinator, "_start_ws"),
         patch.object(coordinator, "_async_wait_for_stream", new_callable=AsyncMock),
+        patch.object(
+            coordinator.api,
+            "device_locate",
+            new_callable=AsyncMock,
+            return_value={"code": "50052", "msg": "fail", "data": None},
+        ),
     ):
         await coordinator.async_start()
         await coordinator.async_stop()
@@ -114,6 +120,7 @@ async def test_async_start_multi_vehicle(hass: HomeAssistant) -> None:
     assert "veh-2" in store.get_vehicles()
     assert store.get_vehicles()["veh-1"]["plate"] == "AAA111"
     assert store.get_vehicles()["veh-2"]["plate"] == "BBB222"
+    assert store.get_vehicles()["veh-1"].get("location_supported") is True
 
 
 @pytest.mark.asyncio
@@ -138,6 +145,12 @@ async def test_vehicle_list_add_remove(hass: HomeAssistant) -> None:
         patch.object(coordinator, "_start_ws"),
         patch.object(coordinator, "_stop_ws"),
         patch.object(coordinator, "_async_wait_for_stream", new_callable=AsyncMock),
+        patch.object(
+            coordinator.api,
+            "device_locate",
+            new_callable=AsyncMock,
+            return_value={"code": "50052", "msg": "fail", "data": None},
+        ),
     ):
         await coordinator.async_start()
         assert coordinator.vehicle_ids == ["veh-1"]

@@ -352,6 +352,11 @@
           "l3": "Fort"
         }
       }
+    },
+    "device_tracker": {
+      "location": {
+        "name": "Localisation"
+      }
     }
   },
   "selector": {

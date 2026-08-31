@@ -6,20 +6,23 @@ custom_components/carlinko/{managers,models}/.
 
 Usage:
   python entrypoint.py
+  python entrypoint.py --locate   # one-shot POST /maps/deviceLocate probe
 """
 
 from __future__ import annotations
 
+import argparse
 import asyncio
 import logging
 import os
 import signal
 import socket
+import ssl
 import sys
 from typing import Any, Callable
 
 import aiohttp
-from carlinko.common.consts import USER_AGENT
+from carlinko.common.consts import OK_CODE, USER_AGENT
 from carlinko.managers.api_client import ApiClient
 from carlinko.managers.store import CarlinkoStore
 from carlinko.managers.ws_client import WsClient
@@ -41,6 +44,22 @@ load_dotenv(os.path.join(REPO, ".env"))
 
 _CAPS_REFRESH_INTERVAL_S = 3300
 _LOGGER = logging.getLogger(__name__)
+
+
+def _ssl_context() -> ssl.SSLContext:
+    """Default verify, but drop VERIFY_X509_STRICT (Py3.13+ / OpenSSL).
+
+    CarLinko API intermediates can lack Authority Key Identifier; strict mode
+    then fails handshake even though the chain is otherwise valid.
+    """
+    ctx = ssl.create_default_context()
+    if hasattr(ssl, "VERIFY_X509_STRICT"):
+        ctx.verify_flags &= ~ssl.VERIFY_X509_STRICT
+    return ctx
+
+
+def _connector() -> aiohttp.TCPConnector:
+    return aiohttp.TCPConnector(family=socket.AF_INET, ssl=_ssl_context())
 
 
 def _configure_logging() -> None:
@@ -153,6 +172,50 @@ def _register_stop_handlers(
             signal.signal(sig, lambda *_: loop.call_soon_threadsafe(stop.set))
 
 
+def _log_locate_result(result: dict[str, Any]) -> int:
+    code = str(result.get("code") or "")
+    msg = result.get("msg")
+    data = result.get("data")
+    if code != OK_CODE:
+        _LOGGER.error("deviceLocate failed code=%s msg=%s raw=%s", code, msg, result)
+        return 1
+    if not isinstance(data, dict):
+        _LOGGER.error("deviceLocate ok but data missing/invalid: %s", result)
+        return 1
+    lat, lng = data.get("lat"), data.get("lng")
+    address = data.get("address")
+    _LOGGER.info(
+        "deviceLocate ok lat=%s lng=%s address=%s",
+        lat,
+        lng,
+        address,
+    )
+    return 0
+
+
+async def async_locate() -> int:
+    """Login, refresh vehicle ids, one-shot locate, exit."""
+    email, password, region = _env_secrets()
+    store = CarlinkoStore.for_engine()
+
+    async with aiohttp.ClientSession(
+        connector=_connector(),
+        headers={"User-Agent": USER_AGENT},
+    ) as session:
+        api = ApiClient(email, password, region, store, session)
+        _LOGGER.info("logging in to CarLinko…")
+        await api.login()
+        await api.refresh_vehicle_cache(force=True)
+        api.reload_ids_from_store()
+        sn = api.device_sn
+        if not sn:
+            _LOGGER.error("no device_sn after vehicle refresh — check data/config.json")
+            return 2
+        _LOGGER.info("POST /maps/deviceLocate sn=%s…", sn)
+        result = await api.device_locate(sn)
+        return _log_locate_result(result)
+
+
 async def async_main() -> None:
     stop = asyncio.Event()
     loop = asyncio.get_running_loop()
@@ -162,9 +225,8 @@ async def async_main() -> None:
     store = CarlinkoStore.for_engine()
     vehicle_state = VehicleState()
 
-    connector = aiohttp.TCPConnector(family=socket.AF_INET)
     async with aiohttp.ClientSession(
-        connector=connector,
+        connector=_connector(),
         headers={"User-Agent": USER_AGENT},
     ) as session:
         api = ApiClient(email, password, region, store, session)
@@ -192,8 +254,21 @@ async def async_main() -> None:
                 pass
 
 
-def main() -> None:
+def _parse_args(argv: list[str] | None = None) -> argparse.Namespace:
+    p = argparse.ArgumentParser(description="CarLinko engine harness")
+    p.add_argument(
+        "--locate",
+        action="store_true",
+        help="one-shot POST /maps/deviceLocate probe (no WS stream)",
+    )
+    return p.parse_args(argv)
+
+
+def main(argv: list[str] | None = None) -> None:
     _configure_logging()
+    args = _parse_args(argv)
+    if args.locate:
+        raise SystemExit(asyncio.run(async_locate()))
     asyncio.run(async_main())
 
 

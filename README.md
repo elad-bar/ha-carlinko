@@ -92,6 +92,8 @@ After setup, configure via the integration’s **Configure** options flow:
 ## Behaviour
 
 - Push updates over the CarLinko WebSocket (`iot_class: cloud_push`).
+- Vehicle **location** uses a separate REST call (`/maps/deviceLocate`), probed at
+  setup and polled every 15 minutes when the car supports it.
 - Entities come from the HA-free catalog in
   [`models/entity_specs.py`](custom_components/carlinko/models/entity_specs.py).
 - PHEV, direct TPMS, and capability-gated controls appear when the car reports
@@ -218,31 +220,32 @@ false). Indirect “check tyres” warnings alone do not enable this group.
 CarLinko exposes the function in `vehicleControlConfig` for your VIN (`cap:…` in
 the catalog).
 
-| Name                | Entity type | Unit of measurement | Comments                                  |
-| ------------------- | ----------- | ------------------- | ----------------------------------------- |
-| Lock                | Lock        | —                   | —                                         |
-| Climate             | Climate     | —                   | —                                         |
-| Windows             | Cover       | —                   | —                                         |
-| Sunroof             | Cover       | —                   | —                                         |
-| Liftgate            | Cover       | —                   | —                                         |
-| Windows vent        | Button      | —                   | —                                         |
-| Sunroof tilt        | Button      | —                   | —                                         |
-| Find car            | Button      | —                   | —                                         |
-| Stop charging       | Button      | —                   | —                                         |
-| Engine              | Switch      | —                   | —                                         |
-| Gear                | Select      | —                   | Available options: Low, High              |
-| Quick cool          | Button      | —                   | —                                         |
-| Quick heat          | Button      | —                   | —                                         |
-| Defog               | Switch      | —                   | —                                         |
-| Air purify          | Switch      | —                   | —                                         |
-| Driver seat heat    | Select      | —                   | Available options: Off, Low, Medium, High |
-| Driver seat vent    | Select      | —                   | Available options: Off, Low, Medium, High |
-| Passenger seat heat | Select      | —                   | Available options: Off, Low, Medium, High |
-| Passenger seat vent | Select      | —                   | Available options: Off, Low, Medium, High |
-| Rear L seat heat    | Select      | —                   | Available options: Off, Low, Medium, High |
-| Rear L seat vent    | Select      | —                   | Available options: Off, Low, Medium, High |
-| Rear R seat heat    | Select      | —                   | Available options: Off, Low, Medium, High |
-| Rear R seat vent    | Select      | —                   | Available options: Off, Low, Medium, High |
+| Name                | Entity type    | Unit of measurement | Comments                                    |
+| ------------------- | -------------- | ------------------- | ------------------------------------------- |
+| Lock                | Lock           | —                   | —                                           |
+| Climate             | Climate        | —                   | —                                           |
+| Windows             | Cover          | —                   | —                                           |
+| Sunroof             | Cover          | —                   | —                                           |
+| Liftgate            | Cover          | —                   | —                                           |
+| Windows vent        | Button         | —                   | —                                           |
+| Sunroof tilt        | Button         | —                   | —                                           |
+| Find car            | Button         | —                   | —                                           |
+| Location            | Device tracker | —                   | Maps locate; created when cloud supports it |
+| Stop charging       | Button         | —                   | —                                           |
+| Engine              | Switch         | —                   | —                                           |
+| Gear                | Select         | —                   | Available options: Low, High                |
+| Quick cool          | Button         | —                   | —                                           |
+| Quick heat          | Button         | —                   | —                                           |
+| Defog               | Switch         | —                   | —                                           |
+| Air purify          | Switch         | —                   | —                                           |
+| Driver seat heat    | Select         | —                   | Available options: Off, Low, Medium, High   |
+| Driver seat vent    | Select         | —                   | Available options: Off, Low, Medium, High   |
+| Passenger seat heat | Select         | —                   | Available options: Off, Low, Medium, High   |
+| Passenger seat vent | Select         | —                   | Available options: Off, Low, Medium, High   |
+| Rear L seat heat    | Select         | —                   | Available options: Off, Low, Medium, High   |
+| Rear L seat vent    | Select         | —                   | Available options: Off, Low, Medium, High   |
+| Rear R seat heat    | Select         | —                   | Available options: Off, Low, Medium, High   |
+| Rear R seat vent    | Select         | —                   | Available options: Off, Low, Medium, High   |
 
 Catalog source and opcodes: [`entity_specs.py`](custom_components/carlinko/models/entity_specs.py),
 [`docs/control-opcodes.md`](docs/control-opcodes.md).
@@ -258,8 +261,9 @@ if you try another model.
 - API does not expose OEM brand, `sw_version` / `hw_version`, or a useful
   `configuration_url`.
 - Entities go unavailable after the availability window without a fresh frame
-  (default ~40 minutes).
-- No `device_tracker` yet (coordinates not wired).
+  (default ~40 minutes). Device tracker also requires a successful locate fix.
+- Location may stay unavailable (`50052`) while the car is offline or has no GPS
+  fix; unsupported cars (`50049`) never get a tracker entity.
 
 ## Legal & ethics
 

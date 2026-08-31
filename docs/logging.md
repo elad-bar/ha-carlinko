@@ -41,13 +41,13 @@ Between two INFO milestones in a flow, there should be enough DEBUG to trace the
 
 ## Levels
 
-| Level         | Use for                                                                                                                                                                                                                                                |
-| ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| **debug**     | Call chain, retries, cache/indexing, WS frames, `adding N entities` key lists                                                                                                                                                                          |
-| **info**      | Milestones and results: flow/option/reauth start or success, setup/reload/unload, `login ok`, `vehicle list refreshed count=N`, `CarLinko started`, `fleet change` / `capability change`, `remote action`, `remoteControl … code=`, platforms complete |
-| **warning**   | Expected failures the operator can fix or tolerate: bad credentials, vendor non-OK codes, stale token (before reauth), no vehicles, WS setup timeout, control rejected, local config validation rejected                                               |
-| **error**     | Integration cannot continue without user action: `starting reauth flow`, setup auth failed, WS/caps auth dead                                                                                                                                          |
-| **exception** | Unexpected bugs (`exc_info=True`): uncaught setup failure, listener crash, shutdown task failure, store save failure                                                                                                                                   |
+| Level         | Use for                                                                                                                                                                                                                                                                         |
+| ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **debug**     | Call chain, retries, cache/indexing, WS frames, `adding N entities` key lists                                                                                                                                                                                                   |
+| **info**      | Milestones and results: flow/option/reauth start or success, setup/reload/unload, `login ok`, `vehicle list refreshed count=N`, `CarLinko started`, `fleet change` / `capability change`, `location capability …`, `remote action`, `remoteControl … code=`, platforms complete |
+| **warning**   | Expected failures the operator can fix or tolerate: bad credentials, vendor non-OK codes, stale token (before reauth), no vehicles, WS setup timeout, control rejected, local config validation rejected                                                                        |
+| **error**     | Integration cannot continue without user action: `starting reauth flow`, setup auth failed, WS/caps auth dead                                                                                                                                                                   |
+| **exception** | Unexpected bugs (`exc_info=True`): uncaught setup failure, listener crash, shutdown task failure, store save failure                                                                                                                                                            |
 
 ## Config and options flows
 
@@ -68,17 +68,17 @@ Use `(existing entry)` on setup when `entry.runtime_data` is already set (reload
 
 ## Coordinator
 
-- **info:** `coordinator starting` / `coordinator stopping` / `coordinator stopped`, `CarLinko started`, `fleet change added=[…] removed=[…]`, `vehicle added starting ws …`, `vehicle removed stopping ws …`, `device registry removed vehicle=…`, `capability change vehicle=… added=[…] removed=[…]`
-- **debug:** store loaded, `async_start → …`, `_async_wait_for_stream satisfied`, `_caps_refresh_loop`, `async_send_control opcode=…` / `result ok`
-- **warning:** `no vehicle websocket connected within …s`, `auth failure source={setup\|ws\|caps_refresh\|control} …`, remote control stale/failed
-- **error:** `starting reauth flow entry_id=…`, `setup failed entry_id=…` (missing/invalid region), then context lines (`WebSocket auth failed …`, `Caps refresh auth failed …`)
+- **info:** `coordinator starting` / `coordinator stopping` / `coordinator stopped`, `CarLinko started`, `fleet change added=[…] removed=[…]`, `vehicle added starting ws …`, `vehicle removed stopping ws …`, `device registry removed vehicle=…`, `capability change vehicle=… added=[…] removed=[…]`, `location capability vehicle=… supported=… code=…`
+- **debug:** store loaded, `async_start → …`, `_async_wait_for_stream satisfied`, `_caps_refresh_loop`, `_location_poll_loop`, `async_send_control opcode=…` / `result ok`
+- **warning:** `no vehicle websocket connected within …s`, `auth failure source={setup\|ws\|caps_refresh\|control\|location_probe\|location_poll} …`, remote control stale/failed
+- **error:** `starting reauth flow entry_id=…`, `setup failed entry_id=…` (missing/invalid region), then context lines (`WebSocket auth failed …`, `Caps refresh auth failed …`, `Location poll auth failed …`)
 
 Fleet membership: **one INFO summary** at coordinator; per-platform entity reconcile → **debug** in `entity_setup` (not 11× INFO).
 
 ## API and WebSocket
 
-- **info:** `login ok`, `vehicle list refreshed count=N`, `remoteControl opcode=… code=…`, WS `streaming CarLinko WS …`, WS recovery `websocket login ok after token refresh`
-- **debug:** `GET /user/vehicle`, `POST /user/vehicle/remoteControl`, stale-token retry, connect attempts, push frames
+- **info:** `login ok`, `vehicle list refreshed count=N`, `remoteControl opcode=… code=…`, `deviceLocate ok code=…`, `deviceLocate unsupported code=…`, WS `streaming CarLinko WS …`, WS recovery `websocket login ok after token refresh`
+- **debug:** `GET /user/vehicle`, `POST /user/vehicle/remoteControl`, `POST /maps/deviceLocate`, `GET /user/vehicle/isOnline`, `deviceLocate code=50052 …`, stale-token retry, connect attempts, push frames
 - **warning:** `login failed`, `/user/vehicle returned no vehicles`, `remoteControl failed`, `remoteControl skipped vehicle_id/device_sn missing`, caps parse failures
 
 ## Entities

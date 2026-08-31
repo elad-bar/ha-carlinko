@@ -352,6 +352,11 @@
           "l3": "Жоғары"
         }
       }
+    },
+    "device_tracker": {
+      "location": {
+        "name": "Орналасу"
+      }
     }
   },
   "selector": {

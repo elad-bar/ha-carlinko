@@ -18,6 +18,7 @@ from ..common.consts import (
     DEFAULT_PETROL_KML,
     DEFAULT_PETROL_PRICE,
     DEFAULT_TARIFF,
+    LOCATION_META_KEYS,
     STORAGE_KEY,
     STORAGE_VERSION,
 )
@@ -240,8 +241,39 @@ class CarlinkoStore:
     def get_vehicle_meta(self, vehicle_id: str) -> dict[str, Any]:
         return dict(self.get_vehicles().get(str(vehicle_id)) or {})
 
+    def update_vehicle_location_meta(
+        self,
+        vehicle_id: str,
+        *,
+        supported: bool | None = None,
+        lat: float | None = None,
+        lng: float | None = None,
+        address: str | None = None,
+        updated: float | None = None,
+    ) -> dict[str, Any]:
+        """Merge location_* into one vehicle's persisted meta."""
+        vid = str(vehicle_id or "")
+        if not vid:
+            return {}
+        vehicles = self.get_vehicles()
+        meta = dict(vehicles.get(vid) or {"vehicle_id": vid})
+        if supported is not None:
+            meta["location_supported"] = bool(supported)
+        if lat is not None:
+            meta["location_lat"] = lat
+        if lng is not None:
+            meta["location_lng"] = lng
+        if address is not None:
+            meta["location_address"] = address
+        if updated is not None:
+            meta["location_updated"] = updated
+        vehicles[vid] = meta
+        self.set_vehicles(vehicles)
+        return dict(meta)
+
     def set_vehicles(self, vehicles: dict[str, dict[str, Any]]) -> dict[str, Any]:
         """Persist hub vehicles map and mirror first car into legacy keys."""
+        prior = self.get_vehicles()
         cleaned: dict[str, dict[str, Any]] = {}
         for vid, meta in (vehicles or {}).items():
             key = str(vid)
@@ -249,6 +281,11 @@ class CarlinkoStore:
                 continue
             m = dict(meta or {})
             m["vehicle_id"] = key
+            # Preserve location_* across fleet refreshes from /user/vehicle.
+            old = prior.get(key) or {}
+            for loc_key in LOCATION_META_KEYS:
+                if loc_key not in m and loc_key in old:
+                    m[loc_key] = old[loc_key]
             cleaned[key] = m
         self.data["vehicles"] = cleaned
         if cleaned:

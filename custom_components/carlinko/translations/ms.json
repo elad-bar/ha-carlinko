@@ -352,6 +352,11 @@
           "l3": "Tinggi"
         }
       }
+    },
+    "device_tracker": {
+      "location": {
+        "name": "Lokasi"
+      }
     }
   },
   "selector": {

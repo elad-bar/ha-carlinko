@@ -256,6 +256,11 @@
         "name": "Liftgate"
       }
     },
+    "device_tracker": {
+      "location": {
+        "name": "Location"
+      }
+    },
     "button": {
       "find": {
         "name": "Find car"

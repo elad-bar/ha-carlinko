@@ -25,8 +25,11 @@ rules:
     comment: No custom services; empty services.yaml placeholder only.
 
   appropriate-polling:
-    status: exempt
-    comment: cloud_push WebSocket integration; no polling interval.
+    status: done
+    comment: >-
+      Telemetry is cloud_push WebSocket. Location uses REST
+      POST /maps/deviceLocate at LOCATION_POLL_INTERVAL_S (15 min) only when
+      the vehicle supports maps locate; not the app's 5s map timer.
 
   discovery:
     status: exempt

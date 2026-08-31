@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.1.5] - 2026-08-31
+
+### Added
+
+- **Device tracker** (`location`) via `POST /maps/deviceLocate`: capability probed once at setup (`50049` = unsupported; `50052` = supported but no fix yet), then refreshed every 15 minutes when online; upgrades pick up the entity after reload
+
 ## [0.1.4] - 2026-08-31
 
 ### Changed

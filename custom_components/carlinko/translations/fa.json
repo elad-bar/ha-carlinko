@@ -352,6 +352,11 @@
           "l3": "بالا"
         }
       }
+    },
+    "device_tracker": {
+      "location": {
+        "name": "موقعیت"
+      }
     }
   },
   "selector": {

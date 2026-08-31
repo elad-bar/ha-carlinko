@@ -28,6 +28,7 @@ from ..common.consts import (
     CFG_BOOLS,
     DEFAULT_REGION,
     DEFAULT_SIGN_KEY,
+    LOCATION_UNSUPPORTED_CODES,
     LOGIN_BODY_DEFAULTS,
     OK_CODE,
     ROOF_BOOLS,
@@ -353,3 +354,86 @@ class ApiClient:
                 f"code={d.get('code')} msg={d.get('msg')}"
             )
         return d
+
+    async def device_locate(self, device_sn: str | None = None) -> dict[str, Any]:
+        """POST /maps/deviceLocate — vehicle GPS + optional reverse-geocoded address."""
+        self.reload_ids_from_store()
+        sn = str(device_sn or self.device_sn or "").strip()
+        if not sn:
+            _LOGGER.warning("deviceLocate skipped device_sn missing")
+            return {"code": "-1", "msg": "device_sn missing"}
+
+        async def _post(tok: str) -> dict[str, Any]:
+            ts = self.now_ms()
+            body = {"sn": sn, "showAddress": 1, "timestamp": ts}
+            headers = {
+                "timestamp": ts,
+                "signature": self.sign(body),
+                "user-agent": USER_AGENT,
+                "content-type": "application/json",
+                "language": "en",
+                "token": tok,
+            }
+            async with self.session.post(
+                self.api_base + "/maps/deviceLocate",
+                data=json.dumps(body, separators=(",", ":"), ensure_ascii=False),
+                headers=headers,
+                timeout=_HTTP_TIMEOUT,
+            ) as r:
+                return await r.json()
+
+        tok = self.token
+        if not tok:
+            tok = await self.login()
+        _LOGGER.debug("POST /maps/deviceLocate")
+        d = await _post(tok)
+        if str(d.get("code")) in STALE_TOKEN_CODES:
+            _LOGGER.debug("stale token on deviceLocate; re-login and retry")
+            d = await _post(await self.login())
+        code = str(d.get("code") or "")
+        if code in (OK_CODE, "0"):
+            _LOGGER.info(f"deviceLocate ok code={d.get('code')}")
+        elif code in LOCATION_UNSUPPORTED_CODES:
+            _LOGGER.info(
+                f"deviceLocate unsupported code={d.get('code')} msg={d.get('msg')}"
+            )
+        elif code:
+            # e.g. 50052 query failed — expected when offline / no GPS fix
+            _LOGGER.debug(f"deviceLocate code={d.get('code')} msg={d.get('msg')}")
+        return d
+
+    async def is_online(self, vehicle_id: str | None = None) -> bool | None:
+        """GET /user/vehicle/isOnline/{vehicleId}; None on error / bad payload."""
+        self.reload_ids_from_store()
+        vid = str(vehicle_id or self.vehicle_id or "").strip()
+        if not vid:
+            return None
+
+        async def _get(tok: str) -> dict[str, Any]:
+            async with self.session.get(
+                f"{self.api_base}/user/vehicle/isOnline/{vid}",
+                headers=self.headers_for({}, token=tok),
+                timeout=_HTTP_TIMEOUT,
+            ) as r:
+                return await r.json()
+
+        tok = self.token
+        if not tok:
+            tok = await self.login()
+        _LOGGER.debug("GET /user/vehicle/isOnline")
+        d = await _get(tok)
+        if str(d.get("code")) in STALE_TOKEN_CODES:
+            _LOGGER.debug("stale token on isOnline; re-login and retry")
+            d = await _get(await self.login())
+        if str(d.get("code")) != OK_CODE:
+            _LOGGER.debug(
+                f"isOnline failed vehicle={partial_id(vid)} "
+                f"code={d.get('code')} msg={d.get('msg')}"
+            )
+            return None
+        data = d.get("data")
+        if isinstance(data, bool):
+            return data
+        if data in (0, 1, "0", "1", "true", "false", "True", "False"):
+            return str(data).lower() in ("1", "true")
+        return None

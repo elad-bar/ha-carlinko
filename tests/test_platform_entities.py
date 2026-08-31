@@ -10,6 +10,7 @@ from custom_components.carlinko.binary_sensor import CarlinkoBinarySensor
 from custom_components.carlinko.button import CarlinkoButton
 from custom_components.carlinko.climate import CarlinkoClimate
 from custom_components.carlinko.cover import CarlinkoCover
+from custom_components.carlinko.device_tracker import CarlinkoDeviceTracker
 from custom_components.carlinko.lock import CarlinkoLock
 from custom_components.carlinko.models.entity_specs import ENTITY_SPECS
 from custom_components.carlinko.number import CarlinkoNumber
@@ -17,6 +18,7 @@ from custom_components.carlinko.select import CarlinkoSelect
 from custom_components.carlinko.sensor import CarlinkoSensor
 from custom_components.carlinko.switch import CarlinkoSwitch
 from homeassistant.components.climate import HVACMode
+from homeassistant.components.device_tracker import SourceType
 
 
 def _spec(key: str):
@@ -134,3 +136,14 @@ async def test_select_option() -> None:
     assert entity.current_option == "l1"
     await entity.async_select_option("off")
     coordinator.async_send_control.assert_awaited_with("741500", vehicle_id="veh-1")
+
+
+def test_device_tracker_gps() -> None:
+    coordinator = _coordinator(
+        location={"lat": 1.0, "lng": 2.0, "address": "A"},
+    )
+    entity = CarlinkoDeviceTracker(coordinator, _spec("location"), "veh-1")
+    assert entity.source_type == SourceType.GPS
+    assert entity.latitude == 1.0
+    assert entity.longitude == 2.0
+    assert entity.location_name == "A"

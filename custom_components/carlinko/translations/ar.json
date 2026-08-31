@@ -352,6 +352,11 @@
           "l3": "عالي"
         }
       }
+    },
+    "device_tracker": {
+      "location": {
+        "name": "الموقع"
+      }
     }
   },
   "selector": {

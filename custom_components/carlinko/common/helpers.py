@@ -10,6 +10,8 @@ from .consts import (
     DEFAULT_TPMS_SCALE,
     KNOWN_REGIONS,
     KPA_TO_PSI,
+    LOCATION_UNSUPPORTED_CODES,
+    OK_CODE,
     TYRE_INVALID,
     TYRE_TEMP_OFFSET,
     TYRE_TEMP_SCALE,
@@ -97,3 +99,24 @@ def seat_max(ac, flag_key, list_key):
     if not isinstance(lst, list):
         return 0
     return max((i + 1 for i, on in enumerate(lst[:3]) if on), default=0)
+
+
+def interpret_device_locate_code(code: str | None) -> bool | None:
+    """Map /maps/deviceLocate response code → location_supported.
+
+    ``True`` = feature usable (entity may be unavailable until a fix).
+    ``False`` = unsupported (do not create entity).
+    ``None`` = unknown / leave prior (transport or unexpected code).
+    """
+    c = str(code or "").strip()
+    if not c or c in ("-1",):
+        return None
+    if c in LOCATION_UNSUPPORTED_CODES:
+        return False
+    if c in (OK_CODE, "0"):
+        return True
+    # Business errors such as 50052 (query failed) still mean the maps API
+    # accepted the SN — treat as supported, no coordinates yet.
+    if c.isdigit() and len(c) == 5 and c.startswith("5"):
+        return True
+    return None

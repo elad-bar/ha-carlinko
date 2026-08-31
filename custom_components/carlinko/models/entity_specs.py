@@ -545,6 +545,13 @@ ENTITY_SPECS: tuple[EntitySpec, ...] = (
         commands={"press": "740400"},
     ),
     EntitySpec(
+        key="location",
+        platform="device_tracker",
+        name="Location",
+        when="cap:location",
+        data_path="location",
+    ),
+    EntitySpec(
         key="charge_stop",
         platform="button",
         name="Stop charging",

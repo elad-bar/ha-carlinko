@@ -352,6 +352,11 @@
           "l3": "Alto"
         }
       }
+    },
+    "device_tracker": {
+      "location": {
+        "name": "Ubicación"
+      }
     }
   },
   "selector": {
