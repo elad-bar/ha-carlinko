@@ -2,8 +2,8 @@
   "config": {
     "step": {
       "user": {
-        "title": "卡林科",
-        "description": "使用您的 CarLinko 應用程式帳戶登入。帳戶中的所有車輛都會自動新增。",
+        "title": "CarLinko",
+        "description": "使用 CarLinko 應用程式帳戶登入。帳戶中的所有車輛將自動新增。",
         "data": {
           "email": "電子郵件",
           "password": "密碼",
@@ -12,32 +12,347 @@
       },
       "reauth_confirm": {
         "title": "重新驗證 CarLinko",
-        "description": "您的 CarLinko 會話已過期或密碼已變更。輸入您目前的密碼。",
+        "description": "CarLinko 工作階段已過期或密碼已變更。請輸入目前密碼。",
         "data": {
           "password": "密碼"
         }
       }
     },
     "error": {
-      "cannot_connect": "無法聯繫 CarLinko。",
+      "cannot_connect": "無法連線 CarLinko。",
       "invalid_auth": "電子郵件或密碼無效。",
-      "no_vehicles": "在此 CarLinko 帳戶上找不到車輛。",
+      "no_vehicles": "此 CarLinko 帳戶下找不到車輛。",
       "unknown": "意外錯誤。"
     },
     "abort": {
-      "already_configured": "此 CarLinko 帳戶已配置。",
-      "reauth_successful": "重新認證成功。",
-      "no_vehicles": "在此 CarLinko 帳戶上找不到車輛。"
+      "already_configured": "此 CarLinko 帳戶已設定。",
+      "reauth_successful": "重新驗證成功。",
+      "no_vehicles": "此 CarLinko 帳戶下找不到車輛。"
     }
   },
   "options": {
     "step": {
       "init": {
-        "title": "卡林科選項",
-        "description": "調整該帳戶的區域和串流計時。",
+        "title": "CarLinko 選項",
+        "description": "調整此帳戶的 WebSocket 串流時序與實體可用性。",
         "data": {
-          "stream_backstop": "流逆止（秒）",
-          "availability_seconds": "可用視窗（秒）"
+          "stream_backstop": "串流後備間隔（秒）",
+          "availability_seconds": "可用性視窗（秒）"
+        }
+      }
+    }
+  },
+  "exceptions": {
+    "auth_failed": {
+      "message": "CarLinko 驗證失敗。請重新驗證。"
+    },
+    "cannot_connect": {
+      "message": "無法連線 CarLinko。"
+    },
+    "control_failed": {
+      "message": "遠端控制失敗：{error}"
+    }
+  },
+  "entity": {
+    "sensor": {
+      "battery": {
+        "name": "電池"
+      },
+      "range": {
+        "name": "續航里程"
+      },
+      "odometer": {
+        "name": "里程表"
+      },
+      "speed": {
+        "name": "速度"
+      },
+      "volt12": {
+        "name": "12V 電池"
+      },
+      "volt12_status": {
+        "name": "12V 狀態",
+        "state": {
+          "ok": "OK",
+          "low": "偏低",
+          "critical": "嚴重"
+        }
+      },
+      "charge_power": {
+        "name": "充電功率"
+      },
+      "consumption": {
+        "name": "能耗"
+      },
+      "charge_remaining": {
+        "name": "剩餘充電時間"
+      },
+      "charge_mode": {
+        "name": "充電模式",
+        "state": {
+          "none": "無",
+          "ac": "AC",
+          "dc": "DC"
+        }
+      },
+      "charge_state": {
+        "name": "充電狀態",
+        "state": {
+          "idle": "閒置",
+          "charging": "充電中",
+          "complete": "已完成",
+          "canceled": "已取消",
+          "hot": "過熱",
+          "stop": "停止"
+        }
+      },
+      "hv_state": {
+        "name": "HV 狀態",
+        "state": {
+          "off": "關",
+          "lv": "LV",
+          "ready": "就緒",
+          "unknown": "未知"
+        }
+      },
+      "wltc_range": {
+        "name": "標稱續航"
+      },
+      "energy_left": {
+        "name": "剩餘能量"
+      },
+      "tyre_status": {
+        "name": "輪胎狀態",
+        "state": {
+          "normal": "正常",
+          "check_tyres": "請檢查輪胎"
+        }
+      },
+      "fuel": {
+        "name": "燃油"
+      },
+      "fuel_range": {
+        "name": "燃油續航"
+      },
+      "total_range": {
+        "name": "總續航"
+      },
+      "fuel_consumption": {
+        "name": "油耗"
+      },
+      "tyre_fl": {
+        "name": "左前輪胎"
+      },
+      "tyre_fl_temp": {
+        "name": "左前輪胎溫度"
+      },
+      "tyre_fr": {
+        "name": "右前輪胎"
+      },
+      "tyre_fr_temp": {
+        "name": "右前輪胎溫度"
+      },
+      "tyre_rl": {
+        "name": "左後輪胎"
+      },
+      "tyre_rl_temp": {
+        "name": "左後輪胎溫度"
+      },
+      "tyre_rr": {
+        "name": "右後輪胎"
+      },
+      "tyre_rr_temp": {
+        "name": "右後輪胎溫度"
+      }
+    },
+    "binary_sensor": {
+      "charging": {
+        "name": "充電中"
+      },
+      "online": {
+        "name": "已連線"
+      },
+      "moving": {
+        "name": "行駛中"
+      },
+      "tyres_ok": {
+        "name": "輪胎異常"
+      },
+      "door": {
+        "name": "車門"
+      },
+      "door_driver": {
+        "name": "駕駛側車門"
+      },
+      "door_passenger": {
+        "name": "乘客側車門"
+      },
+      "door_rear_left": {
+        "name": "左後車門"
+      },
+      "door_rear_right": {
+        "name": "右後車門"
+      },
+      "seat_heat_left": {
+        "name": "左側座椅加熱"
+      },
+      "seat_heat_right": {
+        "name": "右側座椅加熱"
+      },
+      "seat_vent_left": {
+        "name": "左側座椅通風"
+      },
+      "seat_vent_right": {
+        "name": "右側座椅通風"
+      },
+      "defrost": {
+        "name": "除霜"
+      },
+      "engine_on": {
+        "name": "引擎運轉"
+      }
+    },
+    "number": {
+      "tariff": {
+        "name": "充電電價"
+      },
+      "petrol_price": {
+        "name": "汽油價格"
+      },
+      "petrol_kml": {
+        "name": "汽油經濟性"
+      }
+    },
+    "lock": {
+      "lock": {
+        "name": "鎖"
+      }
+    },
+    "climate": {
+      "climate": {
+        "name": "空調"
+      }
+    },
+    "cover": {
+      "windows": {
+        "name": "車窗"
+      },
+      "sunroof": {
+        "name": "天窗"
+      },
+      "liftgate": {
+        "name": "尾門"
+      }
+    },
+    "button": {
+      "find": {
+        "name": "尋車"
+      },
+      "charge_stop": {
+        "name": "停止充電"
+      },
+      "windows_vent": {
+        "name": "車窗透氣"
+      },
+      "sunroof_tilt": {
+        "name": "天窗翹起"
+      },
+      "quick_cool": {
+        "name": "快速降溫"
+      },
+      "quick_heat": {
+        "name": "快速升溫"
+      }
+    },
+    "switch": {
+      "engine": {
+        "name": "引擎"
+      },
+      "defrost_cmd": {
+        "name": "除霧"
+      },
+      "purify": {
+        "name": "空氣淨化"
+      }
+    },
+    "select": {
+      "gear": {
+        "name": "檔位",
+        "state": {
+          "low": "低檔",
+          "high": "高檔"
+        }
+      },
+      "seat_heat_l": {
+        "name": "主駕座椅加熱",
+        "state": {
+          "off": "關",
+          "l1": "低",
+          "l2": "中",
+          "l3": "高"
+        }
+      },
+      "seat_vent_l": {
+        "name": "主駕座椅通風",
+        "state": {
+          "off": "關",
+          "l1": "低",
+          "l2": "中",
+          "l3": "高"
+        }
+      },
+      "seat_heat_r": {
+        "name": "副駕座椅加熱",
+        "state": {
+          "off": "關",
+          "l1": "低",
+          "l2": "中",
+          "l3": "高"
+        }
+      },
+      "seat_vent_r": {
+        "name": "副駕座椅通風",
+        "state": {
+          "off": "關",
+          "l1": "低",
+          "l2": "中",
+          "l3": "高"
+        }
+      },
+      "seat_heat_lr": {
+        "name": "後排左座椅加熱",
+        "state": {
+          "off": "關",
+          "l1": "低",
+          "l2": "中",
+          "l3": "高"
+        }
+      },
+      "seat_vent_lr": {
+        "name": "後排左座椅通風",
+        "state": {
+          "off": "關",
+          "l1": "低",
+          "l2": "中",
+          "l3": "高"
+        }
+      },
+      "seat_heat_rr": {
+        "name": "後排右座椅加熱",
+        "state": {
+          "off": "關",
+          "l1": "低",
+          "l2": "中",
+          "l3": "高"
+        }
+      },
+      "seat_vent_rr": {
+        "name": "後排右座椅通風",
+        "state": {
+          "off": "關",
+          "l1": "低",
+          "l2": "中",
+          "l3": "高"
         }
       }
     }
@@ -54,321 +369,6 @@
         "sea": "東南亞",
         "uzb": "烏茲別克",
         "vn": "越南"
-      }
-    }
-  },
-  "exceptions": {
-    "auth_failed": {
-      "message": "CarLinko 認證失敗。請重新驗證。"
-    },
-    "cannot_connect": {
-      "message": "無法聯繫 CarLinko。"
-    },
-    "control_failed": {
-      "message": "遠端控制失敗：{error}"
-    }
-  },
-  "entity": {
-    "sensor": {
-      "battery": {
-        "name": "電池"
-      },
-      "range": {
-        "name": "範圍"
-      },
-      "odometer": {
-        "name": "里程表"
-      },
-      "speed": {
-        "name": "速度"
-      },
-      "volt12": {
-        "name": "12V電池"
-      },
-      "volt12_status": {
-        "name": "12V狀態",
-        "state": {
-          "ok": "OK",
-          "low": "低的",
-          "critical": "批判的"
-        }
-      },
-      "charge_power": {
-        "name": "充電功率"
-      },
-      "consumption": {
-        "name": "消耗"
-      },
-      "charge_remaining": {
-        "name": "剩餘電量"
-      },
-      "charge_mode": {
-        "name": "充電方式",
-        "state": {
-          "none": "沒有任何",
-          "ac": "AC",
-          "dc": "DC"
-        }
-      },
-      "charge_state": {
-        "name": "充電狀態",
-        "state": {
-          "idle": "閒置的",
-          "charging": "收費",
-          "complete": "完全的",
-          "canceled": "取消",
-          "hot": "熱的",
-          "stop": "停止"
-        }
-      },
-      "hv_state": {
-        "name": "高壓狀態",
-        "state": {
-          "off": "離開",
-          "lv": "LV",
-          "ready": "準備好",
-          "unknown": "未知"
-        }
-      },
-      "wltc_range": {
-        "name": "額定範圍"
-      },
-      "energy_left": {
-        "name": "剩餘能量"
-      },
-      "tyre_status": {
-        "name": "輪胎狀態",
-        "state": {
-          "normal": "普通的",
-          "check_tyres": "檢查輪胎"
-        }
-      },
-      "fuel": {
-        "name": "燃料"
-      },
-      "fuel_range": {
-        "name": "燃油範圍"
-      },
-      "total_range": {
-        "name": "總範圍"
-      },
-      "fuel_consumption": {
-        "name": "油耗"
-      },
-      "tyre_fl": {
-        "name": "左前"
-      },
-      "tyre_fl_temp": {
-        "name": "左前溫度"
-      },
-      "tyre_fr": {
-        "name": "右前"
-      },
-      "tyre_fr_temp": {
-        "name": "右前溫度"
-      },
-      "tyre_rl": {
-        "name": "左後"
-      },
-      "tyre_rl_temp": {
-        "name": "左後溫度"
-      },
-      "tyre_rr": {
-        "name": "右後"
-      },
-      "tyre_rr_temp": {
-        "name": "右後溫度"
-      }
-    },
-    "binary_sensor": {
-      "charging": {
-        "name": "收費"
-      },
-      "online": {
-        "name": "在線的"
-      },
-      "moving": {
-        "name": "移動"
-      },
-      "tyres_ok": {
-        "name": "輪胎問題"
-      },
-      "door": {
-        "name": "任意門"
-      },
-      "door_driver": {
-        "name": "駕駛側車門"
-      },
-      "door_passenger": {
-        "name": "乘客門"
-      },
-      "door_rear_left": {
-        "name": "左後門"
-      },
-      "door_rear_right": {
-        "name": "右後門"
-      },
-      "seat_heat_left": {
-        "name": "座椅加熱左側"
-      },
-      "seat_heat_right": {
-        "name": "座椅加熱右側"
-      },
-      "seat_vent_left": {
-        "name": "座椅左側出風口"
-      },
-      "seat_vent_right": {
-        "name": "座椅右側出風口"
-      },
-      "defrost": {
-        "name": "除霜"
-      },
-      "engine_on": {
-        "name": "引擎開啟"
-      }
-    },
-    "number": {
-      "tariff": {
-        "name": "收費標準"
-      },
-      "petrol_price": {
-        "name": "汽油價格"
-      },
-      "petrol_kml": {
-        "name": "汽油經濟"
-      }
-    },
-    "lock": {
-      "lock": {
-        "name": "鎖"
-      }
-    },
-    "climate": {
-      "climate": {
-        "name": "氣候"
-      }
-    },
-    "cover": {
-      "windows": {
-        "name": "視窗"
-      },
-      "sunroof": {
-        "name": "天窗"
-      },
-      "liftgate": {
-        "name": "升降門"
-      }
-    },
-    "button": {
-      "find": {
-        "name": "找車"
-      },
-      "charge_stop": {
-        "name": "停止充電"
-      },
-      "windows_vent": {
-        "name": "窗戶通風口"
-      },
-      "sunroof_tilt": {
-        "name": "天窗傾斜"
-      },
-      "quick_cool": {
-        "name": "快速冷卻"
-      },
-      "quick_heat": {
-        "name": "快速加熱"
-      }
-    },
-    "switch": {
-      "engine": {
-        "name": "引擎"
-      },
-      "defrost_cmd": {
-        "name": "除霧"
-      },
-      "purify": {
-        "name": "空氣淨化"
-      }
-    },
-    "select": {
-      "gear": {
-        "name": "齒輪",
-        "state": {
-          "low": "低的",
-          "high": "高的"
-        }
-      },
-      "seat_heat_l": {
-        "name": "駕駛座加熱",
-        "state": {
-          "off": "離開",
-          "l1": "1級",
-          "l2": "2級",
-          "l3": "3級"
-        }
-      },
-      "seat_vent_l": {
-        "name": "駕駛座通風口",
-        "state": {
-          "off": "離開",
-          "l1": "1級",
-          "l2": "2級",
-          "l3": "3級"
-        }
-      },
-      "seat_heat_r": {
-        "name": "乘客座椅加熱",
-        "state": {
-          "off": "離開",
-          "l1": "1級",
-          "l2": "2級",
-          "l3": "3級"
-        }
-      },
-      "seat_vent_r": {
-        "name": "乘客座椅通風口",
-        "state": {
-          "off": "離開",
-          "l1": "1級",
-          "l2": "2級",
-          "l3": "3級"
-        }
-      },
-      "seat_heat_lr": {
-        "name": "後L座椅加熱",
-        "state": {
-          "off": "離開",
-          "l1": "1級",
-          "l2": "2級",
-          "l3": "3級"
-        }
-      },
-      "seat_vent_lr": {
-        "name": "後L座椅出風口",
-        "state": {
-          "off": "離開",
-          "l1": "1級",
-          "l2": "2級",
-          "l3": "3級"
-        }
-      },
-      "seat_heat_rr": {
-        "name": "後R座椅加熱",
-        "state": {
-          "off": "離開",
-          "l1": "1級",
-          "l2": "2級",
-          "l3": "3級"
-        }
-      },
-      "seat_vent_rr": {
-        "name": "後R座椅通風口",
-        "state": {
-          "off": "離開",
-          "l1": "1級",
-          "l2": "2級",
-          "l3": "3級"
-        }
       }
     }
   }

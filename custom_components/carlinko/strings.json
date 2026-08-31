@@ -302,72 +302,72 @@
         "name": "Driver seat heat",
         "state": {
           "off": "Off",
-          "l1": "Level 1",
-          "l2": "Level 2",
-          "l3": "Level 3"
+          "l1": "Low",
+          "l2": "Medium",
+          "l3": "High"
         }
       },
       "seat_vent_l": {
         "name": "Driver seat vent",
         "state": {
           "off": "Off",
-          "l1": "Level 1",
-          "l2": "Level 2",
-          "l3": "Level 3"
+          "l1": "Low",
+          "l2": "Medium",
+          "l3": "High"
         }
       },
       "seat_heat_r": {
         "name": "Passenger seat heat",
         "state": {
           "off": "Off",
-          "l1": "Level 1",
-          "l2": "Level 2",
-          "l3": "Level 3"
+          "l1": "Low",
+          "l2": "Medium",
+          "l3": "High"
         }
       },
       "seat_vent_r": {
         "name": "Passenger seat vent",
         "state": {
           "off": "Off",
-          "l1": "Level 1",
-          "l2": "Level 2",
-          "l3": "Level 3"
+          "l1": "Low",
+          "l2": "Medium",
+          "l3": "High"
         }
       },
       "seat_heat_lr": {
         "name": "Rear L seat heat",
         "state": {
           "off": "Off",
-          "l1": "Level 1",
-          "l2": "Level 2",
-          "l3": "Level 3"
+          "l1": "Low",
+          "l2": "Medium",
+          "l3": "High"
         }
       },
       "seat_vent_lr": {
         "name": "Rear L seat vent",
         "state": {
           "off": "Off",
-          "l1": "Level 1",
-          "l2": "Level 2",
-          "l3": "Level 3"
+          "l1": "Low",
+          "l2": "Medium",
+          "l3": "High"
         }
       },
       "seat_heat_rr": {
         "name": "Rear R seat heat",
         "state": {
           "off": "Off",
-          "l1": "Level 1",
-          "l2": "Level 2",
-          "l3": "Level 3"
+          "l1": "Low",
+          "l2": "Medium",
+          "l3": "High"
         }
       },
       "seat_vent_rr": {
         "name": "Rear R seat vent",
         "state": {
           "off": "Off",
-          "l1": "Level 1",
-          "l2": "Level 2",
-          "l3": "Level 3"
+          "l1": "Low",
+          "l2": "Medium",
+          "l3": "High"
         }
       }
     }

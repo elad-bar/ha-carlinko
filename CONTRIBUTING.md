@@ -21,9 +21,12 @@ _confirmed vs inferred_ matter most, because wrong telemetry silently lies about
 
 UI strings are in [`custom_components/carlinko/strings.json`](custom_components/carlinko/strings.json)
 (English source) and [`custom_components/carlinko/translations/`](custom_components/carlinko/translations/)
-(one JSON file per HA locale). Non-English files were bootstrapped with machine
-translation; please open PRs to fix automotive wording, RTL phrasing, or brand
-usage (**CarLinko** stays untranslated).
+(one JSON file per HA locale). Non-English files were first filled with **machine
+translation** (see generator below). Locale JSON is being **revised with
+LLM-assisted review** (automotive wording, enum labels, consistency with English
+semantics) — treat checked-in translations as the source of truth, not a fresh
+Google Translate run. Please still open PRs for native phrasing, RTL layout
+issues, regional variants, or brand usage (**CarLinko** stays untranslated).
 
 When you add or change entities in [`entity_specs.py`](custom_components/carlinko/models/entity_specs.py):
 
@@ -43,11 +46,14 @@ pytest tests/test_translations.py
 ```
 
 The generator **does not overwrite** existing non-empty strings in a locale file, so
-contributor improvements are kept. It only machine-translates keys that are missing
-or empty. Use `--force` to re-translate everything (destructive — avoid on main).
+contributor improvements and LLM-assisted locale passes are kept. It only
+machine-translates keys that are missing or empty. Use `--force` to re-translate
+everything (destructive — **avoid on `main`** after a manual or LLM-assisted review).
 
+**Prefer editing locale JSON directly** (or a focused PR) when improving wording.
+Use the generator for **new keys** after entity changes, then spot-check output.
 Do not commit API keys. Review safety-related labels (lock, charging stop, tyres)
-after bulk generation.
+after any bulk generation; the same applies after LLM-suggested bulk edits.
 
 ## Before you start
 

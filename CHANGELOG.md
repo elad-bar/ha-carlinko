@@ -11,6 +11,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Removed the **Updated** timestamp sensor; last refresh time remains in vehicle state (`updated`, `updated_ts`) and in diagnostics export (`last_update_ts`, `live_state`) without a dedicated entity that updated every telemetry frame
 - Logging overhauled to match [docs/logging.md](docs/logging.md): config-flow and reauth failures log at **warning**; setup, reload, unload, fleet, and capability changes log **info** milestones; auth failures include **source** and **starting reauth flow** at **error**; remote control and local cost-number actions log at the entity layer. Recommended day-to-day: `custom_components.carlinko: info`; use **debug** for path tracing or **warning** for problems-only tails
 - **Reconfigure** removed from the integration menu; update credentials via **Re-authenticate** when prompted. **Region** is set only when adding the integration (not in Configure options)
+- Non-English UI copy in all **15** locale files was reviewed and rewritten (**LLM-assisted**, automotive / Home Assistant context) to replace the initial bulk machine translation; [`scripts/generate_translations.py`](scripts/generate_translations.py) still only fills **missing** keys and does not overwrite existing strings
+- Seat heat and vent select labels use **Off / Low / Medium / High** (and equivalent strings in all 15 UI locales) instead of numbered levels; automation state values remain `off`, `l1`, `l2`, `l3`
 
 ## [0.1.3] - 2026-08-28
 

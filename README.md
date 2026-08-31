@@ -129,10 +129,15 @@ These locales align with the CarLinko mobile app language set, with Simplified a
 Traditional Chinese as separate HA files (`zh-Hans` / `zh-Hant`) instead of the app’s
 single `zh` code.
 
-Initial non-English strings were machine-translated; native-speaker fixes are
-welcome — see [Contributing](CONTRIBUTING.md#translations). Re-running the
-translation generator only fills **missing** keys; it does not replace strings
-people have already improved.
+Non-English locales were first bootstrapped with machine translation
+([`scripts/generate_translations.py`](scripts/generate_translations.py), Google
+Translate). Shipped strings are being **revised with LLM-assisted review** (car
+terminology, select states, config-flow wording) across all files under
+[`translations/`](custom_components/carlinko/translations/). That pass does not
+replace native review — corrections from fluent speakers are still welcome; see
+[Contributing](CONTRIBUTING.md#translations). Re-running the generator only fills
+**missing** keys; it does not replace strings that were already improved by hand
+or in a locale review.
 
 ## Entities
 
@@ -232,14 +237,14 @@ is supported).
 | Quick heat          | Button        | —                   | —                                                 |
 | Defog               | Switch        | —                   | —                                                 |
 | Air purify          | Switch        | —                   | —                                                 |
-| Driver seat heat    | Select        | —                   | Available options: Off, Level 1, Level 2, Level 3 |
-| Driver seat vent    | Select        | —                   | Available options: Off, Level 1, Level 2, Level 3 |
-| Passenger seat heat | Select        | —                   | Available options: Off, Level 1, Level 2, Level 3 |
-| Passenger seat vent | Select        | —                   | Available options: Off, Level 1, Level 2, Level 3 |
-| Rear L seat heat    | Select        | —                   | Available options: Off, Level 1, Level 2, Level 3 |
-| Rear L seat vent    | Select        | —                   | Available options: Off, Level 1, Level 2, Level 3 |
-| Rear R seat heat    | Select        | —                   | Available options: Off, Level 1, Level 2, Level 3 |
-| Rear R seat vent    | Select        | —                   | Available options: Off, Level 1, Level 2, Level 3 |
+| Driver seat heat    | Select        | —                   | Available options: Off, Low, Medium, High |
+| Driver seat vent    | Select        | —                   | Available options: Off, Low, Medium, High |
+| Passenger seat heat | Select        | —                   | Available options: Off, Low, Medium, High |
+| Passenger seat vent | Select        | —                   | Available options: Off, Low, Medium, High |
+| Rear L seat heat    | Select        | —                   | Available options: Off, Low, Medium, High |
+| Rear L seat vent    | Select        | —                   | Available options: Off, Low, Medium, High |
+| Rear R seat heat    | Select        | —                   | Available options: Off, Low, Medium, High |
+| Rear R seat vent    | Select        | —                   | Available options: Off, Low, Medium, High |
 
 Catalog source and opcodes: [`entity_specs.py`](custom_components/carlinko/models/entity_specs.py),
 [`docs/control-opcodes.md`](docs/control-opcodes.md).

@@ -3,30 +3,30 @@
     "step": {
       "user": {
         "title": "CarLinko",
-        "description": "Faça login com sua conta do aplicativo CarLinko. Todos os veículos da conta são adicionados automaticamente.",
+        "description": "Inicie sessão com a sua conta da aplicação CarLinko. Todos os veículos da conta são adicionados automaticamente.",
         "data": {
           "email": "E-mail",
-          "password": "Senha",
+          "password": "Palavra-passe",
           "region": "Região"
         }
       },
       "reauth_confirm": {
         "title": "Reautenticar CarLinko",
-        "description": "Sua sessão CarLinko expirou ou a senha foi alterada. Digite sua senha atual.",
+        "description": "A sua sessão CarLinko expirou ou a palavra-passe foi alterada. Introduza a palavra-passe atual.",
         "data": {
-          "password": "Senha"
+          "password": "Palavra-passe"
         }
       }
     },
     "error": {
-      "cannot_connect": "Não foi possível entrar em contato com CarLinko.",
-      "invalid_auth": "E-mail ou senha inválidos.",
+      "cannot_connect": "Não foi possível ligar ao CarLinko.",
+      "invalid_auth": "E-mail ou palavra-passe inválidos.",
       "no_vehicles": "Nenhum veículo encontrado nesta conta CarLinko.",
       "unknown": "Erro inesperado."
     },
     "abort": {
       "already_configured": "Esta conta CarLinko já está configurada.",
-      "reauth_successful": "Reautenticação bem-sucedida.",
+      "reauth_successful": "Reautenticação concluída com sucesso.",
       "no_vehicles": "Nenhum veículo encontrado nesta conta CarLinko."
     }
   },
@@ -34,38 +34,23 @@
     "step": {
       "init": {
         "title": "Opções CarLinko",
-        "description": "Ajuste a região e o tempo de transmissão para esta conta.",
+        "description": "Ajuste o tempo do fluxo WebSocket e a disponibilidade das entidades desta conta.",
         "data": {
-          "stream_backstop": "Backstop de transmissão (segundos)",
+          "stream_backstop": "Limite do fluxo (segundos)",
           "availability_seconds": "Janela de disponibilidade (segundos)"
         }
       }
     }
   },
-  "selector": {
-    "region": {
-      "options": {
-        "ap": "Ásia-Pacífico",
-        "emea": "Europa, Oriente Médio e África",
-        "me": "Médio Oriente",
-        "naf": "Norte da África",
-        "saf": "África do Sul",
-        "sam": "Ámérica do Sul",
-        "sea": "Sudeste Asiático",
-        "uzb": "Uzbequistão",
-        "vn": "Vietnã"
-      }
-    }
-  },
   "exceptions": {
     "auth_failed": {
-      "message": "A autenticação CarLinko falhou. Autentique novamente."
+      "message": "A autenticação CarLinko falhou. Volte a autenticar-se."
     },
     "cannot_connect": {
-      "message": "Não foi possível entrar em contato com CarLinko."
+      "message": "Não foi possível ligar ao CarLinko."
     },
     "control_failed": {
-      "message": "Falha no controle remoto: {error}"
+      "message": "Falha no controlo remoto: {error}"
     }
   },
   "entity": {
@@ -74,10 +59,10 @@
         "name": "Bateria"
       },
       "range": {
-        "name": "Faixa"
+        "name": "Autonomia"
       },
       "odometer": {
-        "name": "Odômetro"
+        "name": "Odómetro"
       },
       "speed": {
         "name": "Velocidade"
@@ -86,15 +71,15 @@
         "name": "Bateria 12V"
       },
       "volt12_status": {
-        "name": "Estado de 12V",
+        "name": "Estado 12V",
         "state": {
           "ok": "OK",
-          "low": "Baixo",
-          "critical": "Crítico"
+          "low": "Baixa",
+          "critical": "Crítica"
         }
       },
       "charge_power": {
-        "name": "Carregar energia"
+        "name": "Potência de carga"
       },
       "consumption": {
         "name": "Consumo"
@@ -113,25 +98,25 @@
       "charge_state": {
         "name": "Estado de carga",
         "state": {
-          "idle": "Parado",
-          "charging": "Carregando",
-          "complete": "Completo",
-          "canceled": "Cancelado",
+          "idle": "Em espera",
+          "charging": "A carregar",
+          "complete": "Concluída",
+          "canceled": "Cancelada",
           "hot": "Quente",
           "stop": "Parar"
         }
       },
       "hv_state": {
-        "name": "Estado de alta tensão",
+        "name": "Estado HV",
         "state": {
           "off": "Desligado",
           "lv": "LV",
-          "ready": "Preparar",
+          "ready": "Pronto",
           "unknown": "Desconhecido"
         }
       },
       "wltc_range": {
-        "name": "Faixa nominal"
+        "name": "Autonomia homologada"
       },
       "energy_left": {
         "name": "Energia restante"
@@ -140,64 +125,64 @@
         "name": "Estado dos pneus",
         "state": {
           "normal": "Normal",
-          "check_tyres": "Verifique os pneus"
+          "check_tyres": "Verificar pneus"
         }
       },
       "fuel": {
         "name": "Combustível"
       },
       "fuel_range": {
-        "name": "Faixa de combustível"
+        "name": "Autonomia de combustível"
       },
       "total_range": {
-        "name": "Alcance total"
+        "name": "Autonomia total"
       },
       "fuel_consumption": {
         "name": "Consumo de combustível"
       },
       "tyre_fl": {
-        "name": "Frente esquerda"
+        "name": "Pneu dianteiro esquerdo"
       },
       "tyre_fl_temp": {
-        "name": "Temperatura frontal esquerda"
+        "name": "Temp. pneu dianteiro esquerdo"
       },
       "tyre_fr": {
-        "name": "Frente direita"
+        "name": "Pneu dianteiro direito"
       },
       "tyre_fr_temp": {
-        "name": "Temperatura frontal direita"
+        "name": "Temp. pneu dianteiro direito"
       },
       "tyre_rl": {
-        "name": "Traseira esquerda"
+        "name": "Pneu traseiro esquerdo"
       },
       "tyre_rl_temp": {
-        "name": "Temperatura traseira esquerda"
+        "name": "Temp. pneu traseiro esquerdo"
       },
       "tyre_rr": {
-        "name": "Traseira direita"
+        "name": "Pneu traseiro direito"
       },
       "tyre_rr_temp": {
-        "name": "Temperatura traseira direita"
+        "name": "Temp. pneu traseiro direito"
       }
     },
     "binary_sensor": {
       "charging": {
-        "name": "Carregando"
+        "name": "A carregar"
       },
       "online": {
-        "name": "On-line"
+        "name": "Conectado"
       },
       "moving": {
-        "name": "Movendo-se"
+        "name": "Em movimento"
       },
       "tyres_ok": {
-        "name": "Problema de pneu"
+        "name": "Problema nos pneus"
       },
       "door": {
-        "name": "Qualquer porta"
+        "name": "Portas"
       },
       "door_driver": {
-        "name": "Porta do motorista"
+        "name": "Porta do condutor"
       },
       "door_passenger": {
         "name": "Porta do passageiro"
@@ -209,16 +194,16 @@
         "name": "Porta traseira direita"
       },
       "seat_heat_left": {
-        "name": "Calor do assento restante"
+        "name": "Aquecimento banco esquerdo"
       },
       "seat_heat_right": {
-        "name": "Aquecimento do assento direito"
+        "name": "Aquecimento banco direito"
       },
       "seat_vent_left": {
-        "name": "Ventilação do assento esquerda"
+        "name": "Ventilação banco esquerdo"
       },
       "seat_vent_right": {
-        "name": "Ventilação do assento direita"
+        "name": "Ventilação banco direito"
       },
       "defrost": {
         "name": "Descongelar"
@@ -229,31 +214,31 @@
     },
     "number": {
       "tariff": {
-        "name": "Tarifa de cobrança"
+        "name": "Tarifa de carregamento"
       },
       "petrol_price": {
         "name": "Preço da gasolina"
       },
       "petrol_kml": {
-        "name": "Economia de gasolina"
+        "name": "Consumo de gasolina"
       }
     },
     "lock": {
       "lock": {
-        "name": "Trancar"
+        "name": "Fechadura"
       }
     },
     "climate": {
       "climate": {
-        "name": "Clima"
+        "name": "Climatização"
       }
     },
     "cover": {
       "windows": {
-        "name": "Windows"
+        "name": "Janelas"
       },
       "sunroof": {
-        "name": "Teto solar"
+        "name": "Teto de abrir"
       },
       "liftgate": {
         "name": "Porta traseira"
@@ -261,22 +246,22 @@
     },
     "button": {
       "find": {
-        "name": "Encontrar carro"
+        "name": "Localizar carro"
       },
       "charge_stop": {
-        "name": "Pare de carregar"
+        "name": "Parar carregamento"
       },
       "windows_vent": {
-        "name": "Ventilação das janelas"
+        "name": "Ventilar janelas"
       },
       "sunroof_tilt": {
-        "name": "Inclinação do teto solar"
+        "name": "Inclinar teto de abrir"
       },
       "quick_cool": {
-        "name": "Legal rápido"
+        "name": "Arrefecimento rápido"
       },
       "quick_heat": {
-        "name": "Calor rápido"
+        "name": "Aquecimento rápido"
       }
     },
     "switch": {
@@ -284,91 +269,106 @@
         "name": "Motor"
       },
       "defrost_cmd": {
-        "name": "Desembaçar"
+        "name": "Desembaciar"
       },
       "purify": {
-        "name": "Purificar o ar"
+        "name": "Purificar ar"
       }
     },
     "select": {
       "gear": {
-        "name": "Engrenagem",
+        "name": "Marcha",
         "state": {
-          "low": "Baixo",
-          "high": "Alto"
+          "low": "Baixa",
+          "high": "Alta"
         }
       },
       "seat_heat_l": {
-        "name": "Calor do banco do motorista",
+        "name": "Aquecimento banco condutor",
         "state": {
           "off": "Desligado",
-          "l1": "Nível 1",
-          "l2": "Nível 2",
-          "l3": "Nível 3"
+          "l1": "Baixo",
+          "l2": "Médio",
+          "l3": "Alto"
         }
       },
       "seat_vent_l": {
-        "name": "Ventilação do banco do motorista",
+        "name": "Ventilação banco condutor",
         "state": {
           "off": "Desligado",
-          "l1": "Nível 1",
-          "l2": "Nível 2",
-          "l3": "Nível 3"
+          "l1": "Baixo",
+          "l2": "Médio",
+          "l3": "Alto"
         }
       },
       "seat_heat_r": {
-        "name": "Calor do banco do passageiro",
+        "name": "Aquecimento banco passageiro",
         "state": {
           "off": "Desligado",
-          "l1": "Nível 1",
-          "l2": "Nível 2",
-          "l3": "Nível 3"
+          "l1": "Baixo",
+          "l2": "Médio",
+          "l3": "Alto"
         }
       },
       "seat_vent_r": {
-        "name": "Ventilação do banco do passageiro",
+        "name": "Ventilação banco passageiro",
         "state": {
           "off": "Desligado",
-          "l1": "Nível 1",
-          "l2": "Nível 2",
-          "l3": "Nível 3"
+          "l1": "Baixo",
+          "l2": "Médio",
+          "l3": "Alto"
         }
       },
       "seat_heat_lr": {
-        "name": "Aquecimento do banco traseiro L",
+        "name": "Aquecimento banco traseiro E",
         "state": {
           "off": "Desligado",
-          "l1": "Nível 1",
-          "l2": "Nível 2",
-          "l3": "Nível 3"
+          "l1": "Baixo",
+          "l2": "Médio",
+          "l3": "Alto"
         }
       },
       "seat_vent_lr": {
-        "name": "Ventilação do banco traseiro L",
+        "name": "Ventilação banco traseiro E",
         "state": {
           "off": "Desligado",
-          "l1": "Nível 1",
-          "l2": "Nível 2",
-          "l3": "Nível 3"
+          "l1": "Baixo",
+          "l2": "Médio",
+          "l3": "Alto"
         }
       },
       "seat_heat_rr": {
-        "name": "Aquecimento do banco traseiro R",
+        "name": "Aquecimento banco traseiro D",
         "state": {
           "off": "Desligado",
-          "l1": "Nível 1",
-          "l2": "Nível 2",
-          "l3": "Nível 3"
+          "l1": "Baixo",
+          "l2": "Médio",
+          "l3": "Alto"
         }
       },
       "seat_vent_rr": {
-        "name": "Ventilação do banco traseiro R",
+        "name": "Ventilação banco traseiro D",
         "state": {
           "off": "Desligado",
-          "l1": "Nível 1",
-          "l2": "Nível 2",
-          "l3": "Nível 3"
+          "l1": "Baixo",
+          "l2": "Médio",
+          "l3": "Alto"
         }
+      }
+    }
+  },
+  "selector": {
+    "region": {
+      "options": {
+        "ap": "Ásia-Pacífico",
+        "emea": "Europa, Oriente Médio e África",
+        "me": "Médio Oriente",
+        "naf": "Norte da África",
+        "saf": "África do Sul",
+        "sam": "Ámérica do Sul",
+        "sea": "Sudeste Asiático",
+        "uzb": "Uzbequistão",
+        "vn": "Vietnã"
       }
     }
   }

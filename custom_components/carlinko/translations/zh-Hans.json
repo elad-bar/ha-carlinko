@@ -2,8 +2,8 @@
   "config": {
     "step": {
       "user": {
-        "title": "卡林科",
-        "description": "使用您的 CarLinko 应用帐户登录。帐户中的所有车辆都会自动添加。",
+        "title": "CarLinko",
+        "description": "使用 CarLinko 应用账户登录。账户中的所有车辆将自动添加。",
         "data": {
           "email": "电子邮件",
           "password": "密码",
@@ -12,32 +12,347 @@
       },
       "reauth_confirm": {
         "title": "重新验证 CarLinko",
-        "description": "您的 CarLinko 会话已过期或密码已更改。输入您当前的密码。",
+        "description": "CarLinko 会话已过期或密码已更改。请输入当前密码。",
         "data": {
           "password": "密码"
         }
       }
     },
     "error": {
-      "cannot_connect": "无法联系 CarLinko。",
+      "cannot_connect": "无法连接 CarLinko。",
       "invalid_auth": "电子邮件或密码无效。",
-      "no_vehicles": "在此 CarLinko 帐户上找不到车辆。",
+      "no_vehicles": "此 CarLinko 账户下未找到车辆。",
       "unknown": "意外错误。"
     },
     "abort": {
-      "already_configured": "此 CarLinko 帐户已配置。",
-      "reauth_successful": "重新认证成功。",
-      "no_vehicles": "在此 CarLinko 帐户上找不到车辆。"
+      "already_configured": "此 CarLinko 账户已配置。",
+      "reauth_successful": "重新验证成功。",
+      "no_vehicles": "此 CarLinko 账户下未找到车辆。"
     }
   },
   "options": {
     "step": {
       "init": {
-        "title": "卡林科选项",
-        "description": "调整该帐户的区域和流计时。",
+        "title": "CarLinko 选项",
+        "description": "调整此账户的 WebSocket 流时序与实体可用性。",
         "data": {
-          "stream_backstop": "流逆止（秒）",
-          "availability_seconds": "可用窗口（秒）"
+          "stream_backstop": "流后备间隔（秒）",
+          "availability_seconds": "可用性窗口（秒）"
+        }
+      }
+    }
+  },
+  "exceptions": {
+    "auth_failed": {
+      "message": "CarLinko 验证失败。请重新验证。"
+    },
+    "cannot_connect": {
+      "message": "无法连接 CarLinko。"
+    },
+    "control_failed": {
+      "message": "远程控制失败：{error}"
+    }
+  },
+  "entity": {
+    "sensor": {
+      "battery": {
+        "name": "电池"
+      },
+      "range": {
+        "name": "续航里程"
+      },
+      "odometer": {
+        "name": "里程表"
+      },
+      "speed": {
+        "name": "速度"
+      },
+      "volt12": {
+        "name": "12V 电池"
+      },
+      "volt12_status": {
+        "name": "12V 状态",
+        "state": {
+          "ok": "OK",
+          "low": "偏低",
+          "critical": "严重"
+        }
+      },
+      "charge_power": {
+        "name": "充电功率"
+      },
+      "consumption": {
+        "name": "能耗"
+      },
+      "charge_remaining": {
+        "name": "剩余充电时间"
+      },
+      "charge_mode": {
+        "name": "充电模式",
+        "state": {
+          "none": "无",
+          "ac": "AC",
+          "dc": "DC"
+        }
+      },
+      "charge_state": {
+        "name": "充电状态",
+        "state": {
+          "idle": "空闲",
+          "charging": "充电中",
+          "complete": "已完成",
+          "canceled": "已取消",
+          "hot": "过热",
+          "stop": "停止"
+        }
+      },
+      "hv_state": {
+        "name": "HV 状态",
+        "state": {
+          "off": "关",
+          "lv": "LV",
+          "ready": "就绪",
+          "unknown": "未知"
+        }
+      },
+      "wltc_range": {
+        "name": "标称续航"
+      },
+      "energy_left": {
+        "name": "剩余能量"
+      },
+      "tyre_status": {
+        "name": "轮胎状态",
+        "state": {
+          "normal": "正常",
+          "check_tyres": "请检查轮胎"
+        }
+      },
+      "fuel": {
+        "name": "燃油"
+      },
+      "fuel_range": {
+        "name": "燃油续航"
+      },
+      "total_range": {
+        "name": "总续航"
+      },
+      "fuel_consumption": {
+        "name": "油耗"
+      },
+      "tyre_fl": {
+        "name": "左前轮胎"
+      },
+      "tyre_fl_temp": {
+        "name": "左前轮胎温度"
+      },
+      "tyre_fr": {
+        "name": "右前轮胎"
+      },
+      "tyre_fr_temp": {
+        "name": "右前轮胎温度"
+      },
+      "tyre_rl": {
+        "name": "左后轮胎"
+      },
+      "tyre_rl_temp": {
+        "name": "左后轮胎温度"
+      },
+      "tyre_rr": {
+        "name": "右后轮胎"
+      },
+      "tyre_rr_temp": {
+        "name": "右后轮胎温度"
+      }
+    },
+    "binary_sensor": {
+      "charging": {
+        "name": "充电中"
+      },
+      "online": {
+        "name": "已连接"
+      },
+      "moving": {
+        "name": "行驶中"
+      },
+      "tyres_ok": {
+        "name": "轮胎异常"
+      },
+      "door": {
+        "name": "车门"
+      },
+      "door_driver": {
+        "name": "驾驶侧车门"
+      },
+      "door_passenger": {
+        "name": "乘客侧车门"
+      },
+      "door_rear_left": {
+        "name": "左后车门"
+      },
+      "door_rear_right": {
+        "name": "右后车门"
+      },
+      "seat_heat_left": {
+        "name": "左侧座椅加热"
+      },
+      "seat_heat_right": {
+        "name": "右侧座椅加热"
+      },
+      "seat_vent_left": {
+        "name": "左侧座椅通风"
+      },
+      "seat_vent_right": {
+        "name": "右侧座椅通风"
+      },
+      "defrost": {
+        "name": "除霜"
+      },
+      "engine_on": {
+        "name": "发动机运行"
+      }
+    },
+    "number": {
+      "tariff": {
+        "name": "充电电价"
+      },
+      "petrol_price": {
+        "name": "汽油价格"
+      },
+      "petrol_kml": {
+        "name": "汽油经济性"
+      }
+    },
+    "lock": {
+      "lock": {
+        "name": "锁"
+      }
+    },
+    "climate": {
+      "climate": {
+        "name": "空调"
+      }
+    },
+    "cover": {
+      "windows": {
+        "name": "车窗"
+      },
+      "sunroof": {
+        "name": "天窗"
+      },
+      "liftgate": {
+        "name": "尾门"
+      }
+    },
+    "button": {
+      "find": {
+        "name": "寻车"
+      },
+      "charge_stop": {
+        "name": "停止充电"
+      },
+      "windows_vent": {
+        "name": "车窗透气"
+      },
+      "sunroof_tilt": {
+        "name": "天窗翘起"
+      },
+      "quick_cool": {
+        "name": "快速降温"
+      },
+      "quick_heat": {
+        "name": "快速升温"
+      }
+    },
+    "switch": {
+      "engine": {
+        "name": "发动机"
+      },
+      "defrost_cmd": {
+        "name": "除雾"
+      },
+      "purify": {
+        "name": "空气净化"
+      }
+    },
+    "select": {
+      "gear": {
+        "name": "挡位",
+        "state": {
+          "low": "低挡",
+          "high": "高挡"
+        }
+      },
+      "seat_heat_l": {
+        "name": "主驾座椅加热",
+        "state": {
+          "off": "关",
+          "l1": "低",
+          "l2": "中",
+          "l3": "高"
+        }
+      },
+      "seat_vent_l": {
+        "name": "主驾座椅通风",
+        "state": {
+          "off": "关",
+          "l1": "低",
+          "l2": "中",
+          "l3": "高"
+        }
+      },
+      "seat_heat_r": {
+        "name": "副驾座椅加热",
+        "state": {
+          "off": "关",
+          "l1": "低",
+          "l2": "中",
+          "l3": "高"
+        }
+      },
+      "seat_vent_r": {
+        "name": "副驾座椅通风",
+        "state": {
+          "off": "关",
+          "l1": "低",
+          "l2": "中",
+          "l3": "高"
+        }
+      },
+      "seat_heat_lr": {
+        "name": "后排左座椅加热",
+        "state": {
+          "off": "关",
+          "l1": "低",
+          "l2": "中",
+          "l3": "高"
+        }
+      },
+      "seat_vent_lr": {
+        "name": "后排左座椅通风",
+        "state": {
+          "off": "关",
+          "l1": "低",
+          "l2": "中",
+          "l3": "高"
+        }
+      },
+      "seat_heat_rr": {
+        "name": "后排右座椅加热",
+        "state": {
+          "off": "关",
+          "l1": "低",
+          "l2": "中",
+          "l3": "高"
+        }
+      },
+      "seat_vent_rr": {
+        "name": "后排右座椅通风",
+        "state": {
+          "off": "关",
+          "l1": "低",
+          "l2": "中",
+          "l3": "高"
         }
       }
     }
@@ -54,321 +369,6 @@
         "sea": "东南亚",
         "uzb": "乌兹别克斯坦",
         "vn": "越南"
-      }
-    }
-  },
-  "exceptions": {
-    "auth_failed": {
-      "message": "CarLinko 认证失败。请重新验证。"
-    },
-    "cannot_connect": {
-      "message": "无法联系 CarLinko。"
-    },
-    "control_failed": {
-      "message": "远程控制失败：{error}"
-    }
-  },
-  "entity": {
-    "sensor": {
-      "battery": {
-        "name": "电池"
-      },
-      "range": {
-        "name": "范围"
-      },
-      "odometer": {
-        "name": "里程表"
-      },
-      "speed": {
-        "name": "速度"
-      },
-      "volt12": {
-        "name": "12V电池"
-      },
-      "volt12_status": {
-        "name": "12V状态",
-        "state": {
-          "ok": "OK",
-          "low": "低的",
-          "critical": "批判的"
-        }
-      },
-      "charge_power": {
-        "name": "充电功率"
-      },
-      "consumption": {
-        "name": "消耗"
-      },
-      "charge_remaining": {
-        "name": "剩余电量"
-      },
-      "charge_mode": {
-        "name": "充电方式",
-        "state": {
-          "none": "没有任何",
-          "ac": "AC",
-          "dc": "DC"
-        }
-      },
-      "charge_state": {
-        "name": "充电状态",
-        "state": {
-          "idle": "闲置的",
-          "charging": "收费",
-          "complete": "完全的",
-          "canceled": "取消",
-          "hot": "热的",
-          "stop": "停止"
-        }
-      },
-      "hv_state": {
-        "name": "高压状态",
-        "state": {
-          "off": "离开",
-          "lv": "LV",
-          "ready": "准备好",
-          "unknown": "未知"
-        }
-      },
-      "wltc_range": {
-        "name": "额定范围"
-      },
-      "energy_left": {
-        "name": "剩余能量"
-      },
-      "tyre_status": {
-        "name": "轮胎状态",
-        "state": {
-          "normal": "普通的",
-          "check_tyres": "检查轮胎"
-        }
-      },
-      "fuel": {
-        "name": "燃料"
-      },
-      "fuel_range": {
-        "name": "燃油范围"
-      },
-      "total_range": {
-        "name": "总范围"
-      },
-      "fuel_consumption": {
-        "name": "油耗"
-      },
-      "tyre_fl": {
-        "name": "左前"
-      },
-      "tyre_fl_temp": {
-        "name": "左前温度"
-      },
-      "tyre_fr": {
-        "name": "右前"
-      },
-      "tyre_fr_temp": {
-        "name": "右前温度"
-      },
-      "tyre_rl": {
-        "name": "左后"
-      },
-      "tyre_rl_temp": {
-        "name": "左后温度"
-      },
-      "tyre_rr": {
-        "name": "右后"
-      },
-      "tyre_rr_temp": {
-        "name": "右后温度"
-      }
-    },
-    "binary_sensor": {
-      "charging": {
-        "name": "收费"
-      },
-      "online": {
-        "name": "在线的"
-      },
-      "moving": {
-        "name": "移动"
-      },
-      "tyres_ok": {
-        "name": "轮胎问题"
-      },
-      "door": {
-        "name": "任意门"
-      },
-      "door_driver": {
-        "name": "驾驶员侧车门"
-      },
-      "door_passenger": {
-        "name": "乘客门"
-      },
-      "door_rear_left": {
-        "name": "左后门"
-      },
-      "door_rear_right": {
-        "name": "右后门"
-      },
-      "seat_heat_left": {
-        "name": "座椅加热左侧"
-      },
-      "seat_heat_right": {
-        "name": "座椅加热右侧"
-      },
-      "seat_vent_left": {
-        "name": "座椅左侧出风口"
-      },
-      "seat_vent_right": {
-        "name": "座椅右侧出风口"
-      },
-      "defrost": {
-        "name": "除霜"
-      },
-      "engine_on": {
-        "name": "发动机开启"
-      }
-    },
-    "number": {
-      "tariff": {
-        "name": "收费标准"
-      },
-      "petrol_price": {
-        "name": "汽油价格"
-      },
-      "petrol_kml": {
-        "name": "汽油经济"
-      }
-    },
-    "lock": {
-      "lock": {
-        "name": "锁"
-      }
-    },
-    "climate": {
-      "climate": {
-        "name": "气候"
-      }
-    },
-    "cover": {
-      "windows": {
-        "name": "视窗"
-      },
-      "sunroof": {
-        "name": "天窗"
-      },
-      "liftgate": {
-        "name": "升降门"
-      }
-    },
-    "button": {
-      "find": {
-        "name": "找车"
-      },
-      "charge_stop": {
-        "name": "停止充电"
-      },
-      "windows_vent": {
-        "name": "窗户通风口"
-      },
-      "sunroof_tilt": {
-        "name": "天窗倾斜"
-      },
-      "quick_cool": {
-        "name": "快速冷却"
-      },
-      "quick_heat": {
-        "name": "快速加热"
-      }
-    },
-    "switch": {
-      "engine": {
-        "name": "引擎"
-      },
-      "defrost_cmd": {
-        "name": "除雾"
-      },
-      "purify": {
-        "name": "空气净化"
-      }
-    },
-    "select": {
-      "gear": {
-        "name": "齿轮",
-        "state": {
-          "low": "低的",
-          "high": "高的"
-        }
-      },
-      "seat_heat_l": {
-        "name": "驾驶员座椅加热",
-        "state": {
-          "off": "离开",
-          "l1": "1级",
-          "l2": "2级",
-          "l3": "3级"
-        }
-      },
-      "seat_vent_l": {
-        "name": "驾驶员座椅通风口",
-        "state": {
-          "off": "离开",
-          "l1": "1级",
-          "l2": "2级",
-          "l3": "3级"
-        }
-      },
-      "seat_heat_r": {
-        "name": "乘客座椅加热",
-        "state": {
-          "off": "离开",
-          "l1": "1级",
-          "l2": "2级",
-          "l3": "3级"
-        }
-      },
-      "seat_vent_r": {
-        "name": "乘客座椅通风口",
-        "state": {
-          "off": "离开",
-          "l1": "1级",
-          "l2": "2级",
-          "l3": "3级"
-        }
-      },
-      "seat_heat_lr": {
-        "name": "后L座椅加热",
-        "state": {
-          "off": "离开",
-          "l1": "1级",
-          "l2": "2级",
-          "l3": "3级"
-        }
-      },
-      "seat_vent_lr": {
-        "name": "后L座椅出风口",
-        "state": {
-          "off": "离开",
-          "l1": "1级",
-          "l2": "2级",
-          "l3": "3级"
-        }
-      },
-      "seat_heat_rr": {
-        "name": "后R座椅加热",
-        "state": {
-          "off": "离开",
-          "l1": "1级",
-          "l2": "2级",
-          "l3": "3级"
-        }
-      },
-      "seat_vent_rr": {
-        "name": "后R座椅通风口",
-        "state": {
-          "off": "离开",
-          "l1": "1级",
-          "l2": "2级",
-          "l3": "3级"
-        }
       }
     }
   }

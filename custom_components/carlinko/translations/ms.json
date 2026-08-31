@@ -3,7 +3,7 @@
     "step": {
       "user": {
         "title": "CarLinko",
-        "description": "Log masuk dengan akaun apl CarLinko anda. Semua kenderaan dalam akaun ditambah secara automatik.",
+        "description": "Log masuk dengan akaun aplikasi CarLinko anda. Semua kenderaan dalam akaun ditambah secara automatik.",
         "data": {
           "email": "E-mel",
           "password": "Kata laluan",
@@ -11,33 +11,348 @@
         }
       },
       "reauth_confirm": {
-        "title": "Sahkan semula CarLinko",
-        "description": "Sesi CarLinko anda telah tamat tempoh atau kata laluan ditukar. Masukkan kata laluan semasa anda.",
+        "title": "Pengesahan semula CarLinko",
+        "description": "Sesi CarLinko anda tamat tempoh atau kata laluan ditukar. Masukkan kata laluan semasa.",
         "data": {
           "password": "Kata laluan"
         }
       }
     },
     "error": {
-      "cannot_connect": "Tidak dapat menghubungi CarLinko .",
+      "cannot_connect": "Tidak dapat bersambung ke CarLinko.",
       "invalid_auth": "E-mel atau kata laluan tidak sah.",
-      "no_vehicles": "Tiada kenderaan ditemui pada akaun CarLinko ini.",
-      "unknown": "Ralat yang tidak dijangka."
+      "no_vehicles": "Tiada kenderaan pada akaun CarLinko ini.",
+      "unknown": "Ralat tidak dijangka."
     },
     "abort": {
-      "already_configured": "Akaun CarLinko ini telah dikonfigurasikan.",
+      "already_configured": "Akaun CarLinko ini sudah dikonfigurasi.",
       "reauth_successful": "Pengesahan semula berjaya.",
-      "no_vehicles": "Tiada kenderaan ditemui pada akaun CarLinko ini."
+      "no_vehicles": "Tiada kenderaan pada akaun CarLinko ini."
     }
   },
   "options": {
     "step": {
       "init": {
         "title": "Pilihan CarLinko",
-        "description": "Tala kawasan dan masa strim untuk akaun ini.",
+        "description": "Laraskan masa strim WebSocket dan ketersediaan entiti untuk akaun ini.",
         "data": {
-          "stream_backstop": "Strim hentian belakang (saat)",
+          "stream_backstop": "Had masa strim (saat)",
           "availability_seconds": "Tetingkap ketersediaan (saat)"
+        }
+      }
+    }
+  },
+  "exceptions": {
+    "auth_failed": {
+      "message": "Pengesahan CarLinko gagal. Sila sahkan semula."
+    },
+    "cannot_connect": {
+      "message": "Tidak dapat bersambung ke CarLinko."
+    },
+    "control_failed": {
+      "message": "Kawalan jauh gagal: {error}"
+    }
+  },
+  "entity": {
+    "sensor": {
+      "battery": {
+        "name": "Bateri"
+      },
+      "range": {
+        "name": "Jarak pemanduan"
+      },
+      "odometer": {
+        "name": "Odometer"
+      },
+      "speed": {
+        "name": "Kelajuan"
+      },
+      "volt12": {
+        "name": "Bateri 12V"
+      },
+      "volt12_status": {
+        "name": "Status 12V",
+        "state": {
+          "ok": "OK",
+          "low": "Rendah",
+          "critical": "Kritikal"
+        }
+      },
+      "charge_power": {
+        "name": "Kuasa pengecasan"
+      },
+      "consumption": {
+        "name": "Penggunaan"
+      },
+      "charge_remaining": {
+        "name": "Masa pengecasan yang tinggal"
+      },
+      "charge_mode": {
+        "name": "Mod pengecasan",
+        "state": {
+          "none": "Tiada",
+          "ac": "AC",
+          "dc": "DC"
+        }
+      },
+      "charge_state": {
+        "name": "Keadaan pengecasan",
+        "state": {
+          "idle": "Rehat",
+          "charging": "Mengecas",
+          "complete": "Selesai",
+          "canceled": "Dibatalkan",
+          "hot": "Panas",
+          "stop": "Berhenti"
+        }
+      },
+      "hv_state": {
+        "name": "Keadaan HV",
+        "state": {
+          "off": "Mati",
+          "lv": "LV",
+          "ready": "Sedia",
+          "unknown": "Tidak diketahui"
+        }
+      },
+      "wltc_range": {
+        "name": "Jarak pemanduan dinilai"
+      },
+      "energy_left": {
+        "name": "Tenaga yang tinggal"
+      },
+      "tyre_status": {
+        "name": "Status tayar",
+        "state": {
+          "normal": "Normal",
+          "check_tyres": "Periksa tayar"
+        }
+      },
+      "fuel": {
+        "name": "Bahan api"
+      },
+      "fuel_range": {
+        "name": "Jarak pemanduan bahan api"
+      },
+      "total_range": {
+        "name": "Jumlah jarak pemanduan"
+      },
+      "fuel_consumption": {
+        "name": "Penggunaan bahan api"
+      },
+      "tyre_fl": {
+        "name": "Tayar depan kiri"
+      },
+      "tyre_fl_temp": {
+        "name": "Suhu tayar depan kiri"
+      },
+      "tyre_fr": {
+        "name": "Tayar depan kanan"
+      },
+      "tyre_fr_temp": {
+        "name": "Suhu tayar depan kanan"
+      },
+      "tyre_rl": {
+        "name": "Tayar belakang kiri"
+      },
+      "tyre_rl_temp": {
+        "name": "Suhu tayar belakang kiri"
+      },
+      "tyre_rr": {
+        "name": "Tayar belakang kanan"
+      },
+      "tyre_rr_temp": {
+        "name": "Suhu tayar belakang kanan"
+      }
+    },
+    "binary_sensor": {
+      "charging": {
+        "name": "Mengecas"
+      },
+      "online": {
+        "name": "Bersambung"
+      },
+      "moving": {
+        "name": "Dalam pergerakan"
+      },
+      "tyres_ok": {
+        "name": "Masalah tayar"
+      },
+      "door": {
+        "name": "Pintu-pintu"
+      },
+      "door_driver": {
+        "name": "Pintu pemandu"
+      },
+      "door_passenger": {
+        "name": "Pintu penumpang"
+      },
+      "door_rear_left": {
+        "name": "Pintu belakang kiri"
+      },
+      "door_rear_right": {
+        "name": "Pintu belakang kanan"
+      },
+      "seat_heat_left": {
+        "name": "Pemanas tempat duduk kiri"
+      },
+      "seat_heat_right": {
+        "name": "Pemanas tempat duduk kanan"
+      },
+      "seat_vent_left": {
+        "name": "Pengudaraan tempat duduk kiri"
+      },
+      "seat_vent_right": {
+        "name": "Pengudaraan tempat duduk kanan"
+      },
+      "defrost": {
+        "name": "Nyahbeku"
+      },
+      "engine_on": {
+        "name": "Enjin hidup"
+      }
+    },
+    "number": {
+      "tariff": {
+        "name": "Tarif pengecasan"
+      },
+      "petrol_price": {
+        "name": "Harga petrol"
+      },
+      "petrol_kml": {
+        "name": "Ekonomi petrol"
+      }
+    },
+    "lock": {
+      "lock": {
+        "name": "Kunci"
+      }
+    },
+    "climate": {
+      "climate": {
+        "name": "Penghawa dingin"
+      }
+    },
+    "cover": {
+      "windows": {
+        "name": "Tingkap"
+      },
+      "sunroof": {
+        "name": "Sunroof"
+      },
+      "liftgate": {
+        "name": "Pintu belakang"
+      }
+    },
+    "button": {
+      "find": {
+        "name": "Cari kereta"
+      },
+      "charge_stop": {
+        "name": "Hentikan pengecasan"
+      },
+      "windows_vent": {
+        "name": "Kipas tingkap"
+      },
+      "sunroof_tilt": {
+        "name": "Condongkan sunroof"
+      },
+      "quick_cool": {
+        "name": "Penyejukan pantas"
+      },
+      "quick_heat": {
+        "name": "Pemanasan pantas"
+      }
+    },
+    "switch": {
+      "engine": {
+        "name": "Enjin"
+      },
+      "defrost_cmd": {
+        "name": "Nyahkabus"
+      },
+      "purify": {
+        "name": "Penulen udara"
+      }
+    },
+    "select": {
+      "gear": {
+        "name": "Gear",
+        "state": {
+          "low": "Rendah",
+          "high": "Tinggi"
+        }
+      },
+      "seat_heat_l": {
+        "name": "Pemanas tempat duduk pemandu",
+        "state": {
+          "off": "Mati",
+          "l1": "Rendah",
+          "l2": "Sederhana",
+          "l3": "Tinggi"
+        }
+      },
+      "seat_vent_l": {
+        "name": "Pengudaraan tempat duduk pemandu",
+        "state": {
+          "off": "Mati",
+          "l1": "Rendah",
+          "l2": "Sederhana",
+          "l3": "Tinggi"
+        }
+      },
+      "seat_heat_r": {
+        "name": "Pemanas tempat duduk penumpang",
+        "state": {
+          "off": "Mati",
+          "l1": "Rendah",
+          "l2": "Sederhana",
+          "l3": "Tinggi"
+        }
+      },
+      "seat_vent_r": {
+        "name": "Pengudaraan tempat duduk penumpang",
+        "state": {
+          "off": "Mati",
+          "l1": "Rendah",
+          "l2": "Sederhana",
+          "l3": "Tinggi"
+        }
+      },
+      "seat_heat_lr": {
+        "name": "Pemanas tempat duduk belakang kiri",
+        "state": {
+          "off": "Mati",
+          "l1": "Rendah",
+          "l2": "Sederhana",
+          "l3": "Tinggi"
+        }
+      },
+      "seat_vent_lr": {
+        "name": "Pengudaraan tempat duduk belakang kiri",
+        "state": {
+          "off": "Mati",
+          "l1": "Rendah",
+          "l2": "Sederhana",
+          "l3": "Tinggi"
+        }
+      },
+      "seat_heat_rr": {
+        "name": "Pemanas tempat duduk belakang kanan",
+        "state": {
+          "off": "Mati",
+          "l1": "Rendah",
+          "l2": "Sederhana",
+          "l3": "Tinggi"
+        }
+      },
+      "seat_vent_rr": {
+        "name": "Pengudaraan tempat duduk belakang kanan",
+        "state": {
+          "off": "Mati",
+          "l1": "Rendah",
+          "l2": "Sederhana",
+          "l3": "Tinggi"
         }
       }
     }
@@ -54,321 +369,6 @@
         "sea": "Asia Tenggara",
         "uzb": "Uzbekistan",
         "vn": "Vietnam"
-      }
-    }
-  },
-  "exceptions": {
-    "auth_failed": {
-      "message": "Pengesahan CarLinko gagal. Sila sahkan semula."
-    },
-    "cannot_connect": {
-      "message": "Tidak dapat menghubungi CarLinko ."
-    },
-    "control_failed": {
-      "message": "Kawalan jauh gagal: {error}"
-    }
-  },
-  "entity": {
-    "sensor": {
-      "battery": {
-        "name": "Bateri"
-      },
-      "range": {
-        "name": "Julat"
-      },
-      "odometer": {
-        "name": "Odometer"
-      },
-      "speed": {
-        "name": "Kelajuan"
-      },
-      "volt12": {
-        "name": "Bateri 12V"
-      },
-      "volt12_status": {
-        "name": "Status 12V",
-        "state": {
-          "ok": "OK",
-          "low": "rendah",
-          "critical": "kritikal"
-        }
-      },
-      "charge_power": {
-        "name": "Mengecas Kuasa"
-      },
-      "consumption": {
-        "name": "Penggunaan"
-      },
-      "charge_remaining": {
-        "name": "Caj yang tinggal"
-      },
-      "charge_mode": {
-        "name": "Mod pengecasan",
-        "state": {
-          "none": "tiada",
-          "ac": "AC",
-          "dc": "DC"
-        }
-      },
-      "charge_state": {
-        "name": "Keadaan caj",
-        "state": {
-          "idle": "terbiar",
-          "charging": "Mengecas",
-          "complete": "lengkap",
-          "canceled": "Dibatalkan",
-          "hot": "panas",
-          "stop": "Berhenti"
-        }
-      },
-      "hv_state": {
-        "name": "keadaan HV",
-        "state": {
-          "off": "Mati",
-          "lv": "LV",
-          "ready": "sedia",
-          "unknown": "Tidak diketahui"
-        }
-      },
-      "wltc_range": {
-        "name": "Julat dinilai"
-      },
-      "energy_left": {
-        "name": "Tenaga yang tinggal"
-      },
-      "tyre_status": {
-        "name": "Status tayar",
-        "state": {
-          "normal": "Biasalah",
-          "check_tyres": "Periksa tayar"
-        }
-      },
-      "fuel": {
-        "name": "Bahan api"
-      },
-      "fuel_range": {
-        "name": "Julat bahan api"
-      },
-      "total_range": {
-        "name": "Jumlah julat"
-      },
-      "fuel_consumption": {
-        "name": "Penggunaan bahan api"
-      },
-      "tyre_fl": {
-        "name": "Depan kiri"
-      },
-      "tyre_fl_temp": {
-        "name": "Suhu depan kiri"
-      },
-      "tyre_fr": {
-        "name": "Depan kanan"
-      },
-      "tyre_fr_temp": {
-        "name": "Suhu depan kanan"
-      },
-      "tyre_rl": {
-        "name": "Belakang kiri"
-      },
-      "tyre_rl_temp": {
-        "name": "Suhu kiri belakang"
-      },
-      "tyre_rr": {
-        "name": "Belakang kanan"
-      },
-      "tyre_rr_temp": {
-        "name": "Suhu belakang kanan"
-      }
-    },
-    "binary_sensor": {
-      "charging": {
-        "name": "Mengecas"
-      },
-      "online": {
-        "name": "dalam talian"
-      },
-      "moving": {
-        "name": "Bergerak"
-      },
-      "tyres_ok": {
-        "name": "Masalah tayar"
-      },
-      "door": {
-        "name": "Mana-mana pintu"
-      },
-      "door_driver": {
-        "name": "pintu pemandu"
-      },
-      "door_passenger": {
-        "name": "Pintu penumpang"
-      },
-      "door_rear_left": {
-        "name": "Pintu kiri belakang"
-      },
-      "door_rear_right": {
-        "name": "Pintu belakang kanan"
-      },
-      "seat_heat_left": {
-        "name": "Haba tempat duduk ditinggalkan"
-      },
-      "seat_heat_right": {
-        "name": "Kepanasan tempat duduk betul-betul"
-      },
-      "seat_vent_left": {
-        "name": "Bolong tempat duduk kiri"
-      },
-      "seat_vent_right": {
-        "name": "Bolong tempat duduk kanan"
-      },
-      "defrost": {
-        "name": "Nyahbeku"
-      },
-      "engine_on": {
-        "name": "Enjin hidup"
-      }
-    },
-    "number": {
-      "tariff": {
-        "name": "Mengenakan tarif"
-      },
-      "petrol_price": {
-        "name": "Harga petrol"
-      },
-      "petrol_kml": {
-        "name": "Ekonomi petrol"
-      }
-    },
-    "lock": {
-      "lock": {
-        "name": "Kunci"
-      }
-    },
-    "climate": {
-      "climate": {
-        "name": "iklim"
-      }
-    },
-    "cover": {
-      "windows": {
-        "name": "Windows"
-      },
-      "sunroof": {
-        "name": "bumbung matahari"
-      },
-      "liftgate": {
-        "name": "Liftgate"
-      }
-    },
-    "button": {
-      "find": {
-        "name": "Cari kereta"
-      },
-      "charge_stop": {
-        "name": "Berhenti mengecas"
-      },
-      "windows_vent": {
-        "name": "bolong tingkap"
-      },
-      "sunroof_tilt": {
-        "name": "Kecondongan bumbung matahari"
-      },
-      "quick_cool": {
-        "name": "Cepat sejuk"
-      },
-      "quick_heat": {
-        "name": "Panas cepat"
-      }
-    },
-    "switch": {
-      "engine": {
-        "name": "Enjin"
-      },
-      "defrost_cmd": {
-        "name": "Defog"
-      },
-      "purify": {
-        "name": "Membersihkan udara"
-      }
-    },
-    "select": {
-      "gear": {
-        "name": "Gear",
-        "state": {
-          "low": "rendah",
-          "high": "tinggi"
-        }
-      },
-      "seat_heat_l": {
-        "name": "Kepanasan tempat duduk pemandu",
-        "state": {
-          "off": "Mati",
-          "l1": "Tahap 1",
-          "l2": "Tahap 2",
-          "l3": "Tahap 3"
-        }
-      },
-      "seat_vent_l": {
-        "name": "Bolong tempat duduk pemandu",
-        "state": {
-          "off": "Mati",
-          "l1": "Tahap 1",
-          "l2": "Tahap 2",
-          "l3": "Tahap 3"
-        }
-      },
-      "seat_heat_r": {
-        "name": "Kepanasan tempat duduk penumpang",
-        "state": {
-          "off": "Mati",
-          "l1": "Tahap 1",
-          "l2": "Tahap 2",
-          "l3": "Tahap 3"
-        }
-      },
-      "seat_vent_r": {
-        "name": "Bolong tempat duduk penumpang",
-        "state": {
-          "off": "Mati",
-          "l1": "Tahap 1",
-          "l2": "Tahap 2",
-          "l3": "Tahap 3"
-        }
-      },
-      "seat_heat_lr": {
-        "name": "Haba tempat duduk L belakang",
-        "state": {
-          "off": "Mati",
-          "l1": "Tahap 1",
-          "l2": "Tahap 2",
-          "l3": "Tahap 3"
-        }
-      },
-      "seat_vent_lr": {
-        "name": "Bolong tempat duduk L belakang",
-        "state": {
-          "off": "Mati",
-          "l1": "Tahap 1",
-          "l2": "Tahap 2",
-          "l3": "Tahap 3"
-        }
-      },
-      "seat_heat_rr": {
-        "name": "Haba tempat duduk R belakang",
-        "state": {
-          "off": "Mati",
-          "l1": "Tahap 1",
-          "l2": "Tahap 2",
-          "l3": "Tahap 3"
-        }
-      },
-      "seat_vent_rr": {
-        "name": "Bolong tempat duduk R belakang",
-        "state": {
-          "off": "Mati",
-          "l1": "Tahap 1",
-          "l2": "Tahap 2",
-          "l3": "Tahap 3"
-        }
       }
     }
   }
