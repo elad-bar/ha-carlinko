@@ -207,9 +207,6 @@
       },
       "defrost": {
         "name": "Descongelar"
-      },
-      "engine_on": {
-        "name": "Motor ligado"
       }
     },
     "number": {

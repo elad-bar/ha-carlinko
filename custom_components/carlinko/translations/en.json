@@ -222,9 +222,6 @@
       },
       "defrost": {
         "name": "Defrost"
-      },
-      "engine_on": {
-        "name": "Engine on"
       }
     },
     "number": {

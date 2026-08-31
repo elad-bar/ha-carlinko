@@ -207,9 +207,6 @@
       },
       "defrost": {
         "name": "除霜"
-      },
-      "engine_on": {
-        "name": "发动机运行"
       }
     },
     "number": {

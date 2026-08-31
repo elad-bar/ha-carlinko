@@ -207,9 +207,6 @@
       },
       "defrost": {
         "name": "Dégivrage"
-      },
-      "engine_on": {
-        "name": "Moteur en marche"
       }
     },
     "number": {

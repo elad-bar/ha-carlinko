@@ -293,6 +293,7 @@ ENTITY_SPECS: tuple[EntitySpec, ...] = (
         name="Seat heat left",
         data_path="seat_heat_l",
         device_class="heat",
+        when="!cap:seats.heatL",
     ),
     EntitySpec(
         key="seat_heat_right",
@@ -300,6 +301,7 @@ ENTITY_SPECS: tuple[EntitySpec, ...] = (
         name="Seat heat right",
         data_path="seat_heat_r",
         device_class="heat",
+        when="!cap:seats.heatR",
     ),
     EntitySpec(
         key="seat_vent_left",
@@ -307,6 +309,7 @@ ENTITY_SPECS: tuple[EntitySpec, ...] = (
         name="Seat vent left",
         data_path="seat_vent_l",
         icon="mdi:car-seat",
+        when="!cap:seats.ventL",
     ),
     EntitySpec(
         key="seat_vent_right",
@@ -314,6 +317,7 @@ ENTITY_SPECS: tuple[EntitySpec, ...] = (
         name="Seat vent right",
         data_path="seat_vent_r",
         icon="mdi:car-seat",
+        when="!cap:seats.ventR",
     ),
     EntitySpec(
         key="defrost",
@@ -321,6 +325,7 @@ ENTITY_SPECS: tuple[EntitySpec, ...] = (
         name="Defrost",
         data_path="defrost_front",
         icon="mdi:car-defrost-front",
+        when="!cap:ac.defog",
     ),
     # --- PHEV ---
     EntitySpec(
@@ -555,13 +560,6 @@ ENTITY_SPECS: tuple[EntitySpec, ...] = (
         commands={"on": "740700", "off": "740800"},
     ),
     EntitySpec(
-        key="engine_on",
-        platform="binary_sensor",
-        name="Engine on",
-        data_path="engine_on",
-        when="cap:engine",
-    ),
-    EntitySpec(
         key="gear",
         platform="select",
         name="Gear",
@@ -741,20 +739,25 @@ _CAP_WHEN: dict[str, Callable[[dict], bool]] = {
 }
 
 
+def _cap_ok(path: str, caps: dict) -> bool:
+    if path.startswith("seats."):
+        return _cap_seat(caps, path)
+    cap_fn = _CAP_WHEN.get(path)
+    if cap_fn:
+        return cap_fn(caps)
+    return _cap_default(caps, path)
+
+
 def _when_ok(when: str | None, state: dict, caps: dict) -> bool:
     if not when:
         return True
     fn = _WHEN.get(when)
     if fn:
         return fn(state, caps)
+    if when.startswith("!cap:"):
+        return not _cap_ok(when[5:], caps)
     if when.startswith("cap:"):
-        path = when[4:]
-        if path.startswith("seats."):
-            return _cap_seat(caps, path)
-        cap_fn = _CAP_WHEN.get(path)
-        if cap_fn:
-            return cap_fn(caps)
-        return _cap_default(caps, path)
+        return _cap_ok(when[4:], caps)
     return True
 
 

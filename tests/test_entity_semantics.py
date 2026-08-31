@@ -82,6 +82,40 @@ def test_vent_tilt_buttons_in_catalog() -> None:
     assert "tilt" not in sunroof.commands
 
 
+def test_no_engine_on_binary_in_catalog() -> None:
+    assert "engine_on" not in {s.key for s in ENTITY_SPECS}
+    assert any(s.key == "engine" and s.platform == "switch" for s in ENTITY_SPECS)
+
+
+def test_status_binaries_gated_against_writable_twins() -> None:
+    status_keys = {
+        "defrost",
+        "seat_heat_left",
+        "seat_heat_right",
+        "seat_vent_left",
+        "seat_vent_right",
+    }
+    writable_keys = {
+        "defrost_cmd",
+        "seat_heat_l",
+        "seat_heat_r",
+        "seat_vent_l",
+        "seat_vent_r",
+    }
+
+    without = {s.key for s in get_entity_specs(caps={})}
+    assert status_keys <= without
+    assert writable_keys.isdisjoint(without)
+
+    with_caps = {
+        "ac": {"defog": True},
+        "seats": {"heatL": 3, "heatR": 3, "ventL": 3, "ventR": 3},
+    }
+    with_keys = {s.key for s in get_entity_specs(caps=with_caps)}
+    assert status_keys.isdisjoint(with_keys)
+    assert writable_keys <= with_keys
+
+
 def test_seat_select_current_option_from_blob() -> None:
     coordinator = MagicMock()
     coordinator.store.get_vehicle_meta.return_value = {

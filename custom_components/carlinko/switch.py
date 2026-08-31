@@ -41,7 +41,7 @@ class CarlinkoSwitch(CarlinkoEntity, SwitchEntity):
             if self.spec.key == "engine":
                 return bool(state.get("engine_on"))
             if self.spec.key == "defrost_cmd":
-                return bool(state.get("defrost"))
+                return bool(state.get("defrost_front"))
             if self.spec.key == "purify":
                 return bool(state.get("purify"))
             return None

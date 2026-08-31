@@ -207,9 +207,6 @@
       },
       "defrost": {
         "name": "Desempañado"
-      },
-      "engine_on": {
-        "name": "Motor en marcha"
       }
     },
     "number": {

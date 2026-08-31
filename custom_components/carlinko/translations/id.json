@@ -207,9 +207,6 @@
       },
       "defrost": {
         "name": "Mencairkan es"
-      },
-      "engine_on": {
-        "name": "Mesin menyala"
       }
     },
     "number": {

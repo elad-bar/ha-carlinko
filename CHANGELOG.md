@@ -13,6 +13,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - **Reconfigure** removed from the integration menu; update credentials via **Re-authenticate** when prompted. **Region** is set only when adding the integration (not in Configure options)
 - Non-English UI copy in all **15** locale files was reviewed and rewritten (**LLM-assisted**, automotive / Home Assistant context) to replace the initial bulk machine translation; [`scripts/generate_translations.py`](scripts/generate_translations.py) still only fills **missing** keys and does not overwrite existing strings
 - Seat heat and vent select labels use **Off / Low / Medium / High** (and equivalent strings in all 15 UI locales) instead of numbered levels; automation state values remain `off`, `l1`, `l2`, `l3`
+- Dropped the redundant **Engine on** binary sensor (use the **Engine** switch). Defrost and front seat heat/vent binaries remain only when the matching remote control is unavailable; with control caps they are replaced by the Defog switch / seat selects
 
 ## [0.1.3] - 2026-08-28
 

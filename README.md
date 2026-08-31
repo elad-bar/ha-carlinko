@@ -176,11 +176,11 @@ powertrain, TPMS, or remote-control check.
 | Passenger door   | Binary sensor | —                   | —                                                                |
 | Rear left door   | Binary sensor | —                   | —                                                                |
 | Rear right door  | Binary sensor | —                   | —                                                                |
-| Seat heat left   | Binary sensor | —                   | —                                                                |
-| Seat heat right  | Binary sensor | —                   | —                                                                |
-| Seat vent left   | Binary sensor | —                   | —                                                                |
-| Seat vent right  | Binary sensor | —                   | —                                                                |
-| Defrost          | Binary sensor | —                   | —                                                                |
+| Seat heat left   | Binary sensor | —                   | Status only when seat heat remote control is unavailable         |
+| Seat heat right  | Binary sensor | —                   | Status only when seat heat remote control is unavailable         |
+| Seat vent left   | Binary sensor | —                   | Status only when seat vent remote control is unavailable         |
+| Seat vent right  | Binary sensor | —                   | Status only when seat vent remote control is unavailable         |
+| Defrost          | Binary sensor | —                   | Status only when defog remote control is unavailable             |
 | Charging tariff  | Number        | currency            | Config category; numeric 0–10,000,000 (step 0.01); HA currency   |
 | Petrol price     | Number        | currency            | Config category; numeric 0–10,000,000 (step 0.01); HA currency   |
 | Petrol economy   | Number        | km/L                | Config category; numeric 0–100 (step 0.1)                        |
@@ -216,35 +216,33 @@ false). Indirect “check tyres” warnings alone do not enable this group.
 ### Remote control
 
 CarLinko exposes the function in `vehicleControlConfig` for your VIN (`cap:…` in
-the catalog). Includes actuators and **Engine on** (live state when engine remote
-is supported).
+the catalog).
 
-| Name                | Entity type   | Unit of measurement | Comments                                  |
-| ------------------- | ------------- | ------------------- | ----------------------------------------- |
-| Lock                | Lock          | —                   | —                                         |
-| Climate             | Climate       | —                   | —                                         |
-| Windows             | Cover         | —                   | —                                         |
-| Sunroof             | Cover         | —                   | —                                         |
-| Liftgate            | Cover         | —                   | —                                         |
-| Windows vent        | Button        | —                   | —                                         |
-| Sunroof tilt        | Button        | —                   | —                                         |
-| Find car            | Button        | —                   | —                                         |
-| Stop charging       | Button        | —                   | —                                         |
-| Engine              | Switch        | —                   | —                                         |
-| Engine on           | Binary sensor | —                   | —                                         |
-| Gear                | Select        | —                   | Available options: Low, High              |
-| Quick cool          | Button        | —                   | —                                         |
-| Quick heat          | Button        | —                   | —                                         |
-| Defog               | Switch        | —                   | —                                         |
-| Air purify          | Switch        | —                   | —                                         |
-| Driver seat heat    | Select        | —                   | Available options: Off, Low, Medium, High |
-| Driver seat vent    | Select        | —                   | Available options: Off, Low, Medium, High |
-| Passenger seat heat | Select        | —                   | Available options: Off, Low, Medium, High |
-| Passenger seat vent | Select        | —                   | Available options: Off, Low, Medium, High |
-| Rear L seat heat    | Select        | —                   | Available options: Off, Low, Medium, High |
-| Rear L seat vent    | Select        | —                   | Available options: Off, Low, Medium, High |
-| Rear R seat heat    | Select        | —                   | Available options: Off, Low, Medium, High |
-| Rear R seat vent    | Select        | —                   | Available options: Off, Low, Medium, High |
+| Name                | Entity type | Unit of measurement | Comments                                  |
+| ------------------- | ----------- | ------------------- | ----------------------------------------- |
+| Lock                | Lock        | —                   | —                                         |
+| Climate             | Climate     | —                   | —                                         |
+| Windows             | Cover       | —                   | —                                         |
+| Sunroof             | Cover       | —                   | —                                         |
+| Liftgate            | Cover       | —                   | —                                         |
+| Windows vent        | Button      | —                   | —                                         |
+| Sunroof tilt        | Button      | —                   | —                                         |
+| Find car            | Button      | —                   | —                                         |
+| Stop charging       | Button      | —                   | —                                         |
+| Engine              | Switch      | —                   | —                                         |
+| Gear                | Select      | —                   | Available options: Low, High              |
+| Quick cool          | Button      | —                   | —                                         |
+| Quick heat          | Button      | —                   | —                                         |
+| Defog               | Switch      | —                   | —                                         |
+| Air purify          | Switch      | —                   | —                                         |
+| Driver seat heat    | Select      | —                   | Available options: Off, Low, Medium, High |
+| Driver seat vent    | Select      | —                   | Available options: Off, Low, Medium, High |
+| Passenger seat heat | Select      | —                   | Available options: Off, Low, Medium, High |
+| Passenger seat vent | Select      | —                   | Available options: Off, Low, Medium, High |
+| Rear L seat heat    | Select      | —                   | Available options: Off, Low, Medium, High |
+| Rear L seat vent    | Select      | —                   | Available options: Off, Low, Medium, High |
+| Rear R seat heat    | Select      | —                   | Available options: Off, Low, Medium, High |
+| Rear R seat vent    | Select      | —                   | Available options: Off, Low, Medium, High |
 
 Catalog source and opcodes: [`entity_specs.py`](custom_components/carlinko/models/entity_specs.py),
 [`docs/control-opcodes.md`](docs/control-opcodes.md).
