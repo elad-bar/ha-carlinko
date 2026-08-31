@@ -203,9 +203,7 @@ class CarlinkoConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 )
                 errors["base"] = "invalid_auth"
             except Exception as err:
-                _LOGGER.exception(
-                    f"config flow failed step=reauth_confirm error={err}"
-                )
+                _LOGGER.exception(f"config flow failed step=reauth_confirm error={err}")
                 errors["base"] = "invalid_auth"
             else:
                 _LOGGER.info(

@@ -82,9 +82,7 @@ class CarlinkoCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         try:
             region = require_region_from_entry_data(entry.data)
         except ValueError as err:
-            _LOGGER.error(
-                f"setup failed entry_id={partial_id(entry.entry_id)} {err}"
-            )
+            _LOGGER.error(f"setup failed entry_id={partial_id(entry.entry_id)} {err}")
             raise ConfigEntryError(
                 f"CarLinko config entry is missing or has invalid region: {err}"
             ) from err
@@ -223,9 +221,7 @@ class CarlinkoCoordinator(DataUpdateCoordinator[dict[str, Any]]):
     async def async_start(self) -> None:
         _LOGGER.info("coordinator starting")
         await self.store.async_load()
-        _LOGGER.debug(
-            f"store loaded entry_id={partial_id(self.entry.entry_id)}"
-        )
+        _LOGGER.debug(f"store loaded entry_id={partial_id(self.entry.entry_id)}")
         try:
             _LOGGER.debug("async_start → api.login")
             await self.api.login()
@@ -276,9 +272,7 @@ class CarlinkoCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         deadline = time.time() + WS_SETUP_TIMEOUT_S
         while time.time() < deadline:
             if any(rt.connected for rt in self._vehicles.values()):
-                _LOGGER.debug(
-                    "_async_wait_for_stream satisfied connected=true"
-                )
+                _LOGGER.debug("_async_wait_for_stream satisfied connected=true")
                 return
             if self._stop.is_set():
                 return
@@ -344,9 +338,7 @@ class CarlinkoCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 self._vehicles[vid] = rt
                 self._async_refresh_device(vid)
                 plate = meta.get("plate") or "—"
-                _LOGGER.info(
-                    f"vehicle added starting ws vehicle={vid} plate={plate}"
-                )
+                _LOGGER.info(f"vehicle added starting ws vehicle={vid} plate={plate}")
                 if not self._stop.is_set() and self._caps_task is not None:
                     # Already running: start WS and notify entity add for all specs.
                     self._start_ws(vid)
@@ -585,9 +577,7 @@ class CarlinkoCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         ws_count = sum(1 for rt in self._vehicles.values() if rt.ws_task)
         caps = 1 if self._caps_task else 0
         _LOGGER.info(f"coordinator stopping vehicles={len(self._vehicles)}")
-        _LOGGER.debug(
-            f"async_stop cancel ws tasks count={ws_count} caps_task={caps}"
-        )
+        _LOGGER.debug(f"async_stop cancel ws tasks count={ws_count} caps_task={caps}")
         self._stop.set()
         tasks: list[asyncio.Task] = []
         for vid in list(self._vehicles):

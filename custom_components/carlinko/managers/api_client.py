@@ -198,9 +198,7 @@ class ApiClient:
                 self._caps_by_id[vid] = {}
         self._list_cache_t = time.time()
         if rows:
-            _LOGGER.debug(
-                f"indexed vehicleControlConfig for {len(rows)} vehicle(s)"
-            )
+            _LOGGER.debug(f"indexed vehicleControlConfig for {len(rows)} vehicle(s)")
         # Keep legacy single-vehicle pointers for engine / first car.
         first = rows[0] if rows else {}
         vid0 = vehicle_id_of(first)

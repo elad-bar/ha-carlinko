@@ -193,20 +193,14 @@ class CarlinkoStore:
         try:
             v = float(value)
         except Exception:
-            _LOGGER.warning(
-                f"set_cost_config key={key} rejected error=not a number"
-            )
+            _LOGGER.warning(f"set_cost_config key={key} rejected error=not a number")
             return {"ok": False, "error": "not a number"}
         if v < 0:
-            _LOGGER.warning(
-                f"set_cost_config key={key} rejected error=negative"
-            )
+            _LOGGER.warning(f"set_cost_config key={key} rejected error=negative")
             return {"ok": False, "error": "negative"}
         maxes = {"tariff": 1e7, "petrol_price": 1e7, "petrol_kml": 100}
         if v > maxes[key]:
-            _LOGGER.warning(
-                f"set_cost_config key={key} rejected error=out of range"
-            )
+            _LOGGER.warning(f"set_cost_config key={key} rejected error=out of range")
             return {"ok": False, "error": "out of range"}
         if key == "petrol_kml" and v <= 0:
             _LOGGER.warning(

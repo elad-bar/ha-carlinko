@@ -16,11 +16,11 @@ readable at `info` and actionable at `warning`.
 
 They are not two verbosity settings for the same fact.
 
-| | **INFO** | **DEBUG** |
-| --- | --- | --- |
-| Answers | What happened that matters for this flow? | How did the code get there? |
+|          | **INFO**                                                                                 | **DEBUG**                                                                            |
+| -------- | ---------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------ |
+| Answers  | What happened that matters for this flow?                                                | How did the code get there?                                                          |
 | Examples | `config flow created entry`, `CarLinko started`, `fleet change`, `remoteControl … code=` | `async_start → api.login`, `GET /user/vehicle`, WS connect attempt, entity key lists |
-| Avoid | Internal call chains, HTTP method paths, per-platform reconcile spam | User-visible milestones or failures only at DEBUG |
+| Avoid    | Internal call chains, HTTP method paths, per-platform reconcile spam                     | User-visible milestones or failures only at DEBUG                                    |
 
 **Pairing:** DEBUG (path/attempt) → INFO or WARNING (outcome).
 
@@ -41,13 +41,13 @@ Between two INFO milestones in a flow, there should be enough DEBUG to trace the
 
 ## Levels
 
-| Level | Use for |
-| ----- | ------- |
-| **debug** | Call chain, retries, cache/indexing, WS frames, `adding N entities` key lists |
-| **info** | Milestones and results: flow/option/reauth start or success, setup/reload/unload, `login ok`, `vehicle list refreshed count=N`, `CarLinko started`, `fleet change` / `capability change`, `remote action`, `remoteControl … code=`, platforms complete |
-| **warning** | Expected failures the operator can fix or tolerate: bad credentials, vendor non-OK codes, stale token (before reauth), no vehicles, WS setup timeout, control rejected, local config validation rejected |
-| **error** | Integration cannot continue without user action: `starting reauth flow`, setup auth failed, WS/caps auth dead |
-| **exception** | Unexpected bugs (`exc_info=True`): uncaught setup failure, listener crash, shutdown task failure, store save failure |
+| Level         | Use for                                                                                                                                                                                                                                                |
+| ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **debug**     | Call chain, retries, cache/indexing, WS frames, `adding N entities` key lists                                                                                                                                                                          |
+| **info**      | Milestones and results: flow/option/reauth start or success, setup/reload/unload, `login ok`, `vehicle list refreshed count=N`, `CarLinko started`, `fleet change` / `capability change`, `remote action`, `remoteControl … code=`, platforms complete |
+| **warning**   | Expected failures the operator can fix or tolerate: bad credentials, vendor non-OK codes, stale token (before reauth), no vehicles, WS setup timeout, control rejected, local config validation rejected                                               |
+| **error**     | Integration cannot continue without user action: `starting reauth flow`, setup auth failed, WS/caps auth dead                                                                                                                                          |
+| **exception** | Unexpected bugs (`exc_info=True`): uncaught setup failure, listener crash, shutdown task failure, store save failure                                                                                                                                   |
 
 ## Config and options flows
 
@@ -94,17 +94,17 @@ Fleet membership: **one INFO summary** at coordinator; per-platform entity recon
 
 ## Logger modules
 
-| Logger | Module |
-| ------ | ------ |
-| `custom_components.carlinko` | `__init__.py` |
-| `custom_components.carlinko.config_flow` | `config_flow.py` |
-| `custom_components.carlinko.common.entity_setup` | `entity_setup.py` |
-| `custom_components.carlinko.common.base_entity` | `base_entity.py` |
-| `custom_components.carlinko.number` | `number.py` |
-| `custom_components.carlinko.managers.coordinator` | `coordinator.py` |
-| `custom_components.carlinko.managers.api_client` | `api_client.py` |
-| `custom_components.carlinko.managers.ws_client` | `ws_client.py` |
-| `custom_components.carlinko.managers.store` | `store.py` |
+| Logger                                            | Module            |
+| ------------------------------------------------- | ----------------- |
+| `custom_components.carlinko`                      | `__init__.py`     |
+| `custom_components.carlinko.config_flow`          | `config_flow.py`  |
+| `custom_components.carlinko.common.entity_setup`  | `entity_setup.py` |
+| `custom_components.carlinko.common.base_entity`   | `base_entity.py`  |
+| `custom_components.carlinko.number`               | `number.py`       |
+| `custom_components.carlinko.managers.coordinator` | `coordinator.py`  |
+| `custom_components.carlinko.managers.api_client`  | `api_client.py`   |
+| `custom_components.carlinko.managers.ws_client`   | `ws_client.py`    |
+| `custom_components.carlinko.managers.store`       | `store.py`        |
 
 HA registers the parent logger in `manifest.json` (`loggers`: `custom_components.carlinko`).
 
@@ -121,7 +121,7 @@ Example operator config:
 ```yaml
 logger:
   logs:
-    custom_components.carlinko: info      # default recommendation
+    custom_components.carlinko: info # default recommendation
     # custom_components.carlinko: debug   # development / support
     # custom_components.carlinko: warning # problems-only tail
 ```

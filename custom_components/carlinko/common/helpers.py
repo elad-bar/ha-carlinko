@@ -6,13 +6,13 @@ import json
 from typing import Any
 
 from .consts import (
+    CONF_REGION,
     DEFAULT_TPMS_SCALE,
+    KNOWN_REGIONS,
     KPA_TO_PSI,
     TYRE_INVALID,
     TYRE_TEMP_OFFSET,
     TYRE_TEMP_SCALE,
-    CONF_REGION,
-    KNOWN_REGIONS,
 )
 
 

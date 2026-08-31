@@ -219,24 +219,24 @@ CarLinko exposes the function in `vehicleControlConfig` for your VIN (`cap:…` 
 the catalog). Includes actuators and **Engine on** (live state when engine remote
 is supported).
 
-| Name                | Entity type   | Unit of measurement | Comments                                          |
-| ------------------- | ------------- | ------------------- | ------------------------------------------------- |
-| Lock                | Lock          | —                   | —                                                 |
-| Climate             | Climate       | —                   | —                                                 |
-| Windows             | Cover         | —                   | —                                                 |
-| Sunroof             | Cover         | —                   | —                                                 |
-| Liftgate            | Cover         | —                   | —                                                 |
-| Windows vent        | Button        | —                   | —                                                 |
-| Sunroof tilt        | Button        | —                   | —                                                 |
-| Find car            | Button        | —                   | —                                                 |
-| Stop charging       | Button        | —                   | —                                                 |
-| Engine              | Switch        | —                   | —                                                 |
-| Engine on           | Binary sensor | —                   | —                                                 |
-| Gear                | Select        | —                   | Available options: Low, High                      |
-| Quick cool          | Button        | —                   | —                                                 |
-| Quick heat          | Button        | —                   | —                                                 |
-| Defog               | Switch        | —                   | —                                                 |
-| Air purify          | Switch        | —                   | —                                                 |
+| Name                | Entity type   | Unit of measurement | Comments                                  |
+| ------------------- | ------------- | ------------------- | ----------------------------------------- |
+| Lock                | Lock          | —                   | —                                         |
+| Climate             | Climate       | —                   | —                                         |
+| Windows             | Cover         | —                   | —                                         |
+| Sunroof             | Cover         | —                   | —                                         |
+| Liftgate            | Cover         | —                   | —                                         |
+| Windows vent        | Button        | —                   | —                                         |
+| Sunroof tilt        | Button        | —                   | —                                         |
+| Find car            | Button        | —                   | —                                         |
+| Stop charging       | Button        | —                   | —                                         |
+| Engine              | Switch        | —                   | —                                         |
+| Engine on           | Binary sensor | —                   | —                                         |
+| Gear                | Select        | —                   | Available options: Low, High              |
+| Quick cool          | Button        | —                   | —                                         |
+| Quick heat          | Button        | —                   | —                                         |
+| Defog               | Switch        | —                   | —                                         |
+| Air purify          | Switch        | —                   | —                                         |
 | Driver seat heat    | Select        | —                   | Available options: Off, Low, Medium, High |
 | Driver seat vent    | Select        | —                   | Available options: Off, Low, Medium, High |
 | Passenger seat heat | Select        | —                   | Available options: Off, Low, Medium, High |

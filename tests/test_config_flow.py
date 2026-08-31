@@ -8,7 +8,6 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
-from custom_components.carlinko.config_flow import CarlinkoConfigFlow
 from custom_components.carlinko.common.consts import (
     CONF_AVAILABILITY_SECONDS,
     CONF_EMAIL,
@@ -17,6 +16,7 @@ from custom_components.carlinko.common.consts import (
     CONF_STREAM_BACKSTOP,
     DOMAIN,
 )
+from custom_components.carlinko.config_flow import CarlinkoConfigFlow
 from custom_components.carlinko.models.entity_specs import ENTITY_SPECS
 from custom_components.carlinko.models.entity_values import EntityValueResolver
 from custom_components.carlinko.models.exceptions import AuthError

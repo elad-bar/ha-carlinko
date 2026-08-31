@@ -95,6 +95,4 @@ async def async_remove_entry(hass: HomeAssistant, entry: ConfigEntry) -> None:
         ha_store=Store(hass, STORAGE_VERSION, ha_storage_key(entry.entry_id)),
     )
     await store.async_remove()
-    _LOGGER.info(
-        f"remove entry entry_id={partial_id(entry.entry_id)} store deleted"
-    )
+    _LOGGER.info(f"remove entry entry_id={partial_id(entry.entry_id)} store deleted")

@@ -65,9 +65,7 @@ class CarlinkoNumber(CarlinkoEntity, NumberEntity):
         result = self.coordinator.store.set_cost_config(key, value)
         if not result.get("ok"):
             err = result.get("error") or "set failed"
-            _LOGGER.warning(
-                f"local config set failed key={key} error={err}"
-            )
+            _LOGGER.warning(f"local config set failed key={key} error={err}")
             raise ValueError(err)
         _LOGGER.info(
             f"local config set key={key} vehicle={partial_id(self.vehicle_id)} "
