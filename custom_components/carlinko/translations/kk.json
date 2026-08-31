@@ -131,9 +131,6 @@
           "stop": "Тоқта"
         }
       },
-      "updated": {
-        "name": "Жаңартылған"
-      },
       "hv_state": {
         "name": "HV күйі",
         "state": {

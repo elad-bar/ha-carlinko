@@ -131,9 +131,6 @@
           "stop": "Parar"
         }
       },
-      "updated": {
-        "name": "Atualizado"
-      },
       "hv_state": {
         "name": "Estado de alta tensão",
         "state": {

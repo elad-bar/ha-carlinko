@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-from datetime import UTC, datetime
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
@@ -14,7 +13,6 @@ from custom_components.carlinko.models.entity_specs import (
     ENTITY_SPECS,
     get_entity_specs,
 )
-from custom_components.carlinko.models.entity_values import EntityValueResolver
 from custom_components.carlinko.select import CarlinkoSelect
 from homeassistant.components.cover import CoverEntityFeature
 from homeassistant.components.sensor import SensorDeviceClass, SensorStateClass
@@ -49,17 +47,6 @@ def test_speed_sensor_uses_kmh() -> None:
     assert desc.device_class == SensorDeviceClass.SPEED
     assert desc.native_unit_of_measurement == UnitOfSpeed.KILOMETERS_PER_HOUR
     assert desc.state_class == SensorStateClass.MEASUREMENT
-
-
-def test_updated_resolver_returns_aware_datetime() -> None:
-    store = MagicMock()
-    store.get_cost_config.return_value = {}
-    resolver = EntityValueResolver(store)
-    ts = 1_700_000_000
-    value = resolver.resolve_value(_spec("updated"), {"updated_ts": ts})
-    assert isinstance(value, datetime)
-    assert value.tzinfo is not None
-    assert value == datetime.fromtimestamp(ts, tz=UTC)
 
 
 def test_cover_features_open_close_only() -> None:

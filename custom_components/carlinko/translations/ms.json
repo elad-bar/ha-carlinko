@@ -131,9 +131,6 @@
           "stop": "Berhenti"
         }
       },
-      "updated": {
-        "name": "dikemas kini"
-      },
       "hv_state": {
         "name": "keadaan HV",
         "state": {

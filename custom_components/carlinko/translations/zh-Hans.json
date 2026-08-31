@@ -131,9 +131,6 @@
           "stop": "停止"
         }
       },
-      "updated": {
-        "name": "已更新"
-      },
       "hv_state": {
         "name": "高压状态",
         "state": {

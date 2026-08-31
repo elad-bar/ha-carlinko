@@ -59,7 +59,6 @@ _CONFIG_KEYS = frozenset({"tariff", "petrol_price", "petrol_kml"})
 # Derived / detail sensors — diagnostic category (enabled by default).
 _DIAGNOSTIC_KEYS = frozenset(
     {
-        "updated",
         "hv_state",
         "volt12",
         "volt12_status",

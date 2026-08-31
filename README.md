@@ -159,7 +159,6 @@ powertrain, TPMS, or remote-control check.
 | Charge remaining | Sensor        | min                 | Diagnostic category                                              |
 | Charge mode      | Sensor        | —                   | Diagnostic category; available options: None, AC, DC             |
 | Charge state     | Sensor        | —                   | Available options: Idle, Charging, Complete, Canceled, Hot, Stop |
-| Updated          | Sensor        | —                   | Diagnostic category; timestamp                                   |
 | HV state         | Sensor        | —                   | Diagnostic category; available options: Off, LV, Ready, Unknown  |
 | Rated range      | Sensor        | km                  | —                                                                |
 | Energy left      | Sensor        | kWh                 | —                                                                |

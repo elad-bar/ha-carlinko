@@ -131,9 +131,6 @@
           "stop": "Dừng lại"
         }
       },
-      "updated": {
-        "name": "Đã cập nhật"
-      },
       "hv_state": {
         "name": "trạng thái HV",
         "state": {

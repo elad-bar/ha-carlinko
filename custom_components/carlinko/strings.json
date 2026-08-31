@@ -131,9 +131,6 @@
           "stop": "Stop"
         }
       },
-      "updated": {
-        "name": "Updated"
-      },
       "hv_state": {
         "name": "HV state",
         "state": {

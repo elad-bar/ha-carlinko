@@ -131,9 +131,6 @@
           "stop": "Detener"
         }
       },
-      "updated": {
-        "name": "Actualizado"
-      },
       "hv_state": {
         "name": "estado del alto voltaje",
         "state": {

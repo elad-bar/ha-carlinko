@@ -131,9 +131,6 @@
           "stop": "Arrêt"
         }
       },
-      "updated": {
-        "name": "Mis à jour"
-      },
       "hv_state": {
         "name": "état HT",
         "state": {

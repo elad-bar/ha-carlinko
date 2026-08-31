@@ -131,9 +131,6 @@
           "stop": "توقف کنید"
         }
       },
-      "updated": {
-        "name": "به روز شد"
-      },
       "hv_state": {
         "name": "وضعیت HV",
         "state": {

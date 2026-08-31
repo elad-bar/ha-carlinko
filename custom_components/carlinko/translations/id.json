@@ -131,9 +131,6 @@
           "stop": "Berhenti"
         }
       },
-      "updated": {
-        "name": "Diperbarui"
-      },
       "hv_state": {
         "name": "keadaan HV",
         "state": {

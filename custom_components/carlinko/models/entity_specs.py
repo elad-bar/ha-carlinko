@@ -183,13 +183,6 @@ ENTITY_SPECS: tuple[EntitySpec, ...] = (
         options=("idle", "charging", "complete", "canceled", "hot", "stop"),
     ),
     EntitySpec(
-        key="updated",
-        platform="sensor",
-        name="Updated",
-        resolve="updated",
-        device_class="timestamp",
-    ),
-    EntitySpec(
         key="hv_state",
         platform="sensor",
         name="HV state",
