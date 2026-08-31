@@ -112,7 +112,7 @@ async def test_setup_missing_region_raises_config_entry_error(
 
     with caplog.at_level(logging.ERROR):
         with pytest.raises(ConfigEntryError):
-            await hass.config_entries.async_setup(entry.entry_id)
+            await async_setup_entry(hass, entry)
 
     assert any(
         "setup failed" in r.message and "region" in r.message for r in caplog.records

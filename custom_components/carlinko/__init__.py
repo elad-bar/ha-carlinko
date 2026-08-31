@@ -34,9 +34,10 @@ __all__ = [
 
 async def async_setup_entry(hass: HomeAssistant, entry: CarlinkoConfigEntry) -> bool:
     """Set up CarLinko from a config entry."""
-    suffix = " (existing entry)" if entry.runtime_data is not None else ""
+    suffix = (
+        " (existing entry)" if getattr(entry, "runtime_data", None) is not None else ""
+    )
     _LOGGER.info(f"setup entry entry_id={partial_id(entry.entry_id)}{suffix}")
-    _LOGGER.debug("async_create_coordinator → CarlinkoStore.async_load")
     coordinator = await async_create_coordinator(hass, entry)
     try:
         await coordinator.async_start()
@@ -62,9 +63,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: CarlinkoConfigEntry) -> 
 
 async def async_unload_entry(hass: HomeAssistant, entry: CarlinkoConfigEntry) -> bool:
     """Unload a config entry."""
-    _LOGGER.debug(f"async_unload_entry begin entry_id={partial_id(entry.entry_id)}")
-    _LOGGER.info(f"unload entry entry_id={partial_id(entry.entry_id)}")
-    _LOGGER.debug(f"async_unload_platforms domains={len(PLATFORMS)}")
+    _LOGGER.info(
+        f"unload entry entry_id={partial_id(entry.entry_id)} domains={len(PLATFORMS)}"
+    )
     unload_ok = await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
     _LOGGER.info(f"unload platforms ok={unload_ok}")
     coordinator = entry.runtime_data
@@ -74,7 +75,6 @@ async def async_unload_entry(hass: HomeAssistant, entry: CarlinkoConfigEntry) ->
 
 async def async_reload_entry(hass: HomeAssistant, entry: CarlinkoConfigEntry) -> None:
     """Reload when options/data change."""
-    _LOGGER.debug("entry update listener → async_reload_entry")
     _LOGGER.info(
         f"reload entry entry_id={partial_id(entry.entry_id)} reason=update_listener"
     )
