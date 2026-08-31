@@ -16,14 +16,6 @@
         "data": {
           "password": "رمز عبور"
         }
-      },
-      "reconfigure": {
-        "title": "CarLinko را دوباره پیکربندی کنید",
-        "description": "رمز عبور یا منطقه را برای این حساب CarLinko به روز کنید.",
-        "data": {
-          "password": "رمز عبور",
-          "region": "منطقه"
-        }
       }
     },
     "error": {
@@ -35,7 +27,6 @@
     "abort": {
       "already_configured": "این حساب CarLinko قبلاً پیکربندی شده است.",
       "reauth_successful": "احراز هویت مجدد با موفقیت انجام شد.",
-      "reconfigure_successful": "پیکربندی مجدد با موفقیت انجام شد.",
       "no_vehicles": "هیچ وسیله نقلیه ای در این حساب CarLinko یافت نشد."
     }
   },
@@ -45,7 +36,6 @@
         "title": "گزینه های CarLinko",
         "description": "منطقه و زمان پخش جریانی را برای این حساب تنظیم کنید.",
         "data": {
-          "region": "منطقه",
           "stream_backstop": "استاپ جریان (ثانیه)",
           "availability_seconds": "پنجره در دسترس بودن (ثانیه)"
         }

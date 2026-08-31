@@ -16,14 +16,6 @@
         "data": {
           "password": "Mật khẩu"
         }
-      },
-      "reconfigure": {
-        "title": "Cấu hình lại CarLinko",
-        "description": "Cập nhật mật khẩu hoặc vùng cho tài khoản CarLinko này.",
-        "data": {
-          "password": "Mật khẩu",
-          "region": "Vùng đất"
-        }
       }
     },
     "error": {
@@ -35,7 +27,6 @@
     "abort": {
       "already_configured": "Tài khoản CarLinko này đã được định cấu hình.",
       "reauth_successful": "Xác thực lại thành công.",
-      "reconfigure_successful": "Cấu hình lại thành công.",
       "no_vehicles": "Không tìm thấy xe nào trên tài khoản CarLinko này."
     }
   },
@@ -45,7 +36,6 @@
         "title": "Tùy chọn CarLinko",
         "description": "Điều chỉnh vùng và thời gian phát trực tuyến cho tài khoản này.",
         "data": {
-          "region": "Vùng đất",
           "stream_backstop": "Luồng lùi (giây)",
           "availability_seconds": "Khoảng thời gian khả dụng (giây)"
         }

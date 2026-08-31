@@ -16,14 +16,6 @@
         "data": {
           "password": "Kata laluan"
         }
-      },
-      "reconfigure": {
-        "title": "Konfigurasikan semula CarLinko",
-        "description": "Kemas kini kata laluan atau wilayah untuk akaun CarLinko ini.",
-        "data": {
-          "password": "Kata laluan",
-          "region": "Wilayah"
-        }
       }
     },
     "error": {
@@ -35,7 +27,6 @@
     "abort": {
       "already_configured": "Akaun CarLinko ini telah dikonfigurasikan.",
       "reauth_successful": "Pengesahan semula berjaya.",
-      "reconfigure_successful": "Konfigurasi semula berjaya.",
       "no_vehicles": "Tiada kenderaan ditemui pada akaun CarLinko ini."
     }
   },
@@ -45,7 +36,6 @@
         "title": "Pilihan CarLinko",
         "description": "Tala kawasan dan masa strim untuk akaun ini.",
         "data": {
-          "region": "Wilayah",
           "stream_backstop": "Strim hentian belakang (saat)",
           "availability_seconds": "Tetingkap ketersediaan (saat)"
         }

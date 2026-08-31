@@ -51,8 +51,11 @@ Between two INFO milestones in a flow, there should be enough DEBUG to trace the
 
 ## Config and options flows
 
+- **Region** is set only when adding the integration (`entry.data`); the options flow does not include or log region.
 - User-facing validation failures → **warning** at `config_flow` (with `step=…` and `error=…`) and vendor detail at **api_client** where applicable.
 - Flow boundaries (started, submit, created entry, success reload, abort) → **info**.
+- Options saved → **info** e.g. `options saved stream_backstop=20 availability_seconds=2400`.
+- Missing or invalid region on reauth or setup → **error** at `config_flow` or `coordinator` (`setup failed entry_id=… missing required config data key=region`).
 - Unexpected exceptions in a flow step → **exception** if truly unknown; handled cases → **warning** with context.
 
 ## Lifecycle (`__init__.py`)
@@ -68,7 +71,7 @@ Use `(existing entry)` on setup when `entry.runtime_data` is already set (reload
 - **info:** `coordinator starting` / `coordinator stopping` / `coordinator stopped`, `CarLinko started`, `fleet change added=[…] removed=[…]`, `vehicle added starting ws …`, `vehicle removed stopping ws …`, `device registry removed vehicle=…`, `capability change vehicle=… added=[…] removed=[…]`
 - **debug:** store loaded, `async_start → …`, `_async_wait_for_stream satisfied`, `_caps_refresh_loop`, `async_send_control opcode=…` / `result ok`
 - **warning:** `no vehicle websocket connected within …s`, `auth failure source={setup\|ws\|caps_refresh\|control} …`, remote control stale/failed
-- **error:** `starting reauth flow entry_id=…`, then context lines (`WebSocket auth failed …`, `Caps refresh auth failed …`)
+- **error:** `starting reauth flow entry_id=…`, `setup failed entry_id=…` (missing/invalid region), then context lines (`WebSocket auth failed …`, `Caps refresh auth failed …`)
 
 Fleet membership: **one INFO summary** at coordinator; per-platform entity reconcile → **debug** in `entity_setup` (not 11× INFO).
 
@@ -128,7 +131,7 @@ logger:
 When touching code, know which flow you are in:
 
 1. Add account — `config_flow` + first `async_setup_entry`
-2. Lifecycle — setup, reload, unload, remove, options, reconfigure
+2. Lifecycle — setup, reload, unload, remove, options, reauth
 3. Reauth / runtime auth — `_async_handle_auth_failure`, WS/caps/control paths
 4. Fleet change — `_sync_vehicles_from_rows`
 5. Capability change — `_maybe_notify_spec_changes` + `entity_setup`

@@ -16,14 +16,6 @@
         "data": {
           "password": "Mot de passe"
         }
-      },
-      "reconfigure": {
-        "title": "Reconfigurer CarLinko",
-        "description": "Mettez à jour le mot de passe ou la région de ce compte CarLinko.",
-        "data": {
-          "password": "Mot de passe",
-          "region": "Région"
-        }
       }
     },
     "error": {
@@ -35,7 +27,6 @@
     "abort": {
       "already_configured": "Ce compte CarLinko est déjà configuré.",
       "reauth_successful": "Ré-authentification réussie.",
-      "reconfigure_successful": "Reconfiguration réussie.",
       "no_vehicles": "Aucun véhicule trouvé sur ce compte CarLinko."
     }
   },
@@ -45,7 +36,6 @@
         "title": "Options CarLinko",
         "description": "Ajustez la région et la synchronisation de diffusion pour ce compte.",
         "data": {
-          "region": "Région",
           "stream_backstop": "Filet de sécurité pour le flux (secondes)",
           "availability_seconds": "Fenêtre de disponibilité (secondes)"
         }

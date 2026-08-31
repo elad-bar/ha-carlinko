@@ -69,8 +69,8 @@ One config entry is created **per account** (hub): every vehicle on that account
 is added automatically as HA devices/entities — there is no vehicle picker.
 
 If the token goes stale, Home Assistant prompts for **re-authentication**
-(password only; email/region kept). Use **Reconfigure** to change password and
-region without removing the integration.
+(password only; email and region are unchanged). To use a different cloud region,
+remove the integration and add it again with the correct region.
 
 | Error                     | Meaning                    |
 | ------------------------- | -------------------------- |
@@ -86,7 +86,6 @@ After setup, configure via the integration’s **Configure** options flow:
 
 | Option                        | Default          | Description                                            |
 | ----------------------------- | ---------------- | ------------------------------------------------------ |
-| Region                        | `sea`            | Cloud region (one of the known codes above)            |
 | Stream backstop (seconds)     | `20`             | WS keepalive / re-request interval                     |
 | Availability window (seconds) | `2400` (~40 min) | Entities go unavailable if no frame within this window |
 
@@ -287,8 +286,8 @@ integration at `info`.
 
 Then open an issue with logs **and** diagnostic details (Settings → Devices &
 services → CarLinko → ⋮ → Download diagnostics). If auth fails after a long idle
-period or after changing your CarLinko password, use **Reconfigure /
-Reauthenticate** on the integration entry.
+period or after changing your CarLinko password, use **Re-authenticate** on the
+integration entry.
 
 ## Dev without Home Assistant
 

@@ -16,14 +16,6 @@
         "data": {
           "password": "Kata sandi"
         }
-      },
-      "reconfigure": {
-        "title": "Konfigurasi ulang CarLinko",
-        "description": "Perbarui kata sandi atau wilayah untuk akun CarLinko ini.",
-        "data": {
-          "password": "Kata sandi",
-          "region": "Wilayah"
-        }
       }
     },
     "error": {
@@ -35,7 +27,6 @@
     "abort": {
       "already_configured": "Akun CarLinko ini sudah dikonfigurasi.",
       "reauth_successful": "Otentikasi ulang berhasil.",
-      "reconfigure_successful": "Konfigurasi ulang berhasil.",
       "no_vehicles": "Tidak ada kendaraan yang ditemukan di akun CarLinko ini."
     }
   },
@@ -45,7 +36,6 @@
         "title": "Opsi CarLinko",
         "description": "Sesuaikan wilayah dan waktu streaming untuk akun ini.",
         "data": {
-          "region": "Wilayah",
           "stream_backstop": "Streaming backstop (detik)",
           "availability_seconds": "Jendela ketersediaan (detik)"
         }

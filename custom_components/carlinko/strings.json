@@ -16,14 +16,6 @@
         "data": {
           "password": "Password"
         }
-      },
-      "reconfigure": {
-        "title": "Reconfigure CarLinko",
-        "description": "Update password or region for this CarLinko account.",
-        "data": {
-          "password": "Password",
-          "region": "Region"
-        }
       }
     },
     "error": {
@@ -35,7 +27,6 @@
     "abort": {
       "already_configured": "This CarLinko account is already configured.",
       "reauth_successful": "Re-authentication successful.",
-      "reconfigure_successful": "Reconfigure successful.",
       "no_vehicles": "No vehicles found on this CarLinko account."
     }
   },
@@ -43,9 +34,8 @@
     "step": {
       "init": {
         "title": "CarLinko options",
-        "description": "Tune region and stream timing for this account.",
+        "description": "Tune WebSocket stream timing and entity availability for this account.",
         "data": {
-          "region": "Region",
           "stream_backstop": "Stream backstop (seconds)",
           "availability_seconds": "Availability window (seconds)"
         }

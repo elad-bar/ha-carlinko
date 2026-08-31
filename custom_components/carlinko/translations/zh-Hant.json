@@ -16,14 +16,6 @@
         "data": {
           "password": "密碼"
         }
-      },
-      "reconfigure": {
-        "title": "重新配置CarLinko",
-        "description": "更新此 CarLinko 帳號的密碼或區域。",
-        "data": {
-          "password": "密碼",
-          "region": "地區"
-        }
       }
     },
     "error": {
@@ -35,7 +27,6 @@
     "abort": {
       "already_configured": "此 CarLinko 帳戶已配置。",
       "reauth_successful": "重新認證成功。",
-      "reconfigure_successful": "重新配置成功。",
       "no_vehicles": "在此 CarLinko 帳戶上找不到車輛。"
     }
   },
@@ -45,7 +36,6 @@
         "title": "卡林科選項",
         "description": "調整該帳戶的區域和串流計時。",
         "data": {
-          "region": "地區",
           "stream_backstop": "流逆止（秒）",
           "availability_seconds": "可用視窗（秒）"
         }

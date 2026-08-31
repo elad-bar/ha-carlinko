@@ -13,7 +13,11 @@ from aiohttp import ClientSession
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant, callback
-from homeassistant.exceptions import ConfigEntryAuthFailed, HomeAssistantError
+from homeassistant.exceptions import (
+    ConfigEntryAuthFailed,
+    ConfigEntryError,
+    HomeAssistantError,
+)
 from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.storage import Store
@@ -25,7 +29,6 @@ from ..common.consts import (
     CONF_AVAILABILITY_SECONDS,
     CONF_EMAIL,
     CONF_PASSWORD,
-    CONF_REGION,
     CONF_STREAM_BACKSTOP,
     DOMAIN,
     OK_CODE,
@@ -34,7 +37,7 @@ from ..common.consts import (
     STREAM_BACKSTOP,
     WS_SETUP_TIMEOUT_S,
 )
-from ..common.helpers import partial_id
+from ..common.helpers import partial_id, require_region_from_entry_data
 from ..managers.api_client import ApiClient, device_sn_of, vehicle_id_of
 from ..managers.ws_client import WsClient
 from ..models.entity_specs import get_entity_specs
@@ -76,7 +79,15 @@ class CarlinkoCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         super().__init__(hass, _LOGGER, name=DOMAIN, update_interval=None)
         self.entry = entry
         self.store = store
-        region = entry.options.get(CONF_REGION) or entry.data.get(CONF_REGION) or ""
+        try:
+            region = require_region_from_entry_data(entry.data)
+        except ValueError as err:
+            _LOGGER.error(
+                f"setup failed entry_id={partial_id(entry.entry_id)} {err}"
+            )
+            raise ConfigEntryError(
+                f"CarLinko config entry is missing or has invalid region: {err}"
+            ) from err
         self.api = ApiClient(
             entry.data[CONF_EMAIL],
             entry.data[CONF_PASSWORD],
@@ -254,11 +265,7 @@ class CarlinkoCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         _LOGGER.debug(
             f"_caps_refresh_loop task started interval={CAPS_REFRESH_INTERVAL_S}s"
         )
-        region = (
-            self.entry.options.get(CONF_REGION)
-            or self.entry.data.get(CONF_REGION)
-            or ""
-        )
+        region = require_region_from_entry_data(self.entry.data)
         _LOGGER.info(
             f"CarLinko started region={region} vehicles={len(self._vehicles)} "
             f"ids={[partial_id(vid) for vid in self.vehicle_ids]}"

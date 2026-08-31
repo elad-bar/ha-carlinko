@@ -8,6 +8,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
+from custom_components.carlinko.config_flow import CarlinkoConfigFlow
 from custom_components.carlinko.common.consts import (
     CONF_AVAILABILITY_SECONDS,
     CONF_EMAIL,
@@ -326,6 +327,42 @@ async def test_reauth_invalid_password(hass: HomeAssistant) -> None:
 
 
 @pytest.mark.asyncio
+async def test_reauth_missing_region_aborts(hass: HomeAssistant) -> None:
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        unique_id="user@example.com",
+        data={
+            CONF_EMAIL: "user@example.com",
+            CONF_PASSWORD: "old",
+        },
+        title="CarLinko (user@example.com)",
+    )
+    entry.add_to_hass(hass)
+
+    result = await hass.config_entries.flow.async_init(
+        DOMAIN,
+        context={
+            "source": config_entries.SOURCE_REAUTH,
+            "entry_id": entry.entry_id,
+            "unique_id": entry.unique_id,
+        },
+        data=entry.data,
+    )
+    result2 = await hass.config_entries.flow.async_configure(
+        result["flow_id"],
+        {CONF_PASSWORD: "new-secret"},
+    )
+
+    assert result2["type"] == FlowResultType.ABORT
+    assert result2["reason"] == "unknown"
+    assert entry.data[CONF_PASSWORD] == "old"
+
+
+def test_config_flow_has_no_reconfigure_step() -> None:
+    assert not hasattr(CarlinkoConfigFlow, "async_step_reconfigure")
+
+
+@pytest.mark.asyncio
 async def test_options_flow(hass: HomeAssistant) -> None:
     entry = MockConfigEntry(
         domain=DOMAIN,
@@ -344,7 +381,6 @@ async def test_options_flow(hass: HomeAssistant) -> None:
     result2 = await hass.config_entries.options.async_configure(
         result["flow_id"],
         user_input={
-            CONF_REGION: "sea",
             CONF_STREAM_BACKSTOP: 30,
             CONF_AVAILABILITY_SECONDS: 3600,
         },
@@ -352,6 +388,7 @@ async def test_options_flow(hass: HomeAssistant) -> None:
     await hass.async_block_till_done()
 
     assert result2["type"] == FlowResultType.CREATE_ENTRY
+    assert CONF_REGION not in entry.options
     assert entry.options[CONF_STREAM_BACKSTOP] == 30
     assert entry.options[CONF_AVAILABILITY_SECONDS] == 3600
 

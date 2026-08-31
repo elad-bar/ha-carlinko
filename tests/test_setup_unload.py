@@ -25,7 +25,7 @@ from custom_components.carlinko.managers.store import CarlinkoStore, ha_storage_
 from custom_components.carlinko.models.exceptions import AuthError
 from custom_components.carlinko.models.vehicle_state import VehicleState
 from homeassistant.core import HomeAssistant
-from homeassistant.exceptions import ConfigEntryNotReady
+from homeassistant.exceptions import ConfigEntryError, ConfigEntryNotReady
 from homeassistant.helpers.storage import Store
 
 _VEHICLE = {
@@ -94,6 +94,29 @@ async def test_async_setup_and_unload_entry(hass: HomeAssistant) -> None:
         await hass.async_block_till_done()
         assert coordinator._stop.is_set()
         assert coordinator._entity_listeners == []
+
+
+@pytest.mark.asyncio
+async def test_setup_missing_region_raises_config_entry_error(
+    hass: HomeAssistant, caplog: pytest.LogCaptureFixture
+) -> None:
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        unique_id="user@example.com",
+        data={
+            CONF_EMAIL: "user@example.com",
+            CONF_PASSWORD: "secret",
+        },
+    )
+    entry.add_to_hass(hass)
+
+    with caplog.at_level(logging.ERROR):
+        with pytest.raises(ConfigEntryError):
+            await hass.config_entries.async_setup(entry.entry_id)
+
+    assert any(
+        "setup failed" in r.message and "region" in r.message for r in caplog.records
+    )
 
 
 @pytest.mark.asyncio

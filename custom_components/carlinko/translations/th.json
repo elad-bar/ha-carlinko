@@ -16,14 +16,6 @@
         "data": {
           "password": "รหัสผ่าน"
         }
-      },
-      "reconfigure": {
-        "title": "กำหนดค่า CarLinko ใหม่",
-        "description": "อัปเดตรหัสผ่านหรือภูมิภาคสำหรับบัญชี CarLinko นี้",
-        "data": {
-          "password": "รหัสผ่าน",
-          "region": "ภูมิภาค"
-        }
       }
     },
     "error": {
@@ -35,7 +27,6 @@
     "abort": {
       "already_configured": "บัญชี CarLinko นี้ได้รับการกำหนดค่าแล้ว",
       "reauth_successful": "การรับรองความถูกต้องอีกครั้งสำเร็จ",
-      "reconfigure_successful": "กำหนดค่าใหม่สำเร็จ",
       "no_vehicles": "ไม่พบยานพาหนะในบัญชี CarLinko นี้"
     }
   },
@@ -45,7 +36,6 @@
         "title": "ตัวเลือกคาร์ลินโก",
         "description": "ปรับภูมิภาคและกำหนดเวลาสตรีมสำหรับบัญชีนี้",
         "data": {
-          "region": "ภูมิภาค",
           "stream_backstop": "สตรีมแบ็คสต็อป (วินาที)",
           "availability_seconds": "กรอบเวลาความพร้อมใช้งาน (วินาที)"
         }

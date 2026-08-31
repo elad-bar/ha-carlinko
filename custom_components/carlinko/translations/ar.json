@@ -16,14 +16,6 @@
         "data": {
           "password": "كلمة المرور"
         }
-      },
-      "reconfigure": {
-        "title": "إعادة تكوين كارلينكو",
-        "description": "قم بتحديث كلمة المرور أو المنطقة لحساب CarLinko هذا.",
-        "data": {
-          "password": "كلمة المرور",
-          "region": "منطقة"
-        }
       }
     },
     "error": {
@@ -35,7 +27,6 @@
     "abort": {
       "already_configured": "تم تكوين حساب CarLinko هذا بالفعل.",
       "reauth_successful": "تمت إعادة المصادقة بنجاح.",
-      "reconfigure_successful": "إعادة التكوين ناجحة.",
       "no_vehicles": "لم يتم العثور على مركبات في حساب CarLinko هذا."
     }
   },
@@ -45,7 +36,6 @@
         "title": "خيارات كارلينكو",
         "description": "قم بضبط المنطقة وتوقيت البث لهذا الحساب.",
         "data": {
-          "region": "منطقة",
           "stream_backstop": "دفق مساندة (ثواني)",
           "availability_seconds": "نافذة التوفر (بالثواني)"
         }

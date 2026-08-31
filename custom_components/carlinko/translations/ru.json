@@ -16,14 +16,6 @@
         "data": {
           "password": "Пароль"
         }
-      },
-      "reconfigure": {
-        "title": "Переконфигурировать CarLinko",
-        "description": "Обновите пароль или регион для этой учетной записи CarLinko.",
-        "data": {
-          "password": "Пароль",
-          "region": "Область"
-        }
       }
     },
     "error": {
@@ -35,7 +27,6 @@
     "abort": {
       "already_configured": "Эта учетная запись CarLinko уже настроена.",
       "reauth_successful": "Повторная аутентификация прошла успешно.",
-      "reconfigure_successful": "Переконфигурация прошла успешно.",
       "no_vehicles": "В этом аккаунте CarLinko не найдено транспортных средств."
     }
   },
@@ -45,7 +36,6 @@
         "title": "Варианты CarLinko",
         "description": "Настройте регион и время трансляции для этого аккаунта.",
         "data": {
-          "region": "Область",
           "stream_backstop": "Остановка потока (секунды)",
           "availability_seconds": "Окно доступности (секунды)"
         }

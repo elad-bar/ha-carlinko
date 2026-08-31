@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+from typing import Any
 
 from .consts import (
     DEFAULT_TPMS_SCALE,
@@ -10,7 +11,20 @@ from .consts import (
     TYRE_INVALID,
     TYRE_TEMP_OFFSET,
     TYRE_TEMP_SCALE,
+    CONF_REGION,
+    KNOWN_REGIONS,
 )
+
+
+def require_region_from_entry_data(data: dict[str, Any]) -> str:
+    """Return validated region from config entry data; raise ValueError if missing/invalid."""
+    raw = data.get(CONF_REGION)
+    if raw is None or not str(raw).strip():
+        raise ValueError("missing required config data key=region")
+    region = str(raw).strip()
+    if region not in KNOWN_REGIONS:
+        raise ValueError(f"invalid region={region!r}")
+    return region
 
 
 def partial_id(value: str | None, keep: int = 4) -> str | None:

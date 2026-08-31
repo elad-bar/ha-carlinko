@@ -16,14 +16,6 @@
         "data": {
           "password": "סִיסמָה"
         }
-      },
-      "reconfigure": {
-        "title": "הגדר מחדש את CarLinko",
-        "description": "עדכן את הסיסמה או האזור עבור חשבון CarLinko זה.",
-        "data": {
-          "password": "סִיסמָה",
-          "region": "אֵזוֹר"
-        }
       }
     },
     "error": {
@@ -35,7 +27,6 @@
     "abort": {
       "already_configured": "חשבון CarLinko זה כבר מוגדר.",
       "reauth_successful": "האימות מחדש הצליח.",
-      "reconfigure_successful": "הגדרה מחדש הצליחה.",
       "no_vehicles": "לא נמצאו רכבים בחשבון CarLinko זה."
     }
   },
@@ -45,7 +36,6 @@
         "title": "אפשרויות CarLinko",
         "description": "כוונן אזור ותזמון סטרימינג עבור חשבון זה.",
         "data": {
-          "region": "אֵזוֹר",
           "stream_backstop": "מעצור אחורי זרימה (שניות)",
           "availability_seconds": "חלון זמינות (שניות)"
         }

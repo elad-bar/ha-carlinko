@@ -16,14 +16,6 @@
         "data": {
           "password": "Құпия сөз"
         }
-      },
-      "reconfigure": {
-        "title": "CarLinko қайта конфигурациялау",
-        "description": "Осы CarLinko тіркелгісі үшін құпия сөзді немесе аймақты жаңартыңыз.",
-        "data": {
-          "password": "Құпия сөз",
-          "region": "Аймақ"
-        }
       }
     },
     "error": {
@@ -35,7 +27,6 @@
     "abort": {
       "already_configured": "Бұл CarLinko тіркелгісі әлдеқашан конфигурацияланған.",
       "reauth_successful": "Қайта аутентификация сәтті өтті.",
-      "reconfigure_successful": "Қайта конфигурациялау сәтті болды.",
       "no_vehicles": "Бұл CarLinko есептік жазбасында көлік табылмады."
     }
   },
@@ -45,7 +36,6 @@
         "title": "CarLinko опциялары",
         "description": "Осы тіркелгі үшін аймақты және ағын уақытын реттеңіз.",
         "data": {
-          "region": "Аймақ",
           "stream_backstop": "ағынды кері тоқтату (секунд)",
           "availability_seconds": "Қолжетімділік терезесі (секунд)"
         }
