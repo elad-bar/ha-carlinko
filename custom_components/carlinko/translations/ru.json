@@ -51,6 +51,12 @@
     },
     "control_failed": {
       "message": "Ошибка дистанционного управления: {error}"
+    },
+    "unknown_vehicle": {
+      "message": "Неизвестный автомобиль: {vehicle_id}"
+    },
+    "missing_maintain_id": {
+      "message": "Требуется идентификатор обслуживания."
     }
   },
   "entity": {
@@ -163,6 +169,27 @@
       },
       "tyre_rr_temp": {
         "name": "Температура задней правой шины"
+      },
+      "notice_unread": {
+        "name": "Непрочитанные уведомления"
+      },
+      "maintain_last_project": {
+        "name": "Последнее ТО"
+      },
+      "maintain_last_date": {
+        "name": "Дата последнего ТО"
+      },
+      "maintain_last_odometer": {
+        "name": "Пробег на последнем ТО"
+      },
+      "maintain_next_date": {
+        "name": "Дата следующего ТО"
+      },
+      "maintain_next_odometer": {
+        "name": "Пробег следующего ТО"
+      },
+      "firmware_offered_version": {
+        "name": "Предлагаемая версия прошивки"
       }
     },
     "binary_sensor": {
@@ -207,6 +234,12 @@
       },
       "defrost": {
         "name": "Обогрев стекла"
+      },
+      "firmware_update_available": {
+        "name": "Доступно обновление прошивки"
+      },
+      "firmware_upgrading": {
+        "name": "Обновление прошивки"
       }
     },
     "number": {
@@ -371,6 +404,64 @@
         "sea": "Юго-Восточная Азия",
         "uzb": "Узбекистан",
         "vn": "Вьетнам"
+      }
+    }
+  },
+  "services": {
+    "get_notices": {
+      "name": "Получить уведомления",
+      "description": "Список операционных уведомлений автомобиля (типы автомобиль и управление).",
+      "fields": {
+        "vehicle_id": {
+          "name": "ID автомобиля",
+          "description": "Идентификатор автомобиля CarLinko."
+        },
+        "page": {
+          "name": "Страница",
+          "description": "Номер страницы (по умолчанию 1)."
+        }
+      }
+    },
+    "get_maintain_history": {
+      "name": "Получить историю обслуживания",
+      "description": "Список истории дилерского обслуживания автомобиля.",
+      "fields": {
+        "vehicle_id": {
+          "name": "ID автомобиля",
+          "description": "Идентификатор автомобиля CarLinko."
+        },
+        "query_key": {
+          "name": "Поиск",
+          "description": "Необязательная строка поиска."
+        },
+        "page": {
+          "name": "Страница",
+          "description": "Номер страницы (по умолчанию 1)."
+        }
+      }
+    },
+    "get_maintain_details": {
+      "name": "Получить детали обслуживания",
+      "description": "Получить одну запись обслуживания, включая журнал дилера.",
+      "fields": {
+        "vehicle_id": {
+          "name": "ID автомобиля",
+          "description": "Идентификатор автомобиля CarLinko."
+        },
+        "maintain_id": {
+          "name": "ID обслуживания",
+          "description": "Идентификатор записи обслуживания из списка истории."
+        }
+      }
+    },
+    "check_firmware": {
+      "name": "Проверить прошивку",
+      "description": "Проверить, предлагается ли более новая прошивка автомобиля (только чтение).",
+      "fields": {
+        "vehicle_id": {
+          "name": "ID автомобиля",
+          "description": "Идентификатор автомобиля CarLinko."
+        }
       }
     }
   }

@@ -51,6 +51,12 @@
     },
     "control_failed": {
       "message": "Kendali jarak jauh gagal: {error}"
+    },
+    "unknown_vehicle": {
+      "message": "Kendaraan tidak dikenal: {vehicle_id}"
+    },
+    "missing_maintain_id": {
+      "message": "ID perawatan wajib diisi."
     }
   },
   "entity": {
@@ -163,6 +169,27 @@
       },
       "tyre_rr_temp": {
         "name": "Suhu ban belakang kanan"
+      },
+      "notice_unread": {
+        "name": "Pemberitahuan belum dibaca"
+      },
+      "maintain_last_project": {
+        "name": "Servis terakhir"
+      },
+      "maintain_last_date": {
+        "name": "Tanggal servis terakhir"
+      },
+      "maintain_last_odometer": {
+        "name": "Odometer servis terakhir"
+      },
+      "maintain_next_date": {
+        "name": "Tanggal servis berikutnya"
+      },
+      "maintain_next_odometer": {
+        "name": "Odometer servis berikutnya"
+      },
+      "firmware_offered_version": {
+        "name": "Versi firmware yang ditawarkan"
       }
     },
     "binary_sensor": {
@@ -207,6 +234,12 @@
       },
       "defrost": {
         "name": "Mencairkan es"
+      },
+      "firmware_update_available": {
+        "name": "Pembaruan firmware tersedia"
+      },
+      "firmware_upgrading": {
+        "name": "Firmware sedang diperbarui"
       }
     },
     "number": {
@@ -371,6 +404,64 @@
         "sea": "Asia Tenggara",
         "uzb": "Uzbekistan",
         "vn": "Vietnam"
+      }
+    }
+  },
+  "services": {
+    "get_notices": {
+      "name": "Ambil pemberitahuan",
+      "description": "Daftar pemberitahuan operasional kendaraan (tipe kendaraan dan kontrol).",
+      "fields": {
+        "vehicle_id": {
+          "name": "ID kendaraan",
+          "description": "ID kendaraan CarLinko."
+        },
+        "page": {
+          "name": "Halaman",
+          "description": "Nomor halaman (default 1)."
+        }
+      }
+    },
+    "get_maintain_history": {
+      "name": "Ambil riwayat perawatan",
+      "description": "Daftar riwayat servis dealer untuk sebuah kendaraan.",
+      "fields": {
+        "vehicle_id": {
+          "name": "ID kendaraan",
+          "description": "ID kendaraan CarLinko."
+        },
+        "query_key": {
+          "name": "Cari",
+          "description": "String pencarian opsional."
+        },
+        "page": {
+          "name": "Halaman",
+          "description": "Nomor halaman (default 1)."
+        }
+      }
+    },
+    "get_maintain_details": {
+      "name": "Ambil detail perawatan",
+      "description": "Ambil satu catatan servis termasuk entri log dealer.",
+      "fields": {
+        "vehicle_id": {
+          "name": "ID kendaraan",
+          "description": "ID kendaraan CarLinko."
+        },
+        "maintain_id": {
+          "name": "ID perawatan",
+          "description": "ID catatan servis dari daftar riwayat."
+        }
+      }
+    },
+    "check_firmware": {
+      "name": "Periksa firmware",
+      "description": "Periksa apakah firmware kendaraan yang lebih baru ditawarkan (hanya baca).",
+      "fields": {
+        "vehicle_id": {
+          "name": "ID kendaraan",
+          "description": "ID kendaraan CarLinko."
+        }
       }
     }
   }

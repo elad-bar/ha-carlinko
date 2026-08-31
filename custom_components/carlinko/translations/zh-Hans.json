@@ -51,6 +51,12 @@
     },
     "control_failed": {
       "message": "远程控制失败：{error}"
+    },
+    "unknown_vehicle": {
+      "message": "未知车辆：{vehicle_id}"
+    },
+    "missing_maintain_id": {
+      "message": "需要保养记录 ID。"
     }
   },
   "entity": {
@@ -163,6 +169,27 @@
       },
       "tyre_rr_temp": {
         "name": "右后轮胎温度"
+      },
+      "notice_unread": {
+        "name": "未读通知"
+      },
+      "maintain_last_project": {
+        "name": "上次保养"
+      },
+      "maintain_last_date": {
+        "name": "上次保养日期"
+      },
+      "maintain_last_odometer": {
+        "name": "上次保养里程"
+      },
+      "maintain_next_date": {
+        "name": "下次保养日期"
+      },
+      "maintain_next_odometer": {
+        "name": "下次保养里程"
+      },
+      "firmware_offered_version": {
+        "name": "提供的固件版本"
       }
     },
     "binary_sensor": {
@@ -207,6 +234,12 @@
       },
       "defrost": {
         "name": "除霜"
+      },
+      "firmware_update_available": {
+        "name": "固件更新可用"
+      },
+      "firmware_upgrading": {
+        "name": "正在升级固件"
       }
     },
     "number": {
@@ -371,6 +404,64 @@
         "sea": "东南亚",
         "uzb": "乌兹别克斯坦",
         "vn": "越南"
+      }
+    }
+  },
+  "services": {
+    "get_notices": {
+      "name": "获取通知",
+      "description": "列出车辆运营通知（车辆与控制类型）。",
+      "fields": {
+        "vehicle_id": {
+          "name": "车辆 ID",
+          "description": "CarLinko 车辆 ID。"
+        },
+        "page": {
+          "name": "页码",
+          "description": "页码（默认 1）。"
+        }
+      }
+    },
+    "get_maintain_history": {
+      "name": "获取保养历史",
+      "description": "列出车辆的经销商保养历史。",
+      "fields": {
+        "vehicle_id": {
+          "name": "车辆 ID",
+          "description": "CarLinko 车辆 ID。"
+        },
+        "query_key": {
+          "name": "搜索",
+          "description": "可选搜索字符串。"
+        },
+        "page": {
+          "name": "页码",
+          "description": "页码（默认 1）。"
+        }
+      }
+    },
+    "get_maintain_details": {
+      "name": "获取保养详情",
+      "description": "获取一条保养记录，包括经销商日志条目。",
+      "fields": {
+        "vehicle_id": {
+          "name": "车辆 ID",
+          "description": "CarLinko 车辆 ID。"
+        },
+        "maintain_id": {
+          "name": "保养 ID",
+          "description": "历史列表中的保养记录 ID。"
+        }
+      }
+    },
+    "check_firmware": {
+      "name": "检查固件",
+      "description": "检查是否提供更新的车辆固件（只读）。",
+      "fields": {
+        "vehicle_id": {
+          "name": "车辆 ID",
+          "description": "CarLinko 车辆 ID。"
+        }
       }
     }
   }

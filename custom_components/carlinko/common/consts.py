@@ -20,8 +20,20 @@ WS_SETUP_TIMEOUT_S = 60
 CAPS_REFRESH_INTERVAL_S = 3300
 # REST poll for /maps/deviceLocate when location is supported (WS remains push).
 LOCATION_POLL_INTERVAL_S = 900
+# Operational notices (types 2+4): unread check + event emit.
+NOTICE_POLL_INTERVAL_S = 300
+# Dealer service history summary sensors.
+MAINTAIN_POLL_INTERVAL_S = 43200
+# Read-only firmware offer check (also once at startup).
+FIRMWARE_POLL_INTERVAL_S = 86400
 # Cloud: vehicle control / locate function unavailable.
 LOCATION_UNSUPPORTED_CODES = frozenset({"50049"})
+# Notice page types that are operational (not CMS/marketing).
+NOTICE_OPERATIONAL_TYPES = (2, 4)
+NOTICE_TYPE_NAMES = {2: "vehicle", 4: "control"}
+EVENT_NOTICE = f"{DOMAIN}_notice"
+# First OTA probe when no stored current version is known.
+FIRMWARE_VERSION_FALLBACK = "0.0.0"
 
 # Sorted by English display name (see selector.region translations).
 KNOWN_REGIONS = (
@@ -70,6 +82,25 @@ LOCATION_META_KEYS = (
     "location_address",
     "location_updated",
 )
+# REST enrichment / poll bookkeeping preserved across fleet sync.
+REST_META_KEYS = (
+    "notice_last_poll",
+    "notice_seen_ids",
+    "notice_unread",
+    "maintain_last_poll",
+    "maintain_last_project",
+    "maintain_last_date",
+    "maintain_last_odometer",
+    "maintain_next_date",
+    "maintain_next_odometer",
+    "firmware_last_check",
+    "firmware_current_version",
+    "firmware_available",
+    "firmware_offered_version",
+    "firmware_upgrading",
+)
+# Union used by store.set_vehicles when merging prior meta.
+PRESERVED_VEHICLE_META_KEYS = LOCATION_META_KEYS + REST_META_KEYS
 DEFAULT_PORT = 8088
 
 # Static device/app fields for POST /user/login (account/password/dateTime filled at call time).

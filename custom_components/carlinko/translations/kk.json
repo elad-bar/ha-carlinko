@@ -51,6 +51,12 @@
     },
     "control_failed": {
       "message": "Қашықтан басқару сәтсіз аяқталды: {error}"
+    },
+    "unknown_vehicle": {
+      "message": "Белгісіз көлік: {vehicle_id}"
+    },
+    "missing_maintain_id": {
+      "message": "Қызмет көрсету идентификаторы қажет."
     }
   },
   "entity": {
@@ -163,6 +169,27 @@
       },
       "tyre_rr_temp": {
         "name": "Артқы оң шина температуры"
+      },
+      "notice_unread": {
+        "name": "Оқылмаған хабарламалар"
+      },
+      "maintain_last_project": {
+        "name": "Соңғы қызмет"
+      },
+      "maintain_last_date": {
+        "name": "Соңғы қызмет күні"
+      },
+      "maintain_last_odometer": {
+        "name": "Соңғы қызмет одометрі"
+      },
+      "maintain_next_date": {
+        "name": "Келесі қызмет күні"
+      },
+      "maintain_next_odometer": {
+        "name": "Келесі қызмет одометрі"
+      },
+      "firmware_offered_version": {
+        "name": "Ұсынылған микробағдарлама нұсқасы"
       }
     },
     "binary_sensor": {
@@ -207,6 +234,12 @@
       },
       "defrost": {
         "name": "Мұзды еру"
+      },
+      "firmware_update_available": {
+        "name": "Микробағдарлама жаңартуы қолжетімді"
+      },
+      "firmware_upgrading": {
+        "name": "Микробағдарлама жаңартылуда"
       }
     },
     "number": {
@@ -371,6 +404,64 @@
         "sea": "Оңтүстік-Шығыс Азия",
         "uzb": "Өзбекстан",
         "vn": "Вьетнам"
+      }
+    }
+  },
+  "services": {
+    "get_notices": {
+      "name": "Хабарламаларды алу",
+      "description": "Көліктің операциялық хабарламаларын тізімдеу (көлік және басқару түрлері).",
+      "fields": {
+        "vehicle_id": {
+          "name": "Көлік ID",
+          "description": "CarLinko көлік идентификаторы."
+        },
+        "page": {
+          "name": "Бет",
+          "description": "Бет нөмірі (әдепкі 1)."
+        }
+      }
+    },
+    "get_maintain_history": {
+      "name": "Қызмет тарихын алу",
+      "description": "Көлікке арналған дилерлік қызмет тарихын тізімдеу.",
+      "fields": {
+        "vehicle_id": {
+          "name": "Көлік ID",
+          "description": "CarLinko көлік идентификаторы."
+        },
+        "query_key": {
+          "name": "Іздеу",
+          "description": "Қосымша іздеу жолы."
+        },
+        "page": {
+          "name": "Бет",
+          "description": "Бет нөмірі (әдепкі 1)."
+        }
+      }
+    },
+    "get_maintain_details": {
+      "name": "Қызмет мәліметтерін алу",
+      "description": "Дилер журналы жазбаларын қоса бір қызмет жазбасын алу.",
+      "fields": {
+        "vehicle_id": {
+          "name": "Көлік ID",
+          "description": "CarLinko көлік идентификаторы."
+        },
+        "maintain_id": {
+          "name": "Қызмет ID",
+          "description": "Тарих тізімінен қызмет жазбасының идентификаторы."
+        }
+      }
+    },
+    "check_firmware": {
+      "name": "Микробағдарламаны тексеру",
+      "description": "Жаңарақ көлік микробағдарламасы ұсынылғанын тексеру (тек оқу).",
+      "fields": {
+        "vehicle_id": {
+          "name": "Көлік ID",
+          "description": "CarLinko көлік идентификаторы."
+        }
       }
     }
   }

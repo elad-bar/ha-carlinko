@@ -51,6 +51,12 @@
     },
     "control_failed": {
       "message": "การควบคุมระยะไกลล้มเหลว: {error}"
+    },
+    "unknown_vehicle": {
+      "message": "ไม่พบยานพาหนะ: {vehicle_id}"
+    },
+    "missing_maintain_id": {
+      "message": "ต้องระบุรหัสการบำรุงรักษา"
     }
   },
   "entity": {
@@ -163,6 +169,27 @@
       },
       "tyre_rr_temp": {
         "name": "อุณหภูมิยางหลังขวา"
+      },
+      "notice_unread": {
+        "name": "การแจ้งเตือนที่ยังไม่ได้อ่าน"
+      },
+      "maintain_last_project": {
+        "name": "บริการล่าสุด"
+      },
+      "maintain_last_date": {
+        "name": "วันที่บริการล่าสุด"
+      },
+      "maintain_last_odometer": {
+        "name": "เลขไมล์ตอนบริการล่าสุด"
+      },
+      "maintain_next_date": {
+        "name": "วันที่บริการถัดไป"
+      },
+      "maintain_next_odometer": {
+        "name": "เลขไมล์บริการถัดไป"
+      },
+      "firmware_offered_version": {
+        "name": "เวอร์ชันเฟิร์มแวร์ที่เสนอ"
       }
     },
     "binary_sensor": {
@@ -207,6 +234,12 @@
       },
       "defrost": {
         "name": "ละลายน้ำแข็ง"
+      },
+      "firmware_update_available": {
+        "name": "มีการอัปเดตเฟิร์มแวร์"
+      },
+      "firmware_upgrading": {
+        "name": "กำลังอัปเดตเฟิร์มแวร์"
       }
     },
     "number": {
@@ -371,6 +404,64 @@
         "sea": "เอเชียตะวันออกเฉียงใต้",
         "uzb": "อุซเบกิสถาน",
         "vn": "เวียดนาม"
+      }
+    }
+  },
+  "services": {
+    "get_notices": {
+      "name": "ดึงการแจ้งเตือน",
+      "description": "แสดงรายการการแจ้งเตือนการทำงานของยานพาหนะ (ประเภทยานพาหนะและการควบคุม)",
+      "fields": {
+        "vehicle_id": {
+          "name": "รหัสยานพาหนะ",
+          "description": "รหัสยานพาหนะ CarLinko"
+        },
+        "page": {
+          "name": "หน้า",
+          "description": "หมายเลขหน้า (ค่าเริ่มต้น 1)"
+        }
+      }
+    },
+    "get_maintain_history": {
+      "name": "ดึงประวัติการบำรุงรักษา",
+      "description": "แสดงประวัติบริการของตัวแทนจำหน่ายสำหรับยานพาหนะ",
+      "fields": {
+        "vehicle_id": {
+          "name": "รหัสยานพาหนะ",
+          "description": "รหัสยานพาหนะ CarLinko"
+        },
+        "query_key": {
+          "name": "ค้นหา",
+          "description": "ข้อความค้นหาเพิ่มเติม"
+        },
+        "page": {
+          "name": "หน้า",
+          "description": "หมายเลขหน้า (ค่าเริ่มต้น 1)"
+        }
+      }
+    },
+    "get_maintain_details": {
+      "name": "ดึงรายละเอียดการบำรุงรักษา",
+      "description": "ดึงบันทึกบริการหนึ่งรายการรวมรายการบันทึกของตัวแทนจำหน่าย",
+      "fields": {
+        "vehicle_id": {
+          "name": "รหัสยานพาหนะ",
+          "description": "รหัสยานพาหนะ CarLinko"
+        },
+        "maintain_id": {
+          "name": "รหัสการบำรุงรักษา",
+          "description": "รหัสบันทึกบริการจากรายการประวัติ"
+        }
+      }
+    },
+    "check_firmware": {
+      "name": "ตรวจสอบเฟิร์มแวร์",
+      "description": "ตรวจสอบว่ามีเฟิร์มแวร์ยานพาหนะรุ่นใหม่กว่าเสนอหรือไม่ (อ่านอย่างเดียว)",
+      "fields": {
+        "vehicle_id": {
+          "name": "รหัสยานพาหนะ",
+          "description": "รหัสยานพาหนะ CarLinko"
+        }
       }
     }
   }

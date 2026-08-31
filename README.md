@@ -94,6 +94,14 @@ After setup, configure via the integration’s **Configure** options flow:
 - Push updates over the CarLinko WebSocket (`iot_class: cloud_push`).
 - Vehicle **location** uses a separate REST call (`/maps/deviceLocate`), probed at
   setup and polled every 15 minutes when the car supports it.
+- **Notices** (operational types vehicle/control only): polled every 5 minutes;
+  new rows fire a `carlinko_notice` event. Marketing/CMS announcements are ignored.
+  List on demand via service `carlinko.get_notices`.
+- **Service history**: summary sensors refreshed every 12 hours; full list/details
+  via `carlinko.get_maintain_history` / `carlinko.get_maintain_details`.
+- **Firmware**: read-only check at startup and every 24 hours (plus
+  `carlinko.check_firmware`). Does not download or start OTA. Until a real
+  current firmware string is known, the probe may use `0.0.0` as the baseline.
 - Entities come from the HA-free catalog in
   [`models/entity_specs.py`](custom_components/carlinko/models/entity_specs.py).
 - PHEV, direct TPMS, and capability-gated controls appear when the car reports

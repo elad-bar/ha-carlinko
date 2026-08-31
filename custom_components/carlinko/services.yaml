@@ -1,0 +1,55 @@
+get_notices:
+  fields:
+    vehicle_id:
+      required: true
+      example: "12345"
+      selector:
+        text:
+    page:
+      required: false
+      default: 1
+      selector:
+        number:
+          min: 1
+          mode: box
+
+get_maintain_history:
+  fields:
+    vehicle_id:
+      required: true
+      example: "12345"
+      selector:
+        text:
+    query_key:
+      required: false
+      default: ""
+      selector:
+        text:
+    page:
+      required: false
+      default: 1
+      selector:
+        number:
+          min: 1
+          mode: box
+
+get_maintain_details:
+  fields:
+    vehicle_id:
+      required: true
+      example: "12345"
+      selector:
+        text:
+    maintain_id:
+      required: true
+      example: "abc"
+      selector:
+        text:
+
+check_firmware:
+  fields:
+    vehicle_id:
+      required: true
+      example: "12345"
+      selector:
+        text:

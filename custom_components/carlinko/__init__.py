@@ -14,6 +14,7 @@ from .common.consts import DOMAIN, PLATFORMS as _PLATFORM_NAMES, STORAGE_VERSION
 from .common.helpers import partial_id
 from .managers.coordinator import CarlinkoCoordinator, async_create_coordinator
 from .managers.store import CarlinkoStore, ha_storage_key
+from .services import async_setup_services, async_unload_services
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -55,6 +56,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: CarlinkoConfigEntry) -> 
 
     entry.runtime_data = coordinator
     entry.async_on_unload(entry.add_update_listener(async_reload_entry))
+    async_setup_services(hass)
     _LOGGER.debug(f"async_forward_entry_setups platforms={len(PLATFORMS)}")
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
     _LOGGER.info(f"platforms setup complete count={len(PLATFORMS)}")
@@ -70,6 +72,8 @@ async def async_unload_entry(hass: HomeAssistant, entry: CarlinkoConfigEntry) ->
     _LOGGER.info(f"unload platforms ok={unload_ok}")
     coordinator = entry.runtime_data
     await coordinator.async_stop()
+    if unload_ok:
+        async_unload_services(hass)
     return unload_ok
 
 

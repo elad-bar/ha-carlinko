@@ -51,6 +51,12 @@
     },
     "control_failed": {
       "message": "کنترل از راه دور ناموفق بود: {error}"
+    },
+    "unknown_vehicle": {
+      "message": "خودروی ناشناخته: {vehicle_id}"
+    },
+    "missing_maintain_id": {
+      "message": "شناسه سرویس الزامی است."
     }
   },
   "entity": {
@@ -163,6 +169,27 @@
       },
       "tyre_rr_temp": {
         "name": "دمای لاستیک عقب راست"
+      },
+      "notice_unread": {
+        "name": "اعلان‌های خوانده‌نشده"
+      },
+      "maintain_last_project": {
+        "name": "آخرین سرویس"
+      },
+      "maintain_last_date": {
+        "name": "تاریخ آخرین سرویس"
+      },
+      "maintain_last_odometer": {
+        "name": "کیلومترشمار آخرین سرویس"
+      },
+      "maintain_next_date": {
+        "name": "تاریخ سرویس بعدی"
+      },
+      "maintain_next_odometer": {
+        "name": "کیلومترشمار سرویس بعدی"
+      },
+      "firmware_offered_version": {
+        "name": "نسخه میان‌افزار پیشنهادی"
       }
     },
     "binary_sensor": {
@@ -207,6 +234,12 @@
       },
       "defrost": {
         "name": "یخ‌زدایی"
+      },
+      "firmware_update_available": {
+        "name": "به‌روزرسانی میان‌افزار موجود است"
+      },
+      "firmware_upgrading": {
+        "name": "در حال به‌روزرسانی میان‌افزار"
       }
     },
     "number": {
@@ -371,6 +404,64 @@
         "sea": "آسیای جنوب شرقی",
         "uzb": "ازبکستان",
         "vn": "ویتنام"
+      }
+    }
+  },
+  "services": {
+    "get_notices": {
+      "name": "دریافت اعلان‌ها",
+      "description": "فهرست اعلان‌های عملیاتی خودرو (انواع خودرو و کنترل).",
+      "fields": {
+        "vehicle_id": {
+          "name": "شناسه خودرو",
+          "description": "شناسه خودروی CarLinko."
+        },
+        "page": {
+          "name": "صفحه",
+          "description": "شماره صفحه (پیش‌فرض ۱)."
+        }
+      }
+    },
+    "get_maintain_history": {
+      "name": "دریافت تاریخچه سرویس",
+      "description": "فهرست تاریخچه سرویس نمایندگی برای یک خودرو.",
+      "fields": {
+        "vehicle_id": {
+          "name": "شناسه خودرو",
+          "description": "شناسه خودروی CarLinko."
+        },
+        "query_key": {
+          "name": "جستجو",
+          "description": "رشته جستجوی اختیاری."
+        },
+        "page": {
+          "name": "صفحه",
+          "description": "شماره صفحه (پیش‌فرض ۱)."
+        }
+      }
+    },
+    "get_maintain_details": {
+      "name": "دریافت جزئیات سرویس",
+      "description": "دریافت یک رکورد سرویس شامل ورودی‌های دفتر نمایندگی.",
+      "fields": {
+        "vehicle_id": {
+          "name": "شناسه خودرو",
+          "description": "شناسه خودروی CarLinko."
+        },
+        "maintain_id": {
+          "name": "شناسه سرویس",
+          "description": "شناسه رکورد سرویس از فهرست تاریخچه."
+        }
+      }
+    },
+    "check_firmware": {
+      "name": "بررسی میان‌افزار",
+      "description": "بررسی اینکه آیا میان‌افزار جدیدتری برای خودرو پیشنهاد شده است (فقط خواندنی).",
+      "fields": {
+        "vehicle_id": {
+          "name": "شناسه خودرو",
+          "description": "شناسه خودروی CarLinko."
+        }
       }
     }
   }

@@ -87,6 +87,24 @@ def test_no_engine_on_binary_in_catalog() -> None:
     assert any(s.key == "engine" and s.platform == "switch" for s in ENTITY_SPECS)
 
 
+def test_cloud_rest_entities_in_catalog() -> None:
+    by_key = {s.key: s for s in ENTITY_SPECS}
+    for key in (
+        "notice_unread",
+        "maintain_last_project",
+        "maintain_last_date",
+        "maintain_last_odometer",
+        "maintain_next_date",
+        "maintain_next_odometer",
+        "firmware_update_available",
+        "firmware_offered_version",
+        "firmware_upgrading",
+    ):
+        assert by_key[key].cloud_rest is True
+    assert by_key["firmware_update_available"].platform == "binary_sensor"
+    assert by_key["notice_unread"].platform == "sensor"
+
+
 def test_status_binaries_gated_against_writable_twins() -> None:
     status_keys = {
         "defrost",

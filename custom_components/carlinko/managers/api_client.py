@@ -437,3 +437,162 @@ class ApiClient:
         if data in (0, 1, "0", "1", "true", "false", "True", "False"):
             return str(data).lower() in ("1", "true")
         return None
+
+    async def _signed_get(
+        self, path: str, params: dict[str, Any] | None = None
+    ) -> dict[str, Any]:
+        """GET path with signed query params; re-login once on stale token."""
+        self.reload_ids_from_store()
+        query = {k: ("" if v is None else str(v)) for k, v in (params or {}).items()}
+
+        async def _get(tok: str) -> dict[str, Any]:
+            headers = self.headers_for(query, token=tok)
+            kwargs: dict[str, Any] = {
+                "headers": headers,
+                "timeout": _HTTP_TIMEOUT,
+            }
+            if query:
+                kwargs["params"] = query
+            async with self.session.get(self.api_base + path, **kwargs) as r:
+                return await r.json()
+
+        tok = self.token
+        if not tok:
+            tok = await self.login()
+        _LOGGER.debug(f"GET {path}")
+        d = await _get(tok)
+        if str(d.get("code")) in STALE_TOKEN_CODES:
+            _LOGGER.debug(f"stale token on {path}; re-login and retry")
+            d = await _get(await self.login())
+        if str(d.get("code")) in STALE_TOKEN_CODES:
+            raise AuthError(f"stale token on {path}: {d}")
+        return d if isinstance(d, dict) else {}
+
+    @staticmethod
+    def _page_payload(d: dict[str, Any]) -> dict[str, Any]:
+        """Normalize list+total envelope; empty on non-OK."""
+        if str(d.get("code")) != OK_CODE:
+            return {"total": 0, "data": []}
+        raw = d.get("data")
+        if isinstance(raw, list):
+            items = [r for r in raw if isinstance(r, dict)]
+        elif isinstance(raw, dict):
+            items = [raw]
+        else:
+            items = []
+        try:
+            total = int(d.get("total") if d.get("total") is not None else len(items))
+        except (TypeError, ValueError):
+            total = len(items)
+        return {"total": total, "data": items}
+
+    async def get_notice_unread_count(self, vehicle_id: str) -> dict[str, Any]:
+        """GET /user/notice/unReadCount?vehicleId= — MessageCenterResultBean."""
+        vid = str(vehicle_id or "").strip()
+        if not vid:
+            return {}
+        d = await self._signed_get("/user/notice/unReadCount", {"vehicleId": vid})
+        if str(d.get("code")) != OK_CODE:
+            _LOGGER.debug(
+                f"unReadCount failed vehicle={partial_id(vid)} "
+                f"code={d.get('code')} msg={d.get('msg')}"
+            )
+            return {}
+        data = d.get("data")
+        return dict(data) if isinstance(data, dict) else {}
+
+    async def get_notices(
+        self,
+        vehicle_id: str,
+        notice_type: int,
+        *,
+        page: int = 1,
+        size: int = 20,
+    ) -> dict[str, Any]:
+        """GET /user/notice/page — operational/system notice list."""
+        vid = str(vehicle_id or "").strip()
+        if not vid:
+            return {"total": 0, "data": []}
+        d = await self._signed_get(
+            "/user/notice/page",
+            {
+                "vehicleId": vid,
+                "page": page,
+                "size": size,
+                "type": notice_type,
+            },
+        )
+        if str(d.get("code")) != OK_CODE:
+            _LOGGER.debug(
+                f"notice page failed vehicle={partial_id(vid)} type={notice_type} "
+                f"code={d.get('code')} msg={d.get('msg')}"
+            )
+        return self._page_payload(d)
+
+    async def get_maintain_page(
+        self,
+        vehicle_id: str,
+        *,
+        query_key: str = "",
+        page: int = 1,
+        size: int = 20,
+    ) -> dict[str, Any]:
+        """GET /user/maintain/page — dealer service history."""
+        vid = str(vehicle_id or "").strip()
+        if not vid:
+            return {"total": 0, "data": []}
+        d = await self._signed_get(
+            "/user/maintain/page",
+            {
+                "vehicleId": vid,
+                "queryKey": query_key,
+                "page": page,
+                "size": size,
+            },
+        )
+        if str(d.get("code")) != OK_CODE:
+            _LOGGER.debug(
+                f"maintain page failed vehicle={partial_id(vid)} "
+                f"code={d.get('code')} msg={d.get('msg')}"
+            )
+        return self._page_payload(d)
+
+    async def get_maintain_details(self, maintain_id: str) -> dict[str, Any]:
+        """GET /user/maintain/details/{maintainId}."""
+        mid = str(maintain_id or "").strip()
+        if not mid:
+            return {}
+        d = await self._signed_get(f"/user/maintain/details/{mid}", {"maintainId": mid})
+        if str(d.get("code")) != OK_CODE:
+            _LOGGER.debug(
+                f"maintain details failed id={partial_id(mid)} "
+                f"code={d.get('code')} msg={d.get('msg')}"
+            )
+            return {}
+        data = d.get("data")
+        return dict(data) if isinstance(data, dict) else {}
+
+    async def get_higher_firmware(
+        self, device_id: str, version: str
+    ) -> dict[str, Any] | None:
+        """GET /user/higherFirmware — None when no upgrade / soft failure."""
+        did = str(device_id or "").strip()
+        ver = str(version or "").strip()
+        if not did or not ver:
+            return None
+        d = await self._signed_get(
+            "/user/higherFirmware",
+            {"deviceId": did, "version": ver},
+        )
+        if str(d.get("code")) != OK_CODE:
+            _LOGGER.debug(
+                f"higherFirmware failed device={partial_id(did)} "
+                f"code={d.get('code')} msg={d.get('msg')}"
+            )
+            return None
+        data = d.get("data")
+        if data is None or data == "":
+            return None
+        if isinstance(data, dict):
+            return dict(data)
+        return None

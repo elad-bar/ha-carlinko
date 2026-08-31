@@ -66,6 +66,12 @@
     },
     "control_failed": {
       "message": "שליטה מרחוק נכשלה: {error}"
+    },
+    "unknown_vehicle": {
+      "message": "רכב לא ידוע: {vehicle_id}"
+    },
+    "missing_maintain_id": {
+      "message": "נדרש מזהה טיפול."
     }
   },
   "entity": {
@@ -178,6 +184,27 @@
       },
       "tyre_rr_temp": {
         "name": "טמפ' צמיג אחורי ימין"
+      },
+      "notice_unread": {
+        "name": "התראות שלא נקראו"
+      },
+      "maintain_last_project": {
+        "name": "טיפול אחרון"
+      },
+      "maintain_last_date": {
+        "name": "תאריך טיפול אחרון"
+      },
+      "maintain_last_odometer": {
+        "name": "ק״מ בטיפול האחרון"
+      },
+      "maintain_next_date": {
+        "name": "תאריך טיפול הבא"
+      },
+      "maintain_next_odometer": {
+        "name": "ק״מ לטיפול הבא"
+      },
+      "firmware_offered_version": {
+        "name": "גרסת קושחה מוצעת"
       }
     },
     "binary_sensor": {
@@ -222,6 +249,12 @@
       },
       "defrost": {
         "name": "הפשרה"
+      },
+      "firmware_update_available": {
+        "name": "עדכון קושחה זמין"
+      },
+      "firmware_upgrading": {
+        "name": "עדכון קושחה מתבצע"
       }
     },
     "number": {
@@ -371,6 +404,64 @@
     "device_tracker": {
       "location": {
         "name": "מיקום"
+      }
+    }
+  },
+  "services": {
+    "get_notices": {
+      "name": "קבלת התראות",
+      "description": "הצגת התראות תפעוליות של הרכב (סוגי רכב ושליטה).",
+      "fields": {
+        "vehicle_id": {
+          "name": "מזהה רכב",
+          "description": "מזהה רכב ב-CarLinko."
+        },
+        "page": {
+          "name": "עמוד",
+          "description": "מספר עמוד (ברירת מחדל 1)."
+        }
+      }
+    },
+    "get_maintain_history": {
+      "name": "היסטוריית טיפולים",
+      "description": "הצגת היסטוריית טיפולי מוסך לרכב.",
+      "fields": {
+        "vehicle_id": {
+          "name": "מזהה רכב",
+          "description": "מזהה רכב ב-CarLinko."
+        },
+        "query_key": {
+          "name": "חיפוש",
+          "description": "מחרוזת חיפוש אופציונלית."
+        },
+        "page": {
+          "name": "עמוד",
+          "description": "מספר עמוד (ברירת מחדל 1)."
+        }
+      }
+    },
+    "get_maintain_details": {
+      "name": "פרטי טיפול",
+      "description": "שליפת רשומת טיפול אחת כולל יומן המוסך.",
+      "fields": {
+        "vehicle_id": {
+          "name": "מזהה רכב",
+          "description": "מזהה רכב ב-CarLinko."
+        },
+        "maintain_id": {
+          "name": "מזהה טיפול",
+          "description": "מזהה רשומת טיפול מרשימת ההיסטוריה."
+        }
+      }
+    },
+    "check_firmware": {
+      "name": "בדיקת קושחה",
+      "description": "בדיקה האם מוצעת קושחה חדשה יותר לרכב (קריאה בלבד).",
+      "fields": {
+        "vehicle_id": {
+          "name": "מזהה רכב",
+          "description": "מזהה רכב ב-CarLinko."
+        }
       }
     }
   }

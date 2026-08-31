@@ -66,6 +66,70 @@
     },
     "control_failed": {
       "message": "Remote control failed: {error}"
+    },
+    "unknown_vehicle": {
+      "message": "Unknown vehicle: {vehicle_id}"
+    },
+    "missing_maintain_id": {
+      "message": "Maintain id is required."
+    }
+  },
+  "services": {
+    "get_notices": {
+      "name": "Get notices",
+      "description": "List operational vehicle notices (types vehicle and control).",
+      "fields": {
+        "vehicle_id": {
+          "name": "Vehicle ID",
+          "description": "CarLinko vehicle id."
+        },
+        "page": {
+          "name": "Page",
+          "description": "Page number (default 1)."
+        }
+      }
+    },
+    "get_maintain_history": {
+      "name": "Get maintain history",
+      "description": "List dealer service history for a vehicle.",
+      "fields": {
+        "vehicle_id": {
+          "name": "Vehicle ID",
+          "description": "CarLinko vehicle id."
+        },
+        "query_key": {
+          "name": "Search",
+          "description": "Optional search string."
+        },
+        "page": {
+          "name": "Page",
+          "description": "Page number (default 1)."
+        }
+      }
+    },
+    "get_maintain_details": {
+      "name": "Get maintain details",
+      "description": "Fetch one service record including dealer log entries.",
+      "fields": {
+        "vehicle_id": {
+          "name": "Vehicle ID",
+          "description": "CarLinko vehicle id."
+        },
+        "maintain_id": {
+          "name": "Maintain ID",
+          "description": "Service record id from the history list."
+        }
+      }
+    },
+    "check_firmware": {
+      "name": "Check firmware",
+      "description": "Check whether a newer vehicle firmware is offered (read-only).",
+      "fields": {
+        "vehicle_id": {
+          "name": "Vehicle ID",
+          "description": "CarLinko vehicle id."
+        }
+      }
     }
   },
   "entity": {
@@ -178,6 +242,27 @@
       },
       "tyre_rr_temp": {
         "name": "Rear right temp"
+      },
+      "notice_unread": {
+        "name": "Notice unread"
+      },
+      "maintain_last_project": {
+        "name": "Last service"
+      },
+      "maintain_last_date": {
+        "name": "Last service date"
+      },
+      "maintain_last_odometer": {
+        "name": "Last service odometer"
+      },
+      "maintain_next_date": {
+        "name": "Next service date"
+      },
+      "maintain_next_odometer": {
+        "name": "Next service odometer"
+      },
+      "firmware_offered_version": {
+        "name": "Firmware offered version"
       }
     },
     "binary_sensor": {
@@ -222,6 +307,12 @@
       },
       "defrost": {
         "name": "Defrost"
+      },
+      "firmware_update_available": {
+        "name": "Firmware update available"
+      },
+      "firmware_upgrading": {
+        "name": "Firmware upgrading"
       }
     },
     "number": {

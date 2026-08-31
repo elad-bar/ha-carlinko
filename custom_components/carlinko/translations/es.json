@@ -51,6 +51,12 @@
     },
     "control_failed": {
       "message": "Control remoto fallido: {error}"
+    },
+    "unknown_vehicle": {
+      "message": "Vehículo desconocido: {vehicle_id}"
+    },
+    "missing_maintain_id": {
+      "message": "Se requiere el ID de mantenimiento."
     }
   },
   "entity": {
@@ -163,6 +169,27 @@
       },
       "tyre_rr_temp": {
         "name": "Temp. neumático tras. der."
+      },
+      "notice_unread": {
+        "name": "Avisos no leídos"
+      },
+      "maintain_last_project": {
+        "name": "Último servicio"
+      },
+      "maintain_last_date": {
+        "name": "Fecha del último servicio"
+      },
+      "maintain_last_odometer": {
+        "name": "Odómetro del último servicio"
+      },
+      "maintain_next_date": {
+        "name": "Fecha del próximo servicio"
+      },
+      "maintain_next_odometer": {
+        "name": "Odómetro del próximo servicio"
+      },
+      "firmware_offered_version": {
+        "name": "Versión de firmware ofrecida"
       }
     },
     "binary_sensor": {
@@ -207,6 +234,12 @@
       },
       "defrost": {
         "name": "Desempañado"
+      },
+      "firmware_update_available": {
+        "name": "Actualización de firmware disponible"
+      },
+      "firmware_upgrading": {
+        "name": "Actualizando firmware"
       }
     },
     "number": {
@@ -371,6 +404,64 @@
         "sea": "Sudeste Asiático",
         "uzb": "Uzbekistán",
         "vn": "Vietnam"
+      }
+    }
+  },
+  "services": {
+    "get_notices": {
+      "name": "Obtener avisos",
+      "description": "Listar avisos operativos del vehículo (tipos vehículo y control).",
+      "fields": {
+        "vehicle_id": {
+          "name": "ID del vehículo",
+          "description": "ID de vehículo CarLinko."
+        },
+        "page": {
+          "name": "Página",
+          "description": "Número de página (predeterminado 1)."
+        }
+      }
+    },
+    "get_maintain_history": {
+      "name": "Obtener historial de mantenimiento",
+      "description": "Listar el historial de servicio del concesionario de un vehículo.",
+      "fields": {
+        "vehicle_id": {
+          "name": "ID del vehículo",
+          "description": "ID de vehículo CarLinko."
+        },
+        "query_key": {
+          "name": "Buscar",
+          "description": "Cadena de búsqueda opcional."
+        },
+        "page": {
+          "name": "Página",
+          "description": "Número de página (predeterminado 1)."
+        }
+      }
+    },
+    "get_maintain_details": {
+      "name": "Obtener detalles de mantenimiento",
+      "description": "Obtener un registro de servicio, incluidas las entradas del registro del concesionario.",
+      "fields": {
+        "vehicle_id": {
+          "name": "ID del vehículo",
+          "description": "ID de vehículo CarLinko."
+        },
+        "maintain_id": {
+          "name": "ID de mantenimiento",
+          "description": "ID del registro de servicio de la lista del historial."
+        }
+      }
+    },
+    "check_firmware": {
+      "name": "Comprobar firmware",
+      "description": "Comprobar si se ofrece un firmware más reciente del vehículo (solo lectura).",
+      "fields": {
+        "vehicle_id": {
+          "name": "ID del vehículo",
+          "description": "ID de vehículo CarLinko."
+        }
       }
     }
   }

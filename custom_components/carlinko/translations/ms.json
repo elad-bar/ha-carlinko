@@ -51,6 +51,12 @@
     },
     "control_failed": {
       "message": "Kawalan jauh gagal: {error}"
+    },
+    "unknown_vehicle": {
+      "message": "Kenderaan tidak diketahui: {vehicle_id}"
+    },
+    "missing_maintain_id": {
+      "message": "ID penyelenggaraan diperlukan."
     }
   },
   "entity": {
@@ -163,6 +169,27 @@
       },
       "tyre_rr_temp": {
         "name": "Suhu tayar belakang kanan"
+      },
+      "notice_unread": {
+        "name": "Notis belum dibaca"
+      },
+      "maintain_last_project": {
+        "name": "Servis terakhir"
+      },
+      "maintain_last_date": {
+        "name": "Tarikh servis terakhir"
+      },
+      "maintain_last_odometer": {
+        "name": "Odometer servis terakhir"
+      },
+      "maintain_next_date": {
+        "name": "Tarikh servis seterusnya"
+      },
+      "maintain_next_odometer": {
+        "name": "Odometer servis seterusnya"
+      },
+      "firmware_offered_version": {
+        "name": "Versi perisian tegar ditawarkan"
       }
     },
     "binary_sensor": {
@@ -207,6 +234,12 @@
       },
       "defrost": {
         "name": "Nyahbeku"
+      },
+      "firmware_update_available": {
+        "name": "Kemas kini perisian tegar tersedia"
+      },
+      "firmware_upgrading": {
+        "name": "Perisian tegar sedang dikemas kini"
       }
     },
     "number": {
@@ -371,6 +404,64 @@
         "sea": "Asia Tenggara",
         "uzb": "Uzbekistan",
         "vn": "Vietnam"
+      }
+    }
+  },
+  "services": {
+    "get_notices": {
+      "name": "Dapatkan notis",
+      "description": "Senaraikan notis operasi kenderaan (jenis kenderaan dan kawalan).",
+      "fields": {
+        "vehicle_id": {
+          "name": "ID kenderaan",
+          "description": "ID kenderaan CarLinko."
+        },
+        "page": {
+          "name": "Halaman",
+          "description": "Nombor halaman (lalai 1)."
+        }
+      }
+    },
+    "get_maintain_history": {
+      "name": "Dapatkan sejarah penyelenggaraan",
+      "description": "Senaraikan sejarah servis peniaga untuk kenderaan.",
+      "fields": {
+        "vehicle_id": {
+          "name": "ID kenderaan",
+          "description": "ID kenderaan CarLinko."
+        },
+        "query_key": {
+          "name": "Cari",
+          "description": "Rentetan carian pilihan."
+        },
+        "page": {
+          "name": "Halaman",
+          "description": "Nombor halaman (lalai 1)."
+        }
+      }
+    },
+    "get_maintain_details": {
+      "name": "Dapatkan butiran penyelenggaraan",
+      "description": "Ambil satu rekod servis termasuk entri log peniaga.",
+      "fields": {
+        "vehicle_id": {
+          "name": "ID kenderaan",
+          "description": "ID kenderaan CarLinko."
+        },
+        "maintain_id": {
+          "name": "ID penyelenggaraan",
+          "description": "ID rekod servis daripada senarai sejarah."
+        }
+      }
+    },
+    "check_firmware": {
+      "name": "Semak perisian tegar",
+      "description": "Semak sama ada perisian tegar kenderaan yang lebih baharu ditawarkan (baca sahaja).",
+      "fields": {
+        "vehicle_id": {
+          "name": "ID kenderaan",
+          "description": "ID kenderaan CarLinko."
+        }
       }
     }
   }

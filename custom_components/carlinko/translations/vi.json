@@ -51,6 +51,12 @@
     },
     "control_failed": {
       "message": "Điều khiển từ xa thất bại: {error}"
+    },
+    "unknown_vehicle": {
+      "message": "Xe không xác định: {vehicle_id}"
+    },
+    "missing_maintain_id": {
+      "message": "Yêu cầu mã bảo dưỡng."
     }
   },
   "entity": {
@@ -163,6 +169,27 @@
       },
       "tyre_rr_temp": {
         "name": "Nhiệt độ lốp sau phải"
+      },
+      "notice_unread": {
+        "name": "Thông báo chưa đọc"
+      },
+      "maintain_last_project": {
+        "name": "Lần bảo dưỡng gần nhất"
+      },
+      "maintain_last_date": {
+        "name": "Ngày bảo dưỡng gần nhất"
+      },
+      "maintain_last_odometer": {
+        "name": "Số km lần bảo dưỡng gần nhất"
+      },
+      "maintain_next_date": {
+        "name": "Ngày bảo dưỡng tiếp theo"
+      },
+      "maintain_next_odometer": {
+        "name": "Số km bảo dưỡng tiếp theo"
+      },
+      "firmware_offered_version": {
+        "name": "Phiên bản firmware được đề xuất"
       }
     },
     "binary_sensor": {
@@ -207,6 +234,12 @@
       },
       "defrost": {
         "name": "Rã đông"
+      },
+      "firmware_update_available": {
+        "name": "Có bản cập nhật firmware"
+      },
+      "firmware_upgrading": {
+        "name": "Đang cập nhật firmware"
       }
     },
     "number": {
@@ -371,6 +404,64 @@
         "sea": "Đông Nam Á",
         "uzb": "Uzbekistan",
         "vn": "Việt Nam"
+      }
+    }
+  },
+  "services": {
+    "get_notices": {
+      "name": "Lấy thông báo",
+      "description": "Liệt kê thông báo vận hành của xe (loại xe và điều khiển).",
+      "fields": {
+        "vehicle_id": {
+          "name": "ID xe",
+          "description": "ID xe CarLinko."
+        },
+        "page": {
+          "name": "Trang",
+          "description": "Số trang (mặc định 1)."
+        }
+      }
+    },
+    "get_maintain_history": {
+      "name": "Lấy lịch sử bảo dưỡng",
+      "description": "Liệt kê lịch sử bảo dưỡng đại lý của một xe.",
+      "fields": {
+        "vehicle_id": {
+          "name": "ID xe",
+          "description": "ID xe CarLinko."
+        },
+        "query_key": {
+          "name": "Tìm kiếm",
+          "description": "Chuỗi tìm kiếm tùy chọn."
+        },
+        "page": {
+          "name": "Trang",
+          "description": "Số trang (mặc định 1)."
+        }
+      }
+    },
+    "get_maintain_details": {
+      "name": "Lấy chi tiết bảo dưỡng",
+      "description": "Lấy một bản ghi bảo dưỡng bao gồm nhật ký đại lý.",
+      "fields": {
+        "vehicle_id": {
+          "name": "ID xe",
+          "description": "ID xe CarLinko."
+        },
+        "maintain_id": {
+          "name": "ID bảo dưỡng",
+          "description": "ID bản ghi bảo dưỡng từ danh sách lịch sử."
+        }
+      }
+    },
+    "check_firmware": {
+      "name": "Kiểm tra firmware",
+      "description": "Kiểm tra xem có firmware xe mới hơn được đề xuất không (chỉ đọc).",
+      "fields": {
+        "vehicle_id": {
+          "name": "ID xe",
+          "description": "ID xe CarLinko."
+        }
       }
     }
   }

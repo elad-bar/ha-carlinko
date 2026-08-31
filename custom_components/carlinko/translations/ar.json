@@ -51,6 +51,12 @@
     },
     "control_failed": {
       "message": "فشل التحكم عن بُعد: {error}"
+    },
+    "unknown_vehicle": {
+      "message": "مركبة غير معروفة: {vehicle_id}"
+    },
+    "missing_maintain_id": {
+      "message": "معرّف الصيانة مطلوب."
     }
   },
   "entity": {
@@ -163,6 +169,27 @@
       },
       "tyre_rr_temp": {
         "name": "حرارة الإطار الخلفي الأيمن"
+      },
+      "notice_unread": {
+        "name": "إشعارات غير مقروءة"
+      },
+      "maintain_last_project": {
+        "name": "آخر صيانة"
+      },
+      "maintain_last_date": {
+        "name": "تاريخ آخر صيانة"
+      },
+      "maintain_last_odometer": {
+        "name": "عداد المسافة عند آخر صيانة"
+      },
+      "maintain_next_date": {
+        "name": "تاريخ الصيانة التالية"
+      },
+      "maintain_next_odometer": {
+        "name": "عداد المسافة للصيانة التالية"
+      },
+      "firmware_offered_version": {
+        "name": "إصدار البرنامج الثابت المعروض"
       }
     },
     "binary_sensor": {
@@ -207,6 +234,12 @@
       },
       "defrost": {
         "name": "إزالة الجليد"
+      },
+      "firmware_update_available": {
+        "name": "تحديث البرنامج الثابت متاح"
+      },
+      "firmware_upgrading": {
+        "name": "جاري تحديث البرنامج الثابت"
       }
     },
     "number": {
@@ -371,6 +404,64 @@
         "sea": "جنوب شرق آسيا",
         "uzb": "أوزبكستان",
         "vn": "فيتنام"
+      }
+    }
+  },
+  "services": {
+    "get_notices": {
+      "name": "جلب الإشعارات",
+      "description": "عرض إشعارات المركبة التشغيلية (أنواع المركبة والتحكم).",
+      "fields": {
+        "vehicle_id": {
+          "name": "معرّف المركبة",
+          "description": "معرّف مركبة CarLinko."
+        },
+        "page": {
+          "name": "الصفحة",
+          "description": "رقم الصفحة (الافتراضي 1)."
+        }
+      }
+    },
+    "get_maintain_history": {
+      "name": "جلب سجل الصيانة",
+      "description": "عرض سجل صيانة الوكيل لمركبة.",
+      "fields": {
+        "vehicle_id": {
+          "name": "معرّف المركبة",
+          "description": "معرّف مركبة CarLinko."
+        },
+        "query_key": {
+          "name": "بحث",
+          "description": "نص بحث اختياري."
+        },
+        "page": {
+          "name": "الصفحة",
+          "description": "رقم الصفحة (الافتراضي 1)."
+        }
+      }
+    },
+    "get_maintain_details": {
+      "name": "جلب تفاصيل الصيانة",
+      "description": "جلب سجل صيانة واحد بما في ذلك إدخالات سجل الوكيل.",
+      "fields": {
+        "vehicle_id": {
+          "name": "معرّف المركبة",
+          "description": "معرّف مركبة CarLinko."
+        },
+        "maintain_id": {
+          "name": "معرّف الصيانة",
+          "description": "معرّف سجل الصيانة من قائمة السجل."
+        }
+      }
+    },
+    "check_firmware": {
+      "name": "التحقق من البرنامج الثابت",
+      "description": "التحقق مما إذا كان يتوفر برنامج ثابت أحدث للمركبة (للقراءة فقط).",
+      "fields": {
+        "vehicle_id": {
+          "name": "معرّف المركبة",
+          "description": "معرّف مركبة CarLinko."
+        }
       }
     }
   }

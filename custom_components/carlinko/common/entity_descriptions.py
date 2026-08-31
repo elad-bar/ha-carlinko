@@ -70,6 +70,10 @@ _DIAGNOSTIC_KEYS = frozenset(
         "consumption",
         "charge_remaining",
         "charge_mode",
+        "notice_unread",
+        "firmware_update_available",
+        "firmware_offered_version",
+        "firmware_upgrading",
     }
 )
 

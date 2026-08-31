@@ -20,16 +20,17 @@ rules:
   docs-configuration-parameters: done
   docs-known-limitations: done
 
-  action-setup:
-    status: exempt
-    comment: No custom services; empty services.yaml placeholder only.
+  action-setup: done
 
   appropriate-polling:
     status: done
     comment: >-
       Telemetry is cloud_push WebSocket. Location uses REST
       POST /maps/deviceLocate at LOCATION_POLL_INTERVAL_S (15 min) only when
-      the vehicle supports maps locate; not the app's 5s map timer.
+      the vehicle supports maps locate. Notices poll every
+      NOTICE_POLL_INTERVAL_S (5 min); maintain summaries every
+      MAINTAIN_POLL_INTERVAL_S (12 h); firmware check at startup and every
+      FIRMWARE_POLL_INTERVAL_S (24 h).
 
   discovery:
     status: exempt

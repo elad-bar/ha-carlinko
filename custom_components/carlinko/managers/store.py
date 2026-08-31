@@ -18,7 +18,7 @@ from ..common.consts import (
     DEFAULT_PETROL_KML,
     DEFAULT_PETROL_PRICE,
     DEFAULT_TARIFF,
-    LOCATION_META_KEYS,
+    PRESERVED_VEHICLE_META_KEYS,
     STORAGE_KEY,
     STORAGE_VERSION,
 )
@@ -252,21 +252,30 @@ class CarlinkoStore:
         updated: float | None = None,
     ) -> dict[str, Any]:
         """Merge location_* into one vehicle's persisted meta."""
+        patch: dict[str, Any] = {}
+        if supported is not None:
+            patch["location_supported"] = bool(supported)
+        if lat is not None:
+            patch["location_lat"] = lat
+        if lng is not None:
+            patch["location_lng"] = lng
+        if address is not None:
+            patch["location_address"] = address
+        if updated is not None:
+            patch["location_updated"] = updated
+        return self.update_vehicle_meta(vehicle_id, **patch)
+
+    def update_vehicle_meta(self, vehicle_id: str, **fields: Any) -> dict[str, Any]:
+        """Merge arbitrary fields into one vehicle's persisted meta."""
         vid = str(vehicle_id or "")
         if not vid:
             return {}
         vehicles = self.get_vehicles()
         meta = dict(vehicles.get(vid) or {"vehicle_id": vid})
-        if supported is not None:
-            meta["location_supported"] = bool(supported)
-        if lat is not None:
-            meta["location_lat"] = lat
-        if lng is not None:
-            meta["location_lng"] = lng
-        if address is not None:
-            meta["location_address"] = address
-        if updated is not None:
-            meta["location_updated"] = updated
+        for key, value in fields.items():
+            if value is None and key not in meta:
+                continue
+            meta[key] = value
         vehicles[vid] = meta
         self.set_vehicles(vehicles)
         return dict(meta)
@@ -281,11 +290,11 @@ class CarlinkoStore:
                 continue
             m = dict(meta or {})
             m["vehicle_id"] = key
-            # Preserve location_* across fleet refreshes from /user/vehicle.
+            # Preserve location_* / REST poll meta across /user/vehicle refreshes.
             old = prior.get(key) or {}
-            for loc_key in LOCATION_META_KEYS:
-                if loc_key not in m and loc_key in old:
-                    m[loc_key] = old[loc_key]
+            for meta_key in PRESERVED_VEHICLE_META_KEYS:
+                if meta_key not in m and meta_key in old:
+                    m[meta_key] = old[meta_key]
             cleaned[key] = m
         self.data["vehicles"] = cleaned
         if cleaned:

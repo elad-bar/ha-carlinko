@@ -51,6 +51,12 @@
     },
     "control_failed": {
       "message": "Commande à distance a échoué : {error}"
+    },
+    "unknown_vehicle": {
+      "message": "Véhicule inconnu : {vehicle_id}"
+    },
+    "missing_maintain_id": {
+      "message": "L’identifiant d’entretien est requis."
     }
   },
   "entity": {
@@ -163,6 +169,27 @@
       },
       "tyre_rr_temp": {
         "name": "Temp. pneu arrière droit"
+      },
+      "notice_unread": {
+        "name": "Notifications non lues"
+      },
+      "maintain_last_project": {
+        "name": "Dernier entretien"
+      },
+      "maintain_last_date": {
+        "name": "Date du dernier entretien"
+      },
+      "maintain_last_odometer": {
+        "name": "Kilométrage au dernier entretien"
+      },
+      "maintain_next_date": {
+        "name": "Date du prochain entretien"
+      },
+      "maintain_next_odometer": {
+        "name": "Kilométrage au prochain entretien"
+      },
+      "firmware_offered_version": {
+        "name": "Version de firmware proposée"
       }
     },
     "binary_sensor": {
@@ -207,6 +234,12 @@
       },
       "defrost": {
         "name": "Dégivrage"
+      },
+      "firmware_update_available": {
+        "name": "Mise à jour du firmware disponible"
+      },
+      "firmware_upgrading": {
+        "name": "Mise à jour du firmware en cours"
       }
     },
     "number": {
@@ -371,6 +404,64 @@
         "sea": "Asie du Sud-Est",
         "uzb": "Ouzbékistan",
         "vn": "Viêt Nam"
+      }
+    }
+  },
+  "services": {
+    "get_notices": {
+      "name": "Obtenir les notifications",
+      "description": "Lister les notifications opérationnelles du véhicule (types véhicule et contrôle).",
+      "fields": {
+        "vehicle_id": {
+          "name": "ID du véhicule",
+          "description": "Identifiant de véhicule CarLinko."
+        },
+        "page": {
+          "name": "Page",
+          "description": "Numéro de page (défaut 1)."
+        }
+      }
+    },
+    "get_maintain_history": {
+      "name": "Obtenir l’historique d’entretien",
+      "description": "Lister l’historique d’entretien concessionnaire d’un véhicule.",
+      "fields": {
+        "vehicle_id": {
+          "name": "ID du véhicule",
+          "description": "Identifiant de véhicule CarLinko."
+        },
+        "query_key": {
+          "name": "Recherche",
+          "description": "Chaîne de recherche facultative."
+        },
+        "page": {
+          "name": "Page",
+          "description": "Numéro de page (défaut 1)."
+        }
+      }
+    },
+    "get_maintain_details": {
+      "name": "Obtenir les détails d’entretien",
+      "description": "Récupérer une fiche d’entretien incluant le journal concessionnaire.",
+      "fields": {
+        "vehicle_id": {
+          "name": "ID du véhicule",
+          "description": "Identifiant de véhicule CarLinko."
+        },
+        "maintain_id": {
+          "name": "ID d’entretien",
+          "description": "Identifiant de la fiche d’entretien depuis la liste d’historique."
+        }
+      }
+    },
+    "check_firmware": {
+      "name": "Vérifier le firmware",
+      "description": "Vérifier si un firmware véhicule plus récent est proposé (lecture seule).",
+      "fields": {
+        "vehicle_id": {
+          "name": "ID du véhicule",
+          "description": "Identifiant de véhicule CarLinko."
+        }
       }
     }
   }

@@ -61,6 +61,8 @@ class CarlinkoEntity(CoordinatorEntity[CarlinkoCoordinator]):
 
     @property
     def available(self) -> bool:
+        if self.spec.cloud_rest:
+            return self.vehicle_id in self.coordinator.vehicle_ids
         return self.coordinator.is_available(self.vehicle_id)
 
     def _state_value(self):

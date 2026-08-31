@@ -13,6 +13,7 @@ from custom_components.carlinko.common.consts import (
     CONF_PASSWORD,
     CONF_REGION,
     DOMAIN,
+    EVENT_NOTICE,
     STORAGE_VERSION,
 )
 from custom_components.carlinko.managers.coordinator import (
@@ -22,8 +23,13 @@ from custom_components.carlinko.managers.coordinator import (
 from custom_components.carlinko.managers.store import CarlinkoStore, ha_storage_key
 from custom_components.carlinko.models.exceptions import AuthError
 from custom_components.carlinko.models.vehicle_state import VehicleState
+from custom_components.carlinko.services import (
+    SERVICE_GET_NOTICES,
+    _coordinator_for_vehicle,
+    async_setup_services,
+)
 from homeassistant.core import HomeAssistant
-from homeassistant.exceptions import ConfigEntryAuthFailed
+from homeassistant.exceptions import ConfigEntryAuthFailed, HomeAssistantError
 from homeassistant.helpers.storage import Store
 
 _VEHICLES = [
@@ -111,6 +117,30 @@ async def test_async_start_multi_vehicle(hass: HomeAssistant) -> None:
             new_callable=AsyncMock,
             return_value={"code": "50052", "msg": "fail", "data": None},
         ),
+        patch.object(
+            coordinator.api,
+            "get_higher_firmware",
+            new_callable=AsyncMock,
+            return_value=None,
+        ),
+        patch.object(
+            coordinator.api,
+            "get_notice_unread_count",
+            new_callable=AsyncMock,
+            return_value={},
+        ),
+        patch.object(
+            coordinator.api,
+            "get_notices",
+            new_callable=AsyncMock,
+            return_value={"total": 0, "data": []},
+        ),
+        patch.object(
+            coordinator.api,
+            "get_maintain_page",
+            new_callable=AsyncMock,
+            return_value={"total": 0, "data": []},
+        ),
     ):
         await coordinator.async_start()
         await coordinator.async_stop()
@@ -150,6 +180,30 @@ async def test_vehicle_list_add_remove(hass: HomeAssistant) -> None:
             "device_locate",
             new_callable=AsyncMock,
             return_value={"code": "50052", "msg": "fail", "data": None},
+        ),
+        patch.object(
+            coordinator.api,
+            "get_higher_firmware",
+            new_callable=AsyncMock,
+            return_value=None,
+        ),
+        patch.object(
+            coordinator.api,
+            "get_notice_unread_count",
+            new_callable=AsyncMock,
+            return_value={},
+        ),
+        patch.object(
+            coordinator.api,
+            "get_notices",
+            new_callable=AsyncMock,
+            return_value={"total": 0, "data": []},
+        ),
+        patch.object(
+            coordinator.api,
+            "get_maintain_page",
+            new_callable=AsyncMock,
+            return_value={"total": 0, "data": []},
         ),
     ):
         await coordinator.async_start()
@@ -225,3 +279,129 @@ async def test_auth_failure_logs_warning(
 
     assert any("auth failure source=" in r.message for r in caplog.records)
     assert any("starting reauth flow" in r.message for r in caplog.records)
+
+
+@pytest.mark.asyncio
+async def test_notice_poll_bootstrap_then_dedup(hass: HomeAssistant) -> None:
+    entry = _entry()
+    entry.add_to_hass(hass)
+    store = _store(hass, entry)
+    store.data = {
+        "vehicles": {
+            "veh-1": {
+                "vehicle_id": "veh-1",
+                "device_sn": "sn-1",
+                "plate": "AAA",
+                "model": "J5",
+            }
+        }
+    }
+    coordinator = CarlinkoCoordinator(hass, entry, store, MagicMock())
+    rt = VehicleRuntime(
+        vehicle_id="veh-1",
+        device_sn="sn-1",
+        meta=store.get_vehicle_meta("veh-1"),
+        vehicle_state=VehicleState(),
+    )
+    coordinator._vehicles["veh-1"] = rt
+    coordinator._seed_rest_slices_from_meta("veh-1")
+
+    events: list[dict] = []
+
+    def _capture(event) -> None:
+        events.append(dict(event.data))
+
+    hass.bus.async_listen(EVENT_NOTICE, _capture)
+
+    unread = {
+        "vehicleNoticeVo": {"count": 1},
+        "controlNoticeVo": {"count": 0},
+    }
+    page = {
+        "total": 1,
+        "data": [
+            {
+                "noticeId": "n1",
+                "title": "Door open",
+                "contents": "Driver door",
+                "createdTime": "2026-01-01T00:00:00",
+            }
+        ],
+    }
+
+    with (
+        patch.object(
+            coordinator.api,
+            "get_notice_unread_count",
+            new_callable=AsyncMock,
+            return_value=unread,
+        ),
+        patch.object(
+            coordinator.api,
+            "get_notices",
+            new_callable=AsyncMock,
+            return_value=page,
+        ),
+    ):
+        await coordinator._poll_notices_vehicle("veh-1")
+        await hass.async_block_till_done()
+        assert events == []
+        assert "n1" in store.get_vehicle_meta("veh-1").get("notice_seen_ids")
+
+        await coordinator._poll_notices_vehicle("veh-1")
+        await hass.async_block_till_done()
+        assert events == []
+
+        page2 = {
+            "total": 2,
+            "data": [
+                {
+                    "noticeId": "n2",
+                    "title": "New alert",
+                    "contents": "Body",
+                    "createdTime": "2026-01-02T00:00:00",
+                },
+                page["data"][0],
+            ],
+        }
+        coordinator.api.get_notice_unread_count = AsyncMock(
+            return_value={
+                "vehicleNoticeVo": {"count": 2},
+                "controlNoticeVo": {"count": 0},
+            }
+        )
+        coordinator.api.get_notices = AsyncMock(return_value=page2)
+        await coordinator._poll_notices_vehicle("veh-1")
+        await hass.async_block_till_done()
+
+    assert len(events) == 1
+    assert events[0]["notice_id"] == "n2"
+    assert events[0]["vehicle_id"] == "veh-1"
+    assert rt.vehicle_state.data["notices"]["unread"] == 2
+
+
+@pytest.mark.asyncio
+async def test_service_rejects_unknown_vehicle(hass: HomeAssistant) -> None:
+    entry = _entry()
+    entry.add_to_hass(hass)
+    store = _store(hass, entry)
+    coordinator = CarlinkoCoordinator(hass, entry, store, MagicMock())
+    entry.runtime_data = coordinator
+    coordinator._vehicles["veh-1"] = VehicleRuntime(
+        vehicle_id="veh-1",
+        device_sn="sn-1",
+        meta={"vehicle_id": "veh-1", "device_sn": "sn-1"},
+    )
+    async_setup_services(hass)
+
+    with pytest.raises(HomeAssistantError):
+        _coordinator_for_vehicle(hass, "missing-veh")
+
+    with pytest.raises(HomeAssistantError):
+        await hass.services.async_call(
+            DOMAIN,
+            SERVICE_GET_NOTICES,
+            {"vehicle_id": "missing-veh"},
+            blocking=True,
+            return_response=True,
+        )

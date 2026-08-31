@@ -9,6 +9,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ### Added
 
 - **Device tracker** (`location`) via `POST /maps/deviceLocate`: capability probed once at setup (`50049` = unsupported; `50052` = supported but no fix yet), then refreshed every 15 minutes when online; upgrades pick up the entity after reload
+- **Operational notices** (types vehicle/control): poll every 5 minutes, `notice_unread` sensor, `carlinko_notice` bus event for new rows, and `carlinko.get_notices` service (marketing/CMS inboxes ignored)
+- **Service history**: summary sensors (last/next service date and odometer, last project) refreshed every 12 hours; `carlinko.get_maintain_history` / `carlinko.get_maintain_details` for on-demand lists
+- **Firmware status** (read-only): check at startup and every 24 hours plus `carlinko.check_firmware`; exposes update-available / offered version / upgrading — does not download or start OTA
 
 ## [0.1.4] - 2026-08-31
 

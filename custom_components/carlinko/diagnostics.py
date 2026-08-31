@@ -116,6 +116,19 @@ def _vehicle_diagnostics(
         "spec_keys": sorted(coordinator.current_spec_keys(vehicle_id)),
         "live_state": _live_state(coordinator, vehicle_id),
         "entity_values": _entity_values(coordinator, vehicle_id),
+        "rest_poll": {
+            "notice_last_poll": meta.get("notice_last_poll"),
+            "notice_seen_count": len(meta.get("notice_seen_ids") or []),
+            "notice_unread": meta.get("notice_unread"),
+            "maintain_last_poll": meta.get("maintain_last_poll"),
+            "firmware_last_check": meta.get("firmware_last_check"),
+            "firmware": {
+                "available": meta.get("firmware_available"),
+                "offered_version": meta.get("firmware_offered_version"),
+                "upgrading": meta.get("firmware_upgrading"),
+                "current_version": meta.get("firmware_current_version"),
+            },
+        },
     }
     if hass is not None and entry is not None:
         payload["entities"] = _registry_entities(hass, entry, vehicle_id)

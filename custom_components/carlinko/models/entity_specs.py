@@ -30,6 +30,8 @@ class EntitySpec:
         default_factory=dict
     )  # action → remoteControl hex
     door_bit: int | None = None  # for resolve="door_bit"
+    # True: availability follows fleet membership, not WS frame freshness.
+    cloud_rest: bool = False
 
     def __post_init__(self) -> None:
         if isinstance(self.commands, dict):
@@ -550,6 +552,87 @@ ENTITY_SPECS: tuple[EntitySpec, ...] = (
         name="Location",
         when="cap:location",
         data_path="location",
+    ),
+    EntitySpec(
+        key="notice_unread",
+        platform="sensor",
+        name="Notice unread",
+        data_path="notices.unread",
+        state_class="measurement",
+        icon="mdi:bell-badge-outline",
+        cloud_rest=True,
+    ),
+    EntitySpec(
+        key="maintain_last_project",
+        platform="sensor",
+        name="Last service",
+        data_path="maintain.last_project",
+        icon="mdi:car-wrench",
+        cloud_rest=True,
+    ),
+    EntitySpec(
+        key="maintain_last_date",
+        platform="sensor",
+        name="Last service date",
+        data_path="maintain.last_date",
+        icon="mdi:calendar",
+        cloud_rest=True,
+    ),
+    EntitySpec(
+        key="maintain_last_odometer",
+        platform="sensor",
+        name="Last service odometer",
+        data_path="maintain.last_odometer",
+        unit="km",
+        device_class="distance",
+        state_class="measurement",
+        icon="mdi:counter",
+        cloud_rest=True,
+    ),
+    EntitySpec(
+        key="maintain_next_date",
+        platform="sensor",
+        name="Next service date",
+        data_path="maintain.next_date",
+        icon="mdi:calendar-clock",
+        cloud_rest=True,
+    ),
+    EntitySpec(
+        key="maintain_next_odometer",
+        platform="sensor",
+        name="Next service odometer",
+        data_path="maintain.next_odometer",
+        unit="km",
+        device_class="distance",
+        state_class="measurement",
+        icon="mdi:counter",
+        cloud_rest=True,
+    ),
+    EntitySpec(
+        key="firmware_update_available",
+        platform="binary_sensor",
+        name="Firmware update available",
+        data_path="firmware.available",
+        device_class="update",
+        icon="mdi:cellphone-arrow-down",
+        cloud_rest=True,
+    ),
+    EntitySpec(
+        key="firmware_offered_version",
+        platform="sensor",
+        name="Firmware offered version",
+        data_path="firmware.offered_version",
+        icon="mdi:chip",
+        cloud_rest=True,
+    ),
+    EntitySpec(
+        key="firmware_upgrading",
+        platform="binary_sensor",
+        name="Firmware upgrading",
+        data_path="firmware.upgrading",
+        device_class="running",
+        icon="mdi:progress-download",
+        cloud_rest=True,
     ),
     EntitySpec(
         key="charge_stop",

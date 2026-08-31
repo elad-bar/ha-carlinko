@@ -31,7 +31,14 @@ from ..common.consts import (
     CONF_PASSWORD,
     CONF_STREAM_BACKSTOP,
     DOMAIN,
+    EVENT_NOTICE,
+    FIRMWARE_POLL_INTERVAL_S,
+    FIRMWARE_VERSION_FALLBACK,
     LOCATION_POLL_INTERVAL_S,
+    MAINTAIN_POLL_INTERVAL_S,
+    NOTICE_OPERATIONAL_TYPES,
+    NOTICE_POLL_INTERVAL_S,
+    NOTICE_TYPE_NAMES,
     OK_CODE,
     STALE_TOKEN_CODES,
     STORAGE_VERSION,
@@ -101,10 +108,15 @@ class CarlinkoCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         self._stop = asyncio.Event()
         self._caps_task: asyncio.Task | None = None
         self._location_task: asyncio.Task | None = None
+        self._notice_task: asyncio.Task | None = None
+        self._maintain_task: asyncio.Task | None = None
+        self._firmware_task: asyncio.Task | None = None
         self._vehicles: dict[str, VehicleRuntime] = {}
         self._entity_listeners: list[EntityListener] = []
         self._was_available: dict[str, bool] = {}
         self.data: dict[str, Any] = {"vehicles": {}}
+        # Last operational unread sum per vehicle (drives notice page fetch).
+        self._notice_unread_seen: dict[str, int] = {}
 
     @property
     def vehicle_ids(self) -> list[str]:
@@ -238,6 +250,58 @@ class CarlinkoCoordinator(DataUpdateCoordinator[dict[str, Any]]):
     def _seed_location_from_meta(self, vehicle_id: str) -> None:
         self._apply_location_to_runtime(vehicle_id)
 
+    @staticmethod
+    def _empty_rest_slices() -> dict[str, Any]:
+        return {
+            "notices": {"unread": 0},
+            "maintain": {
+                "last_project": None,
+                "last_date": None,
+                "last_odometer": None,
+                "next_date": None,
+                "next_odometer": None,
+            },
+            "firmware": {
+                "available": False,
+                "offered_version": None,
+                "upgrading": False,
+            },
+        }
+
+    def _seed_rest_slices_from_meta(self, vehicle_id: str) -> None:
+        """Hydrate notice/maintain/firmware VehicleState from persisted meta."""
+        rt = self._vehicles.get(str(vehicle_id))
+        if rt is None:
+            return
+        meta = self.store.get_vehicle_meta(vehicle_id)
+        rt.meta = meta
+        data = rt.vehicle_state.data
+        for key, empty in self._empty_rest_slices().items():
+            if key not in data or not isinstance(data.get(key), dict):
+                data[key] = dict(empty)
+        if meta.get("notice_unread") is not None:
+            try:
+                data["notices"]["unread"] = int(meta["notice_unread"])
+            except (TypeError, ValueError):
+                pass
+        maintain = data["maintain"]
+        for field_name, meta_key in (
+            ("last_project", "maintain_last_project"),
+            ("last_date", "maintain_last_date"),
+            ("last_odometer", "maintain_last_odometer"),
+            ("next_date", "maintain_next_date"),
+            ("next_odometer", "maintain_next_odometer"),
+        ):
+            if meta_key in meta:
+                maintain[field_name] = meta.get(meta_key)
+        firmware = data["firmware"]
+        if "firmware_available" in meta:
+            firmware["available"] = bool(meta.get("firmware_available"))
+        if "firmware_offered_version" in meta:
+            firmware["offered_version"] = meta.get("firmware_offered_version")
+        if "firmware_upgrading" in meta:
+            firmware["upgrading"] = bool(meta.get("firmware_upgrading"))
+
     async def _probe_location(self, vehicle_id: str, *, force: bool = False) -> None:
         """One locate call; update capability + coords. Never raises for setup."""
         rt = self._vehicles.get(str(vehicle_id))
@@ -359,12 +423,21 @@ class CarlinkoCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             self._start_ws(vid)
             self._async_refresh_device(vid)
             self._seed_location_from_meta(vid)
+            self._seed_rest_slices_from_meta(vid)
         self._publish_data()
         await self._async_wait_for_stream()
         try:
             await self._probe_all_locations()
         except AuthError as err:
             await self._async_handle_auth_failure(err, source="location_probe")
+            raise ConfigEntryAuthFailed(
+                translation_domain=DOMAIN,
+                translation_key="auth_failed",
+            ) from err
+        try:
+            await self._probe_all_firmware()
+        except AuthError as err:
+            await self._async_handle_auth_failure(err, source="firmware_probe")
             raise ConfigEntryAuthFailed(
                 translation_domain=DOMAIN,
                 translation_key="auth_failed",
@@ -378,11 +451,29 @@ class CarlinkoCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         self._location_task = self.hass.async_create_background_task(
             self._location_poll_loop(), name=f"{DOMAIN}_location"
         )
+        self._notice_task = self.hass.async_create_background_task(
+            self._notice_poll_loop(), name=f"{DOMAIN}_notice"
+        )
+        self._maintain_task = self.hass.async_create_background_task(
+            self._maintain_poll_loop(), name=f"{DOMAIN}_maintain"
+        )
+        self._firmware_task = self.hass.async_create_background_task(
+            self._firmware_poll_loop(), name=f"{DOMAIN}_firmware"
+        )
         _LOGGER.debug(
             f"_caps_refresh_loop task started interval={CAPS_REFRESH_INTERVAL_S}s"
         )
         _LOGGER.debug(
             f"_location_poll_loop task started interval={LOCATION_POLL_INTERVAL_S}s"
+        )
+        _LOGGER.debug(
+            f"_notice_poll_loop task started interval={NOTICE_POLL_INTERVAL_S}s"
+        )
+        _LOGGER.debug(
+            f"_maintain_poll_loop task started interval={MAINTAIN_POLL_INTERVAL_S}s"
+        )
+        _LOGGER.debug(
+            f"_firmware_poll_loop task started interval={FIRMWARE_POLL_INTERVAL_S}s"
         )
         region = require_region_from_entry_data(self.entry.data)
         _LOGGER.info(
@@ -445,6 +536,7 @@ class CarlinkoCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 self._vehicles[vid].device_sn = str(meta.get("device_sn") or "")
                 self._async_refresh_device(vid)
                 self._seed_location_from_meta(vid)
+                self._seed_rest_slices_from_meta(vid)
             else:
                 rt = VehicleRuntime(
                     vehicle_id=vid,
@@ -463,6 +555,7 @@ class CarlinkoCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 )
                 self._vehicles[vid] = rt
                 self._seed_location_from_meta(vid)
+                self._seed_rest_slices_from_meta(vid)
                 self._async_refresh_device(vid)
                 plate = meta.get("plate") or "—"
                 _LOGGER.info(f"vehicle added starting ws vehicle={vid} plate={plate}")
@@ -482,6 +575,7 @@ class CarlinkoCoordinator(DataUpdateCoordinator[dict[str, Any]]):
     async def _async_probe_new_vehicle(self, vehicle_id: str) -> None:
         try:
             await self._probe_location(vehicle_id)
+            await self._probe_firmware(vehicle_id)
             self._publish_data()
             self._maybe_notify_spec_changes(vehicle_id)
         except AuthError as err:
@@ -664,6 +758,270 @@ class CarlinkoCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                     _LOGGER.exception(f"location poll failed vehicle={partial_id(vid)}")
             self._publish_data()
 
+    @staticmethod
+    def _operational_unread(center: dict[str, Any]) -> int:
+        total = 0
+        for key, notice_type in (
+            ("vehicleNoticeVo", 2),
+            ("controlNoticeVo", 4),
+        ):
+            if notice_type not in NOTICE_OPERATIONAL_TYPES:
+                continue
+            vo = center.get(key)
+            if not isinstance(vo, dict):
+                continue
+            try:
+                total += int(vo.get("count") or 0)
+            except (TypeError, ValueError):
+                continue
+        return total
+
+    async def _poll_notices_vehicle(self, vehicle_id: str) -> None:
+        """Unread badge + emit events for new operational notices."""
+        vid = str(vehicle_id)
+        center = await self.api.get_notice_unread_count(vid)
+        unread = self._operational_unread(center)
+        rt = self._vehicles.get(vid)
+        if rt is not None:
+            notices = dict(rt.vehicle_state.data.get("notices") or {"unread": 0})
+            notices["unread"] = unread
+            rt.vehicle_state.data["notices"] = notices
+
+        meta = self.store.get_vehicle_meta(vid)
+        seen_raw = meta.get("notice_seen_ids") or []
+        seen: set[str] = {str(x) for x in seen_raw if x is not None and str(x)}
+        bootstrap = meta.get("notice_last_poll") is None
+        prev_unread = self._notice_unread_seen.get(vid)
+        should_fetch = bootstrap or prev_unread is None or unread > int(prev_unread)
+
+        if should_fetch:
+            for notice_type in NOTICE_OPERATIONAL_TYPES:
+                page = await self.api.get_notices(vid, notice_type, page=1, size=20)
+                for row in page.get("data") or []:
+                    nid = str(row.get("noticeId") or row.get("id") or "")
+                    if not nid:
+                        continue
+                    if nid not in seen:
+                        if not bootstrap:
+                            self.hass.bus.async_fire(
+                                EVENT_NOTICE,
+                                {
+                                    "vehicle_id": vid,
+                                    "notice_id": nid,
+                                    "type": notice_type,
+                                    "type_name": NOTICE_TYPE_NAMES.get(
+                                        notice_type, str(notice_type)
+                                    ),
+                                    "title": row.get("title"),
+                                    "contents": row.get("contents"),
+                                    "created_time": row.get("createdTime"),
+                                    "is_read": row.get("isRead"),
+                                    "operation": row.get("operation"),
+                                    "extra": row.get("extra"),
+                                },
+                            )
+                        seen.add(nid)
+
+        ordered = list(seen)
+        if len(ordered) > 200:
+            ordered = ordered[-200:]
+        self.store.update_vehicle_meta(
+            vid,
+            notice_last_poll=time.time(),
+            notice_seen_ids=ordered,
+            notice_unread=unread,
+        )
+        if rt is not None:
+            rt.meta = self.store.get_vehicle_meta(vid)
+
+        self._notice_unread_seen[vid] = unread
+
+    async def _notice_poll_loop(self) -> None:
+        # First pass shortly after start (bootstrap watermark without flooding events).
+        while not self._stop.is_set():
+            for vid in list(self._vehicles):
+                try:
+                    await self._poll_notices_vehicle(vid)
+                except AuthError as err:
+                    await self._async_handle_auth_failure(err, source="notice_poll")
+                    return
+                except Exception:
+                    _LOGGER.exception(f"notice poll failed vehicle={partial_id(vid)}")
+            self._publish_data()
+            try:
+                await asyncio.wait_for(
+                    self._stop.wait(), timeout=NOTICE_POLL_INTERVAL_S
+                )
+                return
+            except asyncio.TimeoutError:
+                pass
+
+    async def _poll_maintain_vehicle(self, vehicle_id: str) -> None:
+        vid = str(vehicle_id)
+        page = await self.api.get_maintain_page(vid, page=1, size=20)
+        items = page.get("data") or []
+        row = items[0] if items else {}
+        summary = {
+            "last_project": row.get("maintainProject"),
+            "last_date": row.get("maintainDate"),
+            "last_odometer": row.get("maintainExtent"),
+            "next_date": row.get("nextMaintainDate"),
+            "next_odometer": row.get("nextMaintainExtent"),
+        }
+        rt = self._vehicles.get(vid)
+        if rt is not None:
+            rt.vehicle_state.data["maintain"] = dict(summary)
+        self.store.update_vehicle_meta(
+            vid,
+            maintain_last_poll=time.time(),
+            maintain_last_project=summary["last_project"],
+            maintain_last_date=summary["last_date"],
+            maintain_last_odometer=summary["last_odometer"],
+            maintain_next_date=summary["next_date"],
+            maintain_next_odometer=summary["next_odometer"],
+        )
+        if rt is not None:
+            rt.meta = self.store.get_vehicle_meta(vid)
+
+    async def _maintain_poll_loop(self) -> None:
+        while not self._stop.is_set():
+            for vid in list(self._vehicles):
+                try:
+                    await self._poll_maintain_vehicle(vid)
+                except AuthError as err:
+                    await self._async_handle_auth_failure(err, source="maintain_poll")
+                    return
+                except Exception:
+                    _LOGGER.exception(f"maintain poll failed vehicle={partial_id(vid)}")
+            self._publish_data()
+            try:
+                await asyncio.wait_for(
+                    self._stop.wait(), timeout=MAINTAIN_POLL_INTERVAL_S
+                )
+                return
+            except asyncio.TimeoutError:
+                pass
+
+    async def _probe_firmware(self, vehicle_id: str) -> dict[str, Any]:
+        vid = str(vehicle_id)
+        rt = self._vehicles.get(vid)
+        meta = self.store.get_vehicle_meta(vid)
+        device_id = str(
+            (rt.device_sn if rt else "") or meta.get("device_sn") or ""
+        ).strip()
+        version = str(
+            meta.get("firmware_current_version") or FIRMWARE_VERSION_FALLBACK
+        ).strip()
+        info = await self.api.get_higher_firmware(device_id, version)
+        snapshot = {
+            "available": bool(info and info.get("version")),
+            "offered_version": (info or {}).get("version") if info else None,
+            "upgrading": bool((info or {}).get("upgrading")) if info else False,
+        }
+        if rt is not None:
+            rt.vehicle_state.data["firmware"] = dict(snapshot)
+        self.store.update_vehicle_meta(
+            vid,
+            firmware_last_check=time.time(),
+            firmware_available=snapshot["available"],
+            firmware_offered_version=snapshot["offered_version"],
+            firmware_upgrading=snapshot["upgrading"],
+        )
+        if rt is not None:
+            rt.meta = self.store.get_vehicle_meta(vid)
+        return snapshot
+
+    async def _probe_all_firmware(self) -> None:
+        for vid in list(self._vehicles):
+            try:
+                await self._probe_firmware(vid)
+            except AuthError:
+                raise
+            except Exception:
+                _LOGGER.exception(f"firmware probe skipped vehicle={partial_id(vid)}")
+
+    async def _firmware_poll_loop(self) -> None:
+        # Startup already probed once; wait a full interval before the next.
+        while not self._stop.is_set():
+            try:
+                await asyncio.wait_for(
+                    self._stop.wait(), timeout=FIRMWARE_POLL_INTERVAL_S
+                )
+                return
+            except asyncio.TimeoutError:
+                pass
+            try:
+                await self._probe_all_firmware()
+            except AuthError as err:
+                await self._async_handle_auth_failure(err, source="firmware_poll")
+                return
+            self._publish_data()
+
+    def _require_vehicle(self, vehicle_id: str) -> str:
+        vid = str(vehicle_id or "").strip()
+        if not vid or vid not in self._vehicles:
+            raise HomeAssistantError(
+                translation_domain=DOMAIN,
+                translation_key="unknown_vehicle",
+                translation_placeholders={"vehicle_id": vid or "—"},
+            )
+        return vid
+
+    async def async_get_notices(
+        self, vehicle_id: str, *, page: int = 1
+    ) -> dict[str, Any]:
+        vid = self._require_vehicle(vehicle_id)
+        items: list[dict[str, Any]] = []
+        total = 0
+        for notice_type in NOTICE_OPERATIONAL_TYPES:
+            result = await self.api.get_notices(vid, notice_type, page=page, size=20)
+            total += int(result.get("total") or 0)
+            for row in result.get("data") or []:
+                items.append(
+                    {
+                        **row,
+                        "type": notice_type,
+                        "type_name": NOTICE_TYPE_NAMES.get(
+                            notice_type, str(notice_type)
+                        ),
+                    }
+                )
+        return {"total": total, "items": items}
+
+    async def async_get_maintain_history(
+        self,
+        vehicle_id: str,
+        *,
+        query_key: str = "",
+        page: int = 1,
+    ) -> dict[str, Any]:
+        vid = self._require_vehicle(vehicle_id)
+        result = await self.api.get_maintain_page(
+            vid, query_key=query_key, page=page, size=20
+        )
+        return {
+            "total": int(result.get("total") or 0),
+            "items": result.get("data") or [],
+        }
+
+    async def async_get_maintain_details(
+        self, vehicle_id: str, maintain_id: str
+    ) -> dict[str, Any]:
+        self._require_vehicle(vehicle_id)
+        mid = str(maintain_id or "").strip()
+        if not mid:
+            raise HomeAssistantError(
+                translation_domain=DOMAIN,
+                translation_key="missing_maintain_id",
+            )
+        return await self.api.get_maintain_details(mid)
+
+    async def async_check_firmware(self, vehicle_id: str) -> dict[str, Any]:
+        vid = self._require_vehicle(vehicle_id)
+        snapshot = await self._probe_firmware(vid)
+        self._publish_data()
+        return snapshot
+
     @callback
     def _handle_frame(self, vehicle_id: str, state: dict) -> None:
         rt = self._vehicles.get(vehicle_id)
@@ -749,10 +1107,14 @@ class CarlinkoCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         ws_count = sum(1 for rt in self._vehicles.values() if rt.ws_task)
         caps = 1 if self._caps_task else 0
         loc = 1 if self._location_task else 0
+        notice = 1 if self._notice_task else 0
+        maintain = 1 if self._maintain_task else 0
+        firmware = 1 if self._firmware_task else 0
         _LOGGER.info(f"coordinator stopping vehicles={len(self._vehicles)}")
         _LOGGER.debug(
             f"async_stop cancel ws tasks count={ws_count} "
-            f"caps_task={caps} location_task={loc}"
+            f"caps_task={caps} location_task={loc} notice_task={notice} "
+            f"maintain_task={maintain} firmware_task={firmware}"
         )
         self._stop.set()
         tasks: list[asyncio.Task] = []
@@ -763,14 +1125,18 @@ class CarlinkoCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 rt.ws_task.cancel()
                 tasks.append(rt.ws_task)
                 rt.ws_task = None
-        if self._caps_task:
-            self._caps_task.cancel()
-            tasks.append(self._caps_task)
-            self._caps_task = None
-        if self._location_task:
-            self._location_task.cancel()
-            tasks.append(self._location_task)
-            self._location_task = None
+        for attr in (
+            "_caps_task",
+            "_location_task",
+            "_notice_task",
+            "_maintain_task",
+            "_firmware_task",
+        ):
+            task = getattr(self, attr)
+            if task:
+                task.cancel()
+                tasks.append(task)
+                setattr(self, attr, None)
         for task in tasks:
             try:
                 await task

@@ -76,6 +76,43 @@ def test_set_vehicles_preserves_location_meta() -> None:
             os.unlink(path)
 
 
+def test_set_vehicles_preserves_rest_meta() -> None:
+    path = tempfile.mktemp(suffix=".json")
+    try:
+        store = CarlinkoStore(path=path)
+        store.set_vehicles(
+            {
+                "v1": {
+                    "device_sn": "s1",
+                    "plate": "AAA",
+                    "model": "J5",
+                    "vin": "VIN1",
+                    "notice_last_poll": 123.0,
+                    "notice_seen_ids": ["n1"],
+                    "firmware_current_version": "1.2.3",
+                }
+            }
+        )
+        store.set_vehicles(
+            {
+                "v1": {
+                    "device_sn": "s1",
+                    "plate": "AAA-NEW",
+                    "model": "J5",
+                    "vin": "VIN1",
+                }
+            }
+        )
+        meta = store.get_vehicle_meta("v1")
+        assert meta["plate"] == "AAA-NEW"
+        assert meta["notice_last_poll"] == 123.0
+        assert meta["notice_seen_ids"] == ["n1"]
+        assert meta["firmware_current_version"] == "1.2.3"
+    finally:
+        if os.path.isfile(path):
+            os.unlink(path)
+
+
 def test_update_vehicle_location_meta() -> None:
     path = tempfile.mktemp(suffix=".json")
     try:

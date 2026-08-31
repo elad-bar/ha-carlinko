@@ -51,6 +51,12 @@
     },
     "control_failed": {
       "message": "遠端控制失敗：{error}"
+    },
+    "unknown_vehicle": {
+      "message": "未知車輛：{vehicle_id}"
+    },
+    "missing_maintain_id": {
+      "message": "需要保養記錄 ID。"
     }
   },
   "entity": {
@@ -163,6 +169,27 @@
       },
       "tyre_rr_temp": {
         "name": "右後輪胎溫度"
+      },
+      "notice_unread": {
+        "name": "未讀通知"
+      },
+      "maintain_last_project": {
+        "name": "上次保養"
+      },
+      "maintain_last_date": {
+        "name": "上次保養日期"
+      },
+      "maintain_last_odometer": {
+        "name": "上次保養里程"
+      },
+      "maintain_next_date": {
+        "name": "下次保養日期"
+      },
+      "maintain_next_odometer": {
+        "name": "下次保養里程"
+      },
+      "firmware_offered_version": {
+        "name": "提供的韌體版本"
       }
     },
     "binary_sensor": {
@@ -207,6 +234,12 @@
       },
       "defrost": {
         "name": "除霜"
+      },
+      "firmware_update_available": {
+        "name": "韌體更新可用"
+      },
+      "firmware_upgrading": {
+        "name": "正在升級韌體"
       }
     },
     "number": {
@@ -371,6 +404,64 @@
         "sea": "東南亞",
         "uzb": "烏茲別克",
         "vn": "越南"
+      }
+    }
+  },
+  "services": {
+    "get_notices": {
+      "name": "取得通知",
+      "description": "列出車輛營運通知（車輛與控制類型）。",
+      "fields": {
+        "vehicle_id": {
+          "name": "車輛 ID",
+          "description": "CarLinko 車輛 ID。"
+        },
+        "page": {
+          "name": "頁碼",
+          "description": "頁碼（預設 1）。"
+        }
+      }
+    },
+    "get_maintain_history": {
+      "name": "取得保養歷史",
+      "description": "列出車輛的經銷商保養歷史。",
+      "fields": {
+        "vehicle_id": {
+          "name": "車輛 ID",
+          "description": "CarLinko 車輛 ID。"
+        },
+        "query_key": {
+          "name": "搜尋",
+          "description": "選用搜尋字串。"
+        },
+        "page": {
+          "name": "頁碼",
+          "description": "頁碼（預設 1）。"
+        }
+      }
+    },
+    "get_maintain_details": {
+      "name": "取得保養詳情",
+      "description": "取得一筆保養紀錄，包含經銷商日誌項目。",
+      "fields": {
+        "vehicle_id": {
+          "name": "車輛 ID",
+          "description": "CarLinko 車輛 ID。"
+        },
+        "maintain_id": {
+          "name": "保養 ID",
+          "description": "歷史清單中的保養紀錄 ID。"
+        }
+      }
+    },
+    "check_firmware": {
+      "name": "檢查韌體",
+      "description": "檢查是否提供較新的車輛韌體（唯讀）。",
+      "fields": {
+        "vehicle_id": {
+          "name": "車輛 ID",
+          "description": "CarLinko 車輛 ID。"
+        }
       }
     }
   }

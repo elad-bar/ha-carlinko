@@ -82,6 +82,21 @@ async def test_async_setup_and_unload_entry(hass: HomeAssistant) -> None:
         patch(
             "custom_components.carlinko.managers.coordinator.CarlinkoCoordinator._async_refresh_device"
         ),
+        patch(
+            "custom_components.carlinko.managers.api_client.ApiClient.get_higher_firmware",
+            new_callable=AsyncMock,
+            return_value=None,
+        ),
+        patch(
+            "custom_components.carlinko.managers.api_client.ApiClient.get_notice_unread_count",
+            new_callable=AsyncMock,
+            return_value={},
+        ),
+        patch(
+            "custom_components.carlinko.managers.api_client.ApiClient.get_maintain_page",
+            new_callable=AsyncMock,
+            return_value={"total": 0, "data": []},
+        ),
     ):
         assert await hass.config_entries.async_setup(entry.entry_id)
         await hass.async_block_till_done()
