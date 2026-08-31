@@ -51,7 +51,7 @@ after bulk generation.
 
 ## Before you start
 
-- Skim **[README.md](README.md)** and **[docs/api-map.md](docs/api-map.md)**.
+- Skim **[README.md](README.md)**, **[docs/api-map.md](docs/api-map.md)**, and **[docs/logging.md](docs/logging.md)** when adding logs or debugging flows.
 - Run: `cd engine && python entrypoint.py` and confirm entity change logs on stdout.
 - Install hooks once: `pip install -r requirements-dev.txt && pre-commit install`.
   Hooks run on commit (black, flake8, isort, bandit, yamllint, prettier, etc.).

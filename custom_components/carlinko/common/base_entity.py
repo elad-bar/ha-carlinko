@@ -5,6 +5,8 @@ May import homeassistant. HA-free catalog lives in ``models/entity_specs``.
 
 from __future__ import annotations
 
+import logging
+
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
@@ -13,6 +15,9 @@ from ..models.entity_specs import EntitySpec
 from ..models.entity_values import EntityValueResolver
 from .consts import DOMAIN
 from .entity_descriptions import get_entity_description
+from .helpers import partial_id
+
+_LOGGER = logging.getLogger(__name__)
 
 
 class CarlinkoEntity(CoordinatorEntity[CarlinkoCoordinator]):
@@ -66,5 +71,13 @@ class CarlinkoEntity(CoordinatorEntity[CarlinkoCoordinator]):
     async def _async_send_action(self, action: str) -> None:
         opcode = self.spec.resolve_opcode(action)
         if not opcode:
+            _LOGGER.warning(
+                f"remote action failed no opcode entity={self.spec.key} "
+                f"action={action}"
+            )
             raise ValueError(f"no opcode for {self.spec.key}/{action}")
+        _LOGGER.info(
+            f"remote action entity={self.spec.key} action={action} "
+            f"vehicle={partial_id(self.vehicle_id)} opcode={opcode}"
+        )
         await self.coordinator.async_send_control(opcode, vehicle_id=self.vehicle_id)

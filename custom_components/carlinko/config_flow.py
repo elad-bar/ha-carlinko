@@ -11,7 +11,7 @@ import voluptuous as vol
 from homeassistant import config_entries
 from homeassistant.const import CONF_PASSWORD
 from homeassistant.core import callback
-from homeassistant.data_entry_flow import FlowResult
+from homeassistant.data_entry_flow import AbortFlow, FlowResult
 from homeassistant.helpers import selector
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
@@ -26,6 +26,7 @@ from .common.consts import (
     KNOWN_REGIONS,
     STREAM_BACKSTOP,
 )
+from .common.helpers import mask_email, partial_id
 from .managers.api_client import ApiClient
 from .models.exceptions import AuthError
 
@@ -108,34 +109,60 @@ class CarlinkoConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         self, user_input: dict[str, Any] | None = None
     ) -> FlowResult:
         errors: dict[str, str] = {}
+        if user_input is None:
+            _LOGGER.info("config flow started step=user")
         if user_input is not None:
             email = str(user_input[CONF_EMAIL]).strip()
             password = user_input[CONF_PASSWORD]
             region = (user_input.get(CONF_REGION) or DEFAULT_REGION).strip()
+            _LOGGER.info(
+                f"config flow submit step=user region={region} "
+                f"email={mask_email(email)}"
+            )
             await self.async_set_unique_id(email.lower())
-            self._abort_if_unique_id_configured()
+            _LOGGER.debug(f"config flow unique_id set email={email.lower()}")
+            try:
+                self._abort_if_unique_id_configured()
+            except AbortFlow:
+                _LOGGER.warning(
+                    f"config flow abort step=user reason=already_configured "
+                    f"unique_id={email.lower()}"
+                )
+                raise
             try:
                 await self._validate_login(email, password, region)
             except aiohttp.ClientError as err:
-                _LOGGER.debug(f"login cannot_connect: {err}")
+                _LOGGER.warning(
+                    f"config flow failed step=user error=cannot_connect: {err}"
+                )
                 errors["base"] = "cannot_connect"
             except AuthError as err:
-                _LOGGER.debug(f"login failed: {err}")
+                _LOGGER.warning(
+                    f"config flow failed step=user error=invalid_auth: {err}"
+                )
                 errors["base"] = "invalid_auth"
             except ValueError:
+                _LOGGER.warning("config flow abort step=user reason=no_vehicles")
                 return self.async_abort(reason="no_vehicles")
             except Exception as err:
-                _LOGGER.debug(f"login failed: {err}")
+                _LOGGER.exception(f"config flow failed step=user error={err}")
                 errors["base"] = "invalid_auth"
             else:
-                return self.async_create_entry(
-                    title=f"CarLinko ({email})",
+                title = f"CarLinko ({email})"
+                result = self.async_create_entry(
+                    title=title,
                     data={
                         CONF_EMAIL: email,
                         CONF_PASSWORD: password,
                         CONF_REGION: region,
                     },
                 )
+                entry_id = (result.get("result") or {}).get("entry_id", "")
+                _LOGGER.info(
+                    f"config flow created entry title={title} "
+                    f"entry_id={partial_id(entry_id)}"
+                )
+                return result
         return self.async_show_form(
             step_id="user",
             data_schema=_user_schema(user_input),
@@ -150,6 +177,11 @@ class CarlinkoConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     ) -> FlowResult:
         errors: dict[str, str] = {}
         entry = self._get_reauth_entry()
+        if user_input is None:
+            _LOGGER.info(
+                f"config flow started step=reauth_confirm "
+                f"entry_id={partial_id(entry.entry_id)}"
+            )
         if user_input is not None:
             email = entry.data[CONF_EMAIL]
             password = user_input[CONF_PASSWORD]
@@ -159,12 +191,20 @@ class CarlinkoConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                     email, password, region, require_vehicles=False
                 )
             except AuthError as err:
-                _LOGGER.debug(f"reauth login failed: {err}")
+                _LOGGER.warning(
+                    f"config flow failed step=reauth_confirm error=invalid_auth: {err}"
+                )
                 errors["base"] = "invalid_auth"
             except Exception as err:
-                _LOGGER.debug(f"reauth login failed: {err}")
+                _LOGGER.exception(
+                    f"config flow failed step=reauth_confirm error={err}"
+                )
                 errors["base"] = "invalid_auth"
             else:
+                _LOGGER.info(
+                    f"config flow success step=reauth_confirm reloading "
+                    f"entry_id={partial_id(entry.entry_id)}"
+                )
                 return self.async_update_reload_and_abort(
                     entry,
                     data={**entry.data, CONF_PASSWORD: password},
@@ -180,6 +220,11 @@ class CarlinkoConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     ) -> FlowResult:
         errors: dict[str, str] = {}
         entry = self._get_reconfigure_entry()
+        if user_input is None:
+            _LOGGER.info(
+                f"config flow started step=reconfigure "
+                f"entry_id={partial_id(entry.entry_id)}"
+            )
         if user_input is not None:
             email = entry.data[CONF_EMAIL]
             password = user_input[CONF_PASSWORD]
@@ -188,13 +233,26 @@ class CarlinkoConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 await self._validate_login(
                     email, password, region, require_vehicles=False
                 )
-            except aiohttp.ClientError:
+            except aiohttp.ClientError as err:
+                _LOGGER.warning(
+                    f"config flow failed step=reconfigure error=cannot_connect: {err}"
+                )
                 errors["base"] = "cannot_connect"
-            except AuthError:
+            except AuthError as err:
+                _LOGGER.warning(
+                    f"config flow failed step=reconfigure error=invalid_auth: {err}"
+                )
                 errors["base"] = "invalid_auth"
-            except Exception:
+            except Exception as err:
+                _LOGGER.exception(
+                    f"config flow failed step=reconfigure error={err}"
+                )
                 errors["base"] = "invalid_auth"
             else:
+                _LOGGER.info(
+                    f"config flow success step=reconfigure reloading "
+                    f"entry_id={partial_id(entry.entry_id)}"
+                )
                 return self.async_update_reload_and_abort(
                     entry,
                     data={
@@ -235,6 +293,10 @@ class CarlinkoConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         *,
         require_vehicles: bool = True,
     ) -> None:
+        _LOGGER.debug(
+            f"config flow validating login require_vehicles={str(require_vehicles).lower()}"
+        )
+        _LOGGER.debug("config flow _validate_login → ApiClient.login POST /user/login")
         session = async_get_clientsession(self.hass)
 
         class _TempStore:
@@ -250,9 +312,16 @@ class CarlinkoConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         api = ApiClient(email, password, region, _TempStore(), session)
         await api.login()
         if require_vehicles:
+            _LOGGER.debug(
+                "config flow _validate_login → ApiClient.async_list_vehicles force=true"
+            )
             vehicles = await api.async_list_vehicles(force=True)
             if not vehicles:
                 raise ValueError("no_vehicles")
+        else:
+            _LOGGER.debug(
+                "config flow _validate_login skip async_list_vehicles (reauth/reconfigure)"
+            )
 
     @staticmethod
     @callback
@@ -268,15 +337,25 @@ class CarlinkoOptionsFlow(config_entries.OptionsFlow):
     async def async_step_init(
         self, user_input: dict[str, Any] | None = None
     ) -> FlowResult:
+        if user_input is None:
+            _LOGGER.info(
+                f"options flow started entry_id="
+                f"{partial_id(self.config_entry.entry_id)}"
+            )
         if user_input is not None:
+            region = str(user_input[CONF_REGION]).strip() or DEFAULT_REGION
+            backstop = int(user_input[CONF_STREAM_BACKSTOP])
+            availability = int(user_input[CONF_AVAILABILITY_SECONDS])
+            _LOGGER.info(
+                f"options saved region={region} stream_backstop={backstop} "
+                f"availability_seconds={availability}"
+            )
             return self.async_create_entry(
                 title="",
                 data={
-                    CONF_REGION: str(user_input[CONF_REGION]).strip() or DEFAULT_REGION,
-                    CONF_STREAM_BACKSTOP: int(user_input[CONF_STREAM_BACKSTOP]),
-                    CONF_AVAILABILITY_SECONDS: int(
-                        user_input[CONF_AVAILABILITY_SECONDS]
-                    ),
+                    CONF_REGION: region,
+                    CONF_STREAM_BACKSTOP: backstop,
+                    CONF_AVAILABILITY_SECONDS: availability,
                 },
             )
         return self.async_show_form(

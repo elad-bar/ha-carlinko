@@ -9,6 +9,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ### Changed
 
 - Removed the **Updated** timestamp sensor; last refresh time remains in vehicle state (`updated`, `updated_ts`) and in diagnostics export (`last_update_ts`, `live_state`) without a dedicated entity that updated every telemetry frame
+- Logging overhauled to match [docs/logging.md](docs/logging.md): config-flow, reauth, and reconfigure failures log at **warning**; setup, reload, unload, fleet, and capability changes log **info** milestones; auth failures include **source** and **starting reauth flow** at **error**; remote control and local cost-number actions log at the entity layer. Recommended day-to-day: `custom_components.carlinko: info`; use **debug** for path tracing or **warning** for problems-only tails
 
 ## [0.1.3] - 2026-08-28
 

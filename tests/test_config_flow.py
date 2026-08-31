@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import logging
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
@@ -215,25 +216,33 @@ async def test_config_flow_second_account_ok(hass: HomeAssistant) -> None:
 
 
 @pytest.mark.asyncio
-async def test_config_flow_invalid_auth(hass: HomeAssistant) -> None:
+async def test_config_flow_invalid_auth(
+    hass: HomeAssistant, caplog: pytest.LogCaptureFixture
+) -> None:
     with patch(
         "custom_components.carlinko.config_flow.ApiClient.login",
         new_callable=AsyncMock,
         side_effect=AuthError("login failed"),
     ):
-        result = await hass.config_entries.flow.async_init(
-            DOMAIN, context={"source": config_entries.SOURCE_USER}
-        )
-        result2 = await hass.config_entries.flow.async_configure(
-            result["flow_id"],
-            {
-                CONF_EMAIL: "user@example.com",
-                CONF_PASSWORD: "bad",
-                CONF_REGION: "sea",
-            },
-        )
+        with caplog.at_level(logging.WARNING):
+            result = await hass.config_entries.flow.async_init(
+                DOMAIN, context={"source": config_entries.SOURCE_USER}
+            )
+            result2 = await hass.config_entries.flow.async_configure(
+                result["flow_id"],
+                {
+                    CONF_EMAIL: "user@example.com",
+                    CONF_PASSWORD: "bad",
+                    CONF_REGION: "sea",
+                },
+            )
     assert result2["type"] == FlowResultType.FORM
     assert result2["errors"]["base"] == "invalid_auth"
+    assert any(
+        r.name == "custom_components.carlinko.config_flow"
+        and "config flow failed step=user error=invalid_auth" in r.message
+        for r in caplog.records
+    )
 
 
 @pytest.mark.asyncio

@@ -102,12 +102,14 @@ class WsClient:
         headers = {"User-Agent": USER_AGENT}
         for i in range(attempts):
             try:
-                return await self.api.session.ws_connect(
+                ws = await self.api.session.ws_connect(
                     self.api.ws_url,
                     headers=headers,
                     timeout=_WS_CONNECT_TIMEOUT,
                     heartbeat=None,
                 )
+                _LOGGER.debug(f"websocket connect attempt {i + 1}/{attempts} ok")
+                return ws
             except Exception as e:
                 last = e
                 _LOGGER.debug(
@@ -178,7 +180,7 @@ class WsClient:
                     raise AuthError(
                         f"websocket login failed after refresh (code={login.get('code')})"
                     )
-                _LOGGER.debug("websocket login ok after token refresh")
+                _LOGGER.info("websocket login ok after token refresh")
             await self.ws_send(ws, {"action": 6})
             await self.ws_send(ws, {"action": 0, "data": {"sn": dsn}})
             self._set_connected(True)

@@ -65,7 +65,7 @@ def async_setup_entities(
     @callback
     def _on_specs_changed(vehicle_id: str, added: set[str], removed: set[str]) -> None:
         if vehicle_id == "":
-            _LOGGER.info(f"reconciling entities after fleet change on {platform}")
+            _LOGGER.debug(f"reconciling entities after fleet change on {platform}")
             # Fleet membership changed: reconcile full wanted set.
             wanted = {(vid, s.key): s for vid, s in _wanted()}
             wanted_keys = set(wanted)
@@ -89,6 +89,10 @@ def async_setup_entities(
                 hass.async_create_task(entity.async_remove(force_remove=True))
         if added:
             wanted_map = {s.key: s for vid, s in _wanted() if vid == vehicle_id}
+            _LOGGER.debug(
+                f"capability change platform={platform} "
+                f"vehicle={vehicle_id} +{len(added)} -{len(removed)}"
+            )
             _add_new([(vehicle_id, wanted_map[k]) for k in added if k in wanted_map])
 
     unsub = coordinator.register_entity_listener(_on_specs_changed)

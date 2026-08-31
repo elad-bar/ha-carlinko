@@ -158,7 +158,7 @@ class ApiClient:
             raise AuthError(f"login ok but no token in response: {d}")
         self.token = token
         self.store.set_token(token)
-        _LOGGER.debug(f"login ok region={self.region} api_base={self.api_base}")
+        _LOGGER.info(f"login ok region={self.region} api_base={self.api_base}")
         return token
 
     def _caps_from_vehicle(self, v: dict) -> dict:
@@ -197,6 +197,10 @@ class ApiClient:
                 )
                 self._caps_by_id[vid] = {}
         self._list_cache_t = time.time()
+        if rows:
+            _LOGGER.debug(
+                f"indexed vehicleControlConfig for {len(rows)} vehicle(s)"
+            )
         # Keep legacy single-vehicle pointers for engine / first car.
         first = rows[0] if rows else {}
         vid0 = vehicle_id_of(first)
@@ -212,6 +216,7 @@ class ApiClient:
             return list(self._veh_list)
 
         async def _fetch(tok):
+            _LOGGER.debug("GET /user/vehicle")
             async with self.session.get(
                 self.api_base + "/user/vehicle",
                 headers=self.headers_for({}, token=tok),
@@ -292,6 +297,7 @@ class ApiClient:
         if not dsn:
             dsn = self.device_sn
         if not vid or not dsn:
+            _LOGGER.warning("remoteControl skipped vehicle_id/device_sn missing")
             return {"code": "-1", "msg": "vehicle_id / device_sn missing from store"}
         try:
             timeout = int(timeout)
@@ -333,6 +339,7 @@ class ApiClient:
         tok = self.token
         if not tok:
             tok = await self.login()
+        _LOGGER.debug("POST /user/vehicle/remoteControl")
         d = await _post(tok)
         if str(d.get("code")) in STALE_TOKEN_CODES:
             _LOGGER.debug("stale token on remoteControl; re-login and retry")

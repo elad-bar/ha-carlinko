@@ -11,6 +11,7 @@ from homeassistant.exceptions import ConfigEntryAuthFailed, ConfigEntryNotReady
 from homeassistant.helpers.storage import Store
 
 from .common.consts import DOMAIN, PLATFORMS as _PLATFORM_NAMES, STORAGE_VERSION
+from .common.helpers import partial_id
 from .managers.coordinator import CarlinkoCoordinator, async_create_coordinator
 from .managers.store import CarlinkoStore, ha_storage_key
 
@@ -33,11 +34,15 @@ __all__ = [
 
 async def async_setup_entry(hass: HomeAssistant, entry: CarlinkoConfigEntry) -> bool:
     """Set up CarLinko from a config entry."""
+    suffix = " (existing entry)" if entry.runtime_data is not None else ""
+    _LOGGER.info(f"setup entry entry_id={partial_id(entry.entry_id)}{suffix}")
+    _LOGGER.debug("async_create_coordinator → CarlinkoStore.async_load")
     coordinator = await async_create_coordinator(hass, entry)
     try:
         await coordinator.async_start()
     except ConfigEntryAuthFailed:
         await coordinator.async_stop()
+        _LOGGER.error(f"setup auth failed entry_id={partial_id(entry.entry_id)}")
         raise
     except Exception as err:
         await coordinator.async_stop()
@@ -49,13 +54,19 @@ async def async_setup_entry(hass: HomeAssistant, entry: CarlinkoConfigEntry) -> 
 
     entry.runtime_data = coordinator
     entry.async_on_unload(entry.add_update_listener(async_reload_entry))
+    _LOGGER.debug(f"async_forward_entry_setups platforms={len(PLATFORMS)}")
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
+    _LOGGER.info(f"platforms setup complete count={len(PLATFORMS)}")
     return True
 
 
 async def async_unload_entry(hass: HomeAssistant, entry: CarlinkoConfigEntry) -> bool:
     """Unload a config entry."""
+    _LOGGER.debug(f"async_unload_entry begin entry_id={partial_id(entry.entry_id)}")
+    _LOGGER.info(f"unload entry entry_id={partial_id(entry.entry_id)}")
+    _LOGGER.debug(f"async_unload_platforms domains={len(PLATFORMS)}")
     unload_ok = await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
+    _LOGGER.info(f"unload platforms ok={unload_ok}")
     coordinator = entry.runtime_data
     await coordinator.async_stop()
     return unload_ok
@@ -63,6 +74,10 @@ async def async_unload_entry(hass: HomeAssistant, entry: CarlinkoConfigEntry) ->
 
 async def async_reload_entry(hass: HomeAssistant, entry: CarlinkoConfigEntry) -> None:
     """Reload when options/data change."""
+    _LOGGER.debug("entry update listener → async_reload_entry")
+    _LOGGER.info(
+        f"reload entry entry_id={partial_id(entry.entry_id)} reason=update_listener"
+    )
     await hass.config_entries.async_reload(entry.entry_id)
 
 
@@ -80,3 +95,6 @@ async def async_remove_entry(hass: HomeAssistant, entry: ConfigEntry) -> None:
         ha_store=Store(hass, STORAGE_VERSION, ha_storage_key(entry.entry_id)),
     )
     await store.async_remove()
+    _LOGGER.info(
+        f"remove entry entry_id={partial_id(entry.entry_id)} store deleted"
+    )

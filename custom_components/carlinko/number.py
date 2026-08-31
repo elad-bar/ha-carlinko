@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import logging
+
 from homeassistant.components.number import NumberEntity, NumberMode
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
@@ -9,8 +11,11 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from .common.base_entity import CarlinkoEntity
 from .common.entity_setup import async_setup_entities
+from .common.helpers import partial_id
 from .managers.coordinator import CarlinkoCoordinator
 from .models.entity_specs import EntitySpec
+
+_LOGGER = logging.getLogger(__name__)
 
 PARALLEL_UPDATES = 1
 
@@ -53,8 +58,21 @@ class CarlinkoNumber(CarlinkoEntity, NumberEntity):
 
     async def async_set_native_value(self, value: float) -> None:
         key = self.spec.config_key or self.spec.key
+        _LOGGER.debug(
+            f"async_set_native_value entity={key} "
+            f"vehicle={partial_id(self.vehicle_id)} value={value}"
+        )
         result = self.coordinator.store.set_cost_config(key, value)
         if not result.get("ok"):
-            raise ValueError(result.get("error") or "set failed")
+            err = result.get("error") or "set failed"
+            _LOGGER.warning(
+                f"local config set failed key={key} error={err}"
+            )
+            raise ValueError(err)
+        _LOGGER.info(
+            f"local config set key={key} vehicle={partial_id(self.vehicle_id)} "
+            f"value={value}"
+        )
         await self.coordinator.store.async_save()
+        _LOGGER.debug(f"async_write_ha_state entity={key}")
         self.async_write_ha_state()

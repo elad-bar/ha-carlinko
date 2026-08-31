@@ -277,6 +277,9 @@ logger:
     custom_components.carlinko: debug
 ```
 
+For level guidance and conventions when changing the integration, see
+[docs/logging.md](docs/logging.md). For normal use, `custom_components.carlinko: info` is enough.
+
 To reduce noise, raise only the REST or WebSocket module (for example
 `custom_components.carlinko.managers.ws_client: warning` and
 `custom_components.carlinko.managers.api_client: info`) while keeping the
@@ -307,7 +310,7 @@ cd engine && python entrypoint.py
 | [`custom_components/carlinko/`](custom_components/carlinko/) | HA integration (`common` / `managers` / `models` / `brand`) |
 | [`engine/`](engine/)                                         | Dev harness (single-file CLI, no HA)                        |
 | [`www/`](www/)                                               | Brand icon/logo copy for README (same as `brand/`)          |
-| [`docs/`](docs/)                                             | API map, opcodes                                            |
+| [`docs/`](docs/)                                             | API map, opcodes, logging standard                          |
 
 ## Docs
 
@@ -315,6 +318,7 @@ cd engine && python entrypoint.py
 - [Contributing](CONTRIBUTING.md) (pre-commit + [CI](.github/workflows/ci.yml))
 - [Control opcodes](docs/control-opcodes.md)
 - [API / blob map](docs/api-map.md)
+- [Logging standard](docs/logging.md) (development)
 - [Security](SECURITY.md)
 
 ## License

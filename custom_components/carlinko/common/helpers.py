@@ -23,6 +23,19 @@ def partial_id(value: str | None, keep: int = 4) -> str | None:
     return f"***{text[-keep:]}"
 
 
+def mask_email(email: str | None) -> str:
+    """Redact email for logs (first character + domain)."""
+    if not email:
+        return "***"
+    text = str(email).strip()
+    if "@" not in text:
+        return "***"
+    local, _, domain = text.partition("@")
+    if not local:
+        return f"***@{domain}"
+    return f"{local[0]}***@{domain}"
+
+
 def pressure(x, scale=None, unit=None):
     if x == TYRE_INVALID:
         return None

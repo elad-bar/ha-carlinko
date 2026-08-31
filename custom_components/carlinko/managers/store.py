@@ -9,6 +9,7 @@ Engine: JSON file under ``CARLINKO_DATA`` / repo ``data/``.
 from __future__ import annotations
 
 import json
+import logging
 import os
 import tempfile
 from typing import Any
@@ -20,6 +21,8 @@ from ..common.consts import (
     STORAGE_KEY,
     STORAGE_VERSION,
 )
+
+_LOGGER = logging.getLogger(__name__)
 
 # managers/ → carlinko/ → custom_components/ → repo root
 _REPO = os.path.dirname(
@@ -109,13 +112,20 @@ class CarlinkoStore:
 
     async def async_save(self) -> None:
         if self._ha_store is not None:
-            await self._ha_store.async_save(self.data)
+            try:
+                _LOGGER.debug("async_save begin")
+                await self._ha_store.async_save(self.data)
+                _LOGGER.debug("local config saved")
+            except Exception:
+                _LOGGER.exception("local config save failed")
+                raise
             return
         self._save_file()
 
     async def async_remove(self) -> None:
         """Delete persisted HA store so tokens do not linger after entry removal."""
         if self._ha_store is not None:
+            _LOGGER.debug(f"async_remove ha_store key={self._ha_store.key}")
             await self._ha_store.async_remove()
             self.data = {}
             return
@@ -179,21 +189,35 @@ class CarlinkoStore:
     def set_cost_config(self, key: str, value: Any) -> dict[str, Any]:
         if key not in ("tariff", "petrol_price", "petrol_kml"):
             return {"ok": False, "error": "unknown key"}
+        _LOGGER.debug(f"set_cost_config key={key} validate")
         try:
             v = float(value)
         except Exception:
+            _LOGGER.warning(
+                f"set_cost_config key={key} rejected error=not a number"
+            )
             return {"ok": False, "error": "not a number"}
         if v < 0:
+            _LOGGER.warning(
+                f"set_cost_config key={key} rejected error=negative"
+            )
             return {"ok": False, "error": "negative"}
         maxes = {"tariff": 1e7, "petrol_price": 1e7, "petrol_kml": 100}
         if v > maxes[key]:
+            _LOGGER.warning(
+                f"set_cost_config key={key} rejected error=out of range"
+            )
             return {"ok": False, "error": "out of range"}
         if key == "petrol_kml" and v <= 0:
+            _LOGGER.warning(
+                f"set_cost_config key={key} rejected error=petrol_kml must be > 0"
+            )
             return {"ok": False, "error": "petrol_kml must be > 0"}
         if self._path is not None:
             self.load()
         self.data[key] = v
         self.save()
+        _LOGGER.debug(f"set_cost_config key={key} ok")
         return {"ok": True, "key": key, "value": self.get_cost_config()[key]}
 
     def get_vehicles(self) -> dict[str, dict[str, Any]]:

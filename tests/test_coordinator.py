@@ -210,4 +210,5 @@ async def test_auth_failure_logs_warning(
     ):
         await coordinator._async_handle_auth_failure(AuthError("token dead"))
 
-    assert any("auth failure" in r.message for r in caplog.records)
+    assert any("auth failure source=" in r.message for r in caplog.records)
+    assert any("starting reauth flow" in r.message for r in caplog.records)
