@@ -1,8 +1,14 @@
 {
-  "vehicle_id": "your CarLinko vehicle id",
-  "device_sn": "your device SN from CarLinko",
-  "vehicle": { "plate": "auto", "model": "auto", "vin": "auto" },
   "token": "",
+  "vehicles": {
+    "your_vehicle_id": {
+      "vehicle_id": "your_vehicle_id",
+      "device_sn": "your device SN from CarLinko",
+      "plate": "auto",
+      "model": "auto",
+      "vin": "auto"
+    }
+  },
 
   "battery_kwh": 58.9,
   "wltp_kwh_100": 14.8,

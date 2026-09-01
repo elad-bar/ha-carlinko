@@ -281,7 +281,7 @@ class CarlinkoStore:
         return dict(meta)
 
     def set_vehicles(self, vehicles: dict[str, dict[str, Any]]) -> dict[str, Any]:
-        """Persist hub vehicles map and mirror first car into legacy keys."""
+        """Persist hub vehicles map (sole id/SN source of truth)."""
         prior = self.get_vehicles()
         cleaned: dict[str, dict[str, Any]] = {}
         for vid, meta in (vehicles or {}).items():
@@ -295,22 +295,16 @@ class CarlinkoStore:
             for meta_key in PRESERVED_VEHICLE_META_KEYS:
                 if meta_key not in m and meta_key in old:
                     m[meta_key] = old[meta_key]
+            # Never wipe a known SN with an empty extract from the API row.
+            new_sn = str(m.get("device_sn") or "").strip()
+            old_sn = str(old.get("device_sn") or "").strip()
+            m["device_sn"] = new_sn or old_sn
             cleaned[key] = m
         self.data["vehicles"] = cleaned
-        if cleaned:
-            first_id = next(iter(cleaned))
-            first = cleaned[first_id]
-            self.data["vehicle_id"] = first_id
-            self.data["device_sn"] = str(first.get("device_sn") or "")
-            self.data["vehicle"] = {
-                "plate": first.get("plate") or "—",
-                "model": first.get("model") or "EV",
-                "vin": first.get("vin") or "—",
-            }
-        else:
-            self.data.pop("vehicle_id", None)
-            self.data.pop("device_sn", None)
-            self.data.pop("vehicle", None)
+        # Drop legacy single-car top-level mirrors; map is the only source.
+        self.data.pop("vehicle_id", None)
+        self.data.pop("device_sn", None)
+        self.data.pop("vehicle", None)
         return self.save()
 
     def get_vehicle(self, vehicle_id: str | None = None) -> dict[str, Any]:
@@ -322,15 +316,15 @@ class CarlinkoStore:
                     "model": meta.get("model") or "EV",
                     "vin": meta.get("vin") or "—",
                 }
-        v = self.data.get("vehicle") or {}
         return {
-            "plate": v.get("plate") or "—",
-            "model": v.get("model") or "EV",
-            "vin": v.get("vin") or "—",
+            "plate": "—",
+            "model": "EV",
+            "vin": "—",
         }
 
     def get_vehicle_id(self) -> str:
+        """First map key (diagnostics only). Prefer explicit vehicle_id callers."""
         vehicles = self.get_vehicles()
         if vehicles:
             return next(iter(vehicles))
-        return str(self.data.get("vehicle_id") or "")
+        return ""

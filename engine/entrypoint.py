@@ -23,14 +23,14 @@ from typing import Any, Callable
 
 import aiohttp
 from carlinko.common.consts import OK_CODE, USER_AGENT
-from carlinko.managers.api_client import ApiClient
+from carlinko.managers.api_client import ApiClient, meta_from_api_row, vehicle_id_of
 from carlinko.managers.store import CarlinkoStore
 from carlinko.managers.ws_client import WsClient
 from carlinko.models.entity_specs import ENTITY_SPECS, get_entity_specs
 from carlinko.models.entity_values import EntityValueResolver
 from carlinko.models.vehicle_state import VehicleState
 from dotenv import load_dotenv
-import ha_free_path  # noqa: F401  # mounts synthetic carlinko package before carlinko imports
+import ha_free_path  # noqa: F401  # must precede carlinko imports
 
 try:
     sys.stdout.reconfigure(encoding="utf-8", errors="replace")
@@ -145,7 +145,9 @@ def _env_secrets():
     return email, password, region
 
 
-async def _caps_refresh_loop(api: ApiClient, stop: asyncio.Event) -> None:
+async def _caps_refresh_loop(
+    api: ApiClient, store: CarlinkoStore, stop: asyncio.Event
+) -> None:
     while not stop.is_set():
         try:
             await asyncio.wait_for(stop.wait(), timeout=_CAPS_REFRESH_INTERVAL_S)
@@ -153,9 +155,53 @@ async def _caps_refresh_loop(api: ApiClient, stop: asyncio.Event) -> None:
         except asyncio.TimeoutError:
             pass
         try:
-            await api.refresh_vehicle_cache(force=True)
+            rows = await api.async_list_vehicles(force=True)
+            _sync_store_vehicles(store, rows)
         except Exception:
             _LOGGER.exception("vehicle cache refresh failed")
+
+
+def _sync_store_vehicles(store: CarlinkoStore, rows: list[dict[str, Any]]) -> None:
+    metas: dict[str, dict[str, Any]] = {}
+    for row in rows:
+        vid = vehicle_id_of(row)
+        if not vid:
+            continue
+        metas[vid] = meta_from_api_row(row)
+    store.set_vehicles(metas)
+
+
+def _resolve_vehicle_id(
+    store: CarlinkoStore,
+    api: ApiClient,
+    preferred: str | None,
+) -> str:
+    """Pick one car: --vehicle-id, else sole fleet member, else error."""
+    want = str(preferred or "").strip()
+    store_ids = list(store.get_vehicles())
+    api_ids = list(api._veh_by_id)
+    known = store_ids or api_ids
+
+    if want:
+        if want not in known and want not in api._veh_by_id:
+            _LOGGER.error(
+                "vehicle_id=%s not in fleet ids=%s — check --vehicle-id / config",
+                want,
+                known,
+            )
+            sys.exit(2)
+        return want
+
+    if len(known) == 1:
+        return known[0]
+    if len(api_ids) == 1:
+        return api_ids[0]
+
+    _LOGGER.error(
+        "multiple vehicles %s — pass --vehicle-id <id>",
+        known or api_ids,
+    )
+    sys.exit(2)
 
 
 def _register_stop_handlers(
@@ -193,7 +239,7 @@ def _log_locate_result(result: dict[str, Any]) -> int:
     return 0
 
 
-async def async_locate() -> int:
+async def async_locate(vehicle_id: str | None = None) -> int:
     """Login, refresh vehicle ids, one-shot locate, exit."""
     email, password, region = _env_secrets()
     store = CarlinkoStore.for_engine()
@@ -205,18 +251,25 @@ async def async_locate() -> int:
         api = ApiClient(email, password, region, store, session)
         _LOGGER.info("logging in to CarLinko…")
         await api.login()
-        await api.refresh_vehicle_cache(force=True)
-        api.reload_ids_from_store()
-        sn = api.device_sn
+        preferred = (
+            vehicle_id or str(store.data.get("vehicle_id") or "").strip() or None
+        )
+        rows = await api.async_list_vehicles(force=True)
+        _sync_store_vehicles(store, rows)
+        vid = _resolve_vehicle_id(store, api, preferred)
+        _, sn = api.ids_for(vid)
         if not sn:
-            _LOGGER.error("no device_sn after vehicle refresh — check data/config.json")
+            _LOGGER.error(
+                "no device_sn for vehicle_id=%s after vehicle refresh",
+                vid,
+            )
             return 2
-        _LOGGER.info("POST /maps/deviceLocate sn=%s…", sn)
-        result = await api.device_locate(sn)
+        _LOGGER.info("POST /maps/deviceLocate vehicle=%s sn=%s…", vid, sn)
+        result = await api.device_locate(vehicle_id=vid, device_sn=sn)
         return _log_locate_result(result)
 
 
-async def async_main() -> None:
+async def async_main(vehicle_id: str | None = None) -> None:
     stop = asyncio.Event()
     loop = asyncio.get_running_loop()
     _register_stop_handlers(loop, stop)
@@ -230,20 +283,40 @@ async def async_main() -> None:
         headers={"User-Agent": USER_AGENT},
     ) as session:
         api = ApiClient(email, password, region, store, session)
-        entities = EntityPublisher(store, api.control_caps)
+
+        _LOGGER.info("logging in to CarLinko…")
+        await api.login()
+        preferred = (
+            vehicle_id or str(store.data.get("vehicle_id") or "").strip() or None
+        )
+        rows = await api.async_list_vehicles(force=True)
+        _sync_store_vehicles(store, rows)
+        vid = _resolve_vehicle_id(store, api, preferred)
+        _, sn = api.ids_for(vid)
+        if not sn:
+            _LOGGER.error("no device_sn for vehicle_id=%s", vid)
+            sys.exit(2)
+
+        entities = EntityPublisher(store, lambda: api.control_caps(vid))
         ws = WsClient(
             vehicle_state,
             api,
             on_frame=entities.publish,
+            vehicle_id=vid,
+            device_sn=sn,
         )
 
-        _LOGGER.info("logging in to CarLinko…")
-        await api.login()
-        await api.refresh_vehicle_cache(force=True)
-        vehicle_state.update_metadata(store.data)
-        _LOGGER.info("streaming CarLinko WS → entity change logs…")
+        vehicle_state.update_metadata(
+            {
+                **store.data,
+                "vehicle": store.get_vehicle(vid),
+                "vehicle_id": vid,
+                "device_sn": sn,
+            }
+        )
+        _LOGGER.info("streaming CarLinko WS vehicle=%s → entity change logs…", vid)
 
-        refresh_task = asyncio.create_task(_caps_refresh_loop(api, stop))
+        refresh_task = asyncio.create_task(_caps_refresh_loop(api, store, stop))
         try:
             await ws.run(stop)
         finally:
@@ -261,6 +334,11 @@ def _parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         action="store_true",
         help="one-shot POST /maps/deviceLocate probe (no WS stream)",
     )
+    p.add_argument(
+        "--vehicle-id",
+        default=None,
+        help="CarLinko vehicle id (required when the account has multiple cars)",
+    )
     return p.parse_args(argv)
 
 
@@ -268,8 +346,8 @@ def main(argv: list[str] | None = None) -> None:
     _configure_logging()
     args = _parse_args(argv)
     if args.locate:
-        raise SystemExit(asyncio.run(async_locate()))
-    asyncio.run(async_main())
+        raise SystemExit(asyncio.run(async_locate(args.vehicle_id)))
+    asyncio.run(async_main(args.vehicle_id))
 
 
 if __name__ == "__main__":

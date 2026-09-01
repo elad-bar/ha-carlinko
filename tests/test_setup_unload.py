@@ -30,7 +30,7 @@ from homeassistant.helpers.storage import Store
 
 _VEHICLE = {
     "vehicleId": "veh-1",
-    "deviceSn": "sn-1",
+    "deviceId": "sn-1",
     "licenseNumber": "AAA111",
     "model": "J5",
     "vin": "VIN1",

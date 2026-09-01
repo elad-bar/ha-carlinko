@@ -2,7 +2,7 @@
 
 Holds one persistent socket, receives pushed action:6 frames, decodes them via
 an injected VehicleState, and notifies optional on_frame / on_connected callbacks.
-Auth / vehicle ids come from ApiClient + explicit vehicle_id / device_sn.
+Auth / vehicle ids come from explicit vehicle_id / device_sn (per stream).
 
 Must not import homeassistant. Engine CLI owns stdout encoding setup.
 """
@@ -68,15 +68,15 @@ class WsClient:
     def reload_config(self):
         self.api.reload_ids_from_store()
         cfg = self.api.store.data
-        if not self.vehicle_id:
-            self.vehicle_id = str(self.api.vehicle_id or "")
-        if not self.device_sn:
-            self.device_sn = str(self.api.device_sn or "")
         meta = {}
         if hasattr(self.api.store, "get_vehicle_meta") and self.vehicle_id:
             meta = self.api.store.get_vehicle_meta(self.vehicle_id)
             if meta.get("device_sn"):
                 self.device_sn = str(meta["device_sn"])
+        if not self.device_sn and self.vehicle_id and hasattr(self.api, "ids_for"):
+            _, sn = self.api.ids_for(self.vehicle_id)
+            if sn:
+                self.device_sn = sn
         backstop = cfg.get("stream_backstop")
         if backstop is not None:
             self.stream_backstop_s = int(backstop)
@@ -143,8 +143,10 @@ class WsClient:
 
     async def _stream_session(self, stop: asyncio.Event):
         self.reload_config()
-        vid = self.vehicle_id or self.api.vehicle_id
-        dsn = self.device_sn or self.api.device_sn
+        vid = self.vehicle_id
+        dsn = self.device_sn
+        if not vid:
+            raise RuntimeError("websocket vehicle_id required")
         ws = await self.connect()
         try:
             await self.ws_send(
@@ -167,6 +169,9 @@ class WsClient:
                     raise
                 except Exception:
                     _LOGGER.exception("vehicle cache refresh after login failed")
+                if not dsn:
+                    _, dsn = self.api.ids_for(vid)
+                    self.device_sn = dsn
                 await self.ws_send(
                     ws,
                     {
@@ -182,13 +187,14 @@ class WsClient:
                     )
                 _LOGGER.info("websocket login ok after token refresh")
             await self.ws_send(ws, {"action": 6})
-            await self.ws_send(ws, {"action": 0, "data": {"sn": dsn}})
+            if dsn:
+                await self.ws_send(ws, {"action": 0, "data": {"sn": dsn}})
             self._set_connected(True)
             last_hb = last_req = last_touch = time.time()
             last_blob = None
             while not stop.is_set():
                 now = time.time()
-                if now - last_hb >= HEARTBEAT:
+                if dsn and now - last_hb >= HEARTBEAT:
                     await self.ws_send(ws, {"action": 0, "data": {"sn": dsn}})
                     last_hb = now
                 if now - last_req >= self.stream_backstop_s:
@@ -230,7 +236,7 @@ class WsClient:
         """Persistent-socket ingest until stop is set. Reconnects on drop."""
         self.reload_config()
         _LOGGER.info(
-            f"streaming CarLinko WS vehicle={self.vehicle_id or self.api.vehicle_id} "
+            f"streaming CarLinko WS vehicle={self.vehicle_id} "
             f"(push + {HEARTBEAT}s heartbeat, auto-reconnect)"
         )
         while not stop.is_set():

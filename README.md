@@ -313,8 +313,10 @@ Optional CLI harness (`engine/entrypoint.py`) that mounts the same HA-free
 pip install -r requirements.txt
 cp .env.example .env
 mkdir -p data && cp config.example.json data/config.json
-# set vehicle_id / device_sn in data/config.json
+# optional: set vehicles.<id>.device_sn; multi-car needs --vehicle-id
 cd engine && python entrypoint.py
+# python entrypoint.py --vehicle-id 15585
+# python entrypoint.py --locate --vehicle-id 15585
 ```
 
 ## Repo layout

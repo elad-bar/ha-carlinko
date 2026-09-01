@@ -48,18 +48,34 @@ _HTTP_TIMEOUT = aiohttp.ClientTimeout(total=20)
 
 
 def vehicle_id_of(veh: dict[str, Any] | None) -> str:
-    """Stable id from a /user/vehicle row."""
+    """Stable id from a /user/vehicle row (``vehicleId``)."""
     if not veh:
         return ""
 
-    return str(veh.get("vehicleId") or veh.get("id") or "")
+    return str(veh.get("vehicleId") or "")
 
 
 def device_sn_of(veh: dict[str, Any] | None) -> str:
+    """Device serial from a /user/vehicle row (``deviceId``)."""
     if not veh:
         return ""
 
-    return str(veh.get("deviceSn") or veh.get("deviceSN") or "")
+    return str(veh.get("deviceId") or "")
+
+
+def meta_from_api_row(veh: dict[str, Any]) -> dict[str, Any]:
+    """Persistable per-vehicle meta from a /user/vehicle row."""
+    vid = vehicle_id_of(veh)
+    return {
+        "vehicle_id": vid,
+        "device_sn": device_sn_of(veh),
+        "plate": veh.get("licenseNumber") or veh.get("plate") or "—",
+        "model": veh.get("model")
+        or veh.get("modelName")
+        or veh.get("oldModel")
+        or "EV",
+        "vin": veh.get("vin") or veh.get("VIN") or "—",
+    }
 
 
 class ApiClient:
@@ -79,26 +95,34 @@ class ApiClient:
         self.ws_url = WS_HOST_TMPL.format(region=self.region)
         self.token = (store.data.get("token") or "").strip()
 
-        # Legacy single-vehicle fields (engine / first car).
-        self.vehicle_id = str(store.data.get("vehicle_id") or "")
-        self.device_sn = str(store.data.get("device_sn") or "")
-
         self._veh_list: list[dict[str, Any]] = []
         self._veh_by_id: dict[str, dict[str, Any]] = {}
         self._caps_by_id: dict[str, dict[str, Any]] = {}
         self._list_cache_t = 0.0
 
     def reload_ids_from_store(self):
+        """Reload token / sign_key from store (not per-vehicle ids)."""
         self.store.load()
 
         self.token = (self.store.data.get("token") or "").strip() or self.token
-        self.vehicle_id = (
-            str(self.store.data.get("vehicle_id") or "") or self.vehicle_id
-        )
-        self.device_sn = str(self.store.data.get("device_sn") or "") or self.device_sn
 
         sk = self.store.data.get("sign_key") or DEFAULT_SIGN_KEY
         self.sign_key = sk.encode() if isinstance(sk, str) else sk
+
+    def ids_for(self, vehicle_id: str) -> tuple[str, str]:
+        """Resolve ``(vehicle_id, device_sn)`` for one car — never another car's SN."""
+        vid = str(vehicle_id or "").strip()
+        if not vid:
+            return "", ""
+
+        meta: dict[str, Any] = {}
+        if hasattr(self.store, "get_vehicle_meta"):
+            meta = self.store.get_vehicle_meta(vid) or {}
+
+        dsn = str(meta.get("device_sn") or "").strip() or device_sn_of(
+            self._veh_by_id.get(vid)
+        )
+        return vid, str(dsn or "").strip()
 
     @staticmethod
     def now_ms():
@@ -346,17 +370,6 @@ class ApiClient:
         if rows:
             _LOGGER.debug(f"indexed vehicleControlConfig for {len(rows)} vehicle(s)")
 
-        # Keep legacy single-vehicle pointers for engine / first car.
-        first = rows[0] if rows else {}
-        vid0 = vehicle_id_of(first)
-        dsn0 = device_sn_of(first)
-
-        if vid0:
-            self.vehicle_id = vid0
-
-        if dsn0:
-            self.device_sn = dsn0
-
     async def async_list_vehicles(self, force: bool = False) -> list[dict[str, Any]]:
         """Fetch full /user/vehicle list and refresh per-vehicle caps (~1h TTL)."""
         if not force and self._veh_list and (time.time() - self._list_cache_t) < 3600:
@@ -397,31 +410,26 @@ class ApiClient:
         return list(self._veh_list)
 
     async def refresh_vehicle_cache(self, force=False, vehicle_id: str | None = None):
-        """Fetch vehicles; return one row (selected id, else first). Engine-compatible."""
-        rows = await self.async_list_vehicles(force=force)
+        """Fetch vehicles; return the row for ``vehicle_id`` (empty if omitted/unknown)."""
+        await self.async_list_vehicles(force=force)
 
-        if vehicle_id:
-            v = self._veh_by_id.get(str(vehicle_id)) or {}
-        else:
-            v = rows[0] if rows else {}
+        if not vehicle_id:
+            return {}
 
-        return v or {}
+        return dict(self._veh_by_id.get(str(vehicle_id)) or {})
 
-    def get_vehicle(self, vehicle_id: str | None = None) -> dict[str, Any]:
-        vid = str(vehicle_id or self.vehicle_id or "")
+    def get_vehicle(self, vehicle_id: str) -> dict[str, Any]:
+        vid = str(vehicle_id or "").strip()
+        if not vid:
+            return {}
 
         return dict(self._veh_by_id.get(vid) or {})
 
-    def control_caps(self, vehicle_id: str | None = None):
+    def control_caps(self, vehicle_id: str) -> dict[str, Any]:
         """Capabilities from cached vehicle data (no network)."""
-        vid = str(vehicle_id or self.vehicle_id or "")
-
+        vid = str(vehicle_id or "").strip()
         if vid and vid in self._caps_by_id:
             return dict(self._caps_by_id[vid])
-
-        if not vid and self._caps_by_id:
-            first = next(iter(self._caps_by_id.values()))
-            return dict(first)
 
         return {}
 
@@ -430,27 +438,14 @@ class ApiClient:
         opcode,
         timeout=20,
         *,
-        vehicle_id: str | None = None,
+        vehicle_id: str,
         device_sn: str | None = None,
     ):
-        """POST /user/vehicle/remoteControl."""
+        """POST /user/vehicle/remoteControl for one vehicle."""
         self.reload_ids_from_store()
 
-        vid = str(vehicle_id or self.vehicle_id or "")
-        dsn = str(device_sn or "")
-
-        if not dsn and vid:
-            meta = (
-                self.store.get_vehicle_meta(vid)
-                if hasattr(self.store, "get_vehicle_meta")
-                else {}
-            )
-            dsn = str(meta.get("device_sn") or "") or device_sn_of(
-                self._veh_by_id.get(vid)
-            )
-
-        if not dsn:
-            dsn = self.device_sn
+        vid, resolved_sn = self.ids_for(vehicle_id)
+        dsn = str(device_sn or "").strip() or resolved_sn
 
         if not vid or not dsn:
             _LOGGER.warning("remoteControl skipped vehicle_id/device_sn missing")
@@ -491,11 +486,18 @@ class ApiClient:
 
         return d
 
-    async def device_locate(self, device_sn: str | None = None) -> dict[str, Any]:
+    async def device_locate(
+        self,
+        *,
+        vehicle_id: str | None = None,
+        device_sn: str | None = None,
+    ) -> dict[str, Any]:
         """POST /maps/deviceLocate — vehicle GPS + optional reverse-geocoded address."""
         self.reload_ids_from_store()
 
-        sn = str(device_sn or self.device_sn or "").strip()
+        sn = str(device_sn or "").strip()
+        if not sn and vehicle_id:
+            _, sn = self.ids_for(vehicle_id)
         if not sn:
             _LOGGER.warning("deviceLocate skipped device_sn missing")
             return {"code": "-1", "msg": "device_sn missing"}
@@ -520,11 +522,11 @@ class ApiClient:
 
         return d
 
-    async def is_online(self, vehicle_id: str | None = None) -> bool | None:
+    async def is_online(self, vehicle_id: str) -> bool | None:
         """GET /user/vehicle/isOnline/{vehicleId}; None on error / bad payload."""
         self.reload_ids_from_store()
 
-        vid = str(vehicle_id or self.vehicle_id or "").strip()
+        vid = str(vehicle_id or "").strip()
         if not vid:
             return None
 

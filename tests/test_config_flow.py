@@ -26,7 +26,7 @@ from homeassistant.data_entry_flow import FlowResultType
 
 _VEHICLE = {
     "vehicleId": "veh-1",
-    "deviceSn": "sn-1",
+    "deviceId": "sn-1",
     "licenseNumber": "ABC123",
     "model": "J5",
 }

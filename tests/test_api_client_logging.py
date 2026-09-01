@@ -22,7 +22,7 @@ def test_index_vehicles_caps_parse_warning(
     client = _client()
     row = {
         "vehicleId": "veh-long-id-1234",
-        "deviceSn": "sn-1",
+        "deviceId": "sn-1",
         "vehicleControlConfig": "{}",
     }
     with (
@@ -36,6 +36,20 @@ def test_index_vehicles_caps_parse_warning(
 
     assert client._caps_by_id.get("veh-long-id-1234") == {}
     assert any("vehicleControlConfig" in r.message for r in caplog.records)
+
+
+def test_index_vehicles_no_global_ids() -> None:
+    client = _client()
+    client._index_vehicles(
+        [
+            {"vehicleId": "veh-1", "deviceId": "sn-1", "vehicleControlConfig": "{}"},
+            {"vehicleId": "veh-2", "deviceId": "sn-2", "vehicleControlConfig": "{}"},
+        ]
+    )
+    assert not hasattr(client, "vehicle_id")
+    assert not hasattr(client, "device_sn")
+    assert "veh-1" in client._veh_by_id
+    assert "veh-2" in client._veh_by_id
 
 
 @pytest.mark.asyncio

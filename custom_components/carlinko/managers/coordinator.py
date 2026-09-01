@@ -50,7 +50,7 @@ from ..common.helpers import (
     partial_id,
     require_region_from_entry_data,
 )
-from ..managers.api_client import ApiClient, device_sn_of, vehicle_id_of
+from ..managers.api_client import ApiClient, meta_from_api_row, vehicle_id_of
 from ..managers.ws_client import WsClient
 from ..models.entity_specs import get_entity_specs
 from ..models.exceptions import AuthError
@@ -124,7 +124,7 @@ class CarlinkoCoordinator(DataUpdateCoordinator[dict[str, Any]]):
 
     @property
     def vehicle_id(self) -> str:
-        """First vehicle id (diagnostics / single-car helpers). Never entry_id."""
+        """First vehicle id for diagnostics only. Prefer vehicle_ids / explicit id."""
         if self._vehicles:
             return next(iter(self._vehicles))
         return str(self.store.get_vehicle_id() or "")
@@ -203,19 +203,6 @@ class CarlinkoCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             state = dict(rt.vehicle_state.data) if rt else {}
         return {
             s.key for s in get_entity_specs(state=state, caps=self.caps_for(vehicle_id))
-        }
-
-    def _meta_from_api_row(self, veh: dict[str, Any]) -> dict[str, Any]:
-        vid = vehicle_id_of(veh)
-        return {
-            "vehicle_id": vid,
-            "device_sn": device_sn_of(veh),
-            "plate": veh.get("licenseNumber") or veh.get("plate") or "—",
-            "model": veh.get("model")
-            or veh.get("modelName")
-            or veh.get("oldModel")
-            or "EV",
-            "vin": veh.get("vin") or veh.get("VIN") or "—",
         }
 
     def _apply_location_to_runtime(
@@ -311,7 +298,9 @@ class CarlinkoCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         if meta.get("location_supported") is False and not force:
             return
         try:
-            result = await self.api.device_locate(rt.device_sn)
+            result = await self.api.device_locate(
+                vehicle_id=vehicle_id, device_sn=rt.device_sn
+            )
         except AuthError:
             raise
         except Exception:
@@ -507,7 +496,7 @@ class CarlinkoCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             vid = vehicle_id_of(row)
             if not vid:
                 continue
-            metas[vid] = self._meta_from_api_row(row)
+            metas[vid] = meta_from_api_row(row)
         self.store.set_vehicles(metas)
 
         old_ids = set(self._vehicles)
@@ -1054,15 +1043,28 @@ class CarlinkoCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         opcode: str,
         timeout: int = 20,
         *,
-        vehicle_id: str | None = None,
+        vehicle_id: str,
     ) -> dict:
-        vid = str(vehicle_id or self.vehicle_id)
+        vid = str(vehicle_id or "").strip()
+        if not vid:
+            raise HomeAssistantError(
+                translation_domain=DOMAIN,
+                translation_key="control_failed",
+                translation_placeholders={"error": "vehicle_id required"},
+            )
         rt = self._vehicles.get(vid)
-        dsn = rt.device_sn if rt else ""
+        meta = self.store.get_vehicle_meta(vid)
+        dsn = str((rt.device_sn if rt else "") or meta.get("device_sn") or "").strip()
+        if not dsn:
+            raise HomeAssistantError(
+                translation_domain=DOMAIN,
+                translation_key="control_failed",
+                translation_placeholders={"error": "device_sn missing for vehicle"},
+            )
         _LOGGER.debug(f"async_send_control opcode={opcode} vehicle={partial_id(vid)}")
         try:
             result = await self.api.send_control(
-                opcode, timeout=timeout, vehicle_id=vid, device_sn=dsn or None
+                opcode, timeout=timeout, vehicle_id=vid, device_sn=dsn
             )
         except Exception as err:
             if _is_auth_error(err):

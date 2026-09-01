@@ -9,6 +9,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ### Changed
 
 - **ApiClient** HTTP layer refactored: shared private `_get` / `_post` and auth-retry helpers replace nested per-endpoint request closures; public API unchanged
+- **Multi-vehicle IDs:** removed global `ApiClient.vehicle_id` / `device_sn` and store top-level mirrors; `vehicles[<id>].device_sn` is the only source of truth; control / locate / WS require an explicit vehicle
+- **SN from fleet list:** read `/user/vehicle`.`deviceId` (not `deviceSn`); empty refresh no longer wipes a stored SN
+
+### Fixed
+
+- Empty `device_sn` in storage when the API returns `deviceId` only (broke locate / remoteControl / firmware for those accounts)
 
 ## [0.1.5] - 2026-08-31
 
