@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import json
-from unittest.mock import AsyncMock, MagicMock
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
@@ -99,6 +99,123 @@ async def test_send_control_uses_per_vehicle_sn_only() -> None:
     payload = json.loads(body)
     assert payload["vehicleId"] == "v2"
     assert payload["deviceSn"] == "sn-2"
+    assert "timestamp" in payload
+    headers = client.session.post.call_args.kwargs["headers"]
+    assert headers["version"] == "1.12.0"
+    expected = client.sign({**payload})
+    assert headers["signature"] == expected
+
+
+@pytest.mark.asyncio
+async def test_is_online_signs_id_not_query() -> None:
+    client = _api_client()
+    _mock_get(client, {"code": "0000", "data": True})
+    assert await client.is_online("veh-99") is True
+    args, kwargs = client.session.get.call_args
+    assert args[0].endswith("/user/vehicle/isOnline/veh-99")
+    assert "params" not in kwargs
+    headers = kwargs["headers"]
+    assert headers["version"] == "1.12.0"
+    assert headers["signature"] == client.sign(
+        {"id": "veh-99", "timestamp": headers["timestamp"]}
+    )
+
+
+@pytest.mark.asyncio
+async def test_login_body_includes_timestamp_and_version() -> None:
+    client = _api_client()
+    client.store.set_token = MagicMock(return_value={})
+    _mock_post(client, {"code": "0000", "data": "tok-new"})
+    # login uses session.post; also sync_server_time uses session.get
+    _mock_get(client, {"code": "0000", "data": 1_700_000_000_000})
+
+    token = await client.login()
+    assert token == "tok-new"
+    body = json.loads(client.session.post.call_args.kwargs["data"])
+    headers = client.session.post.call_args.kwargs["headers"]
+    assert body["timestamp"] == headers["timestamp"]
+    assert headers["version"] == "1.12.0"
+    assert headers["signature"] == client.sign({**body})
+
+
+@pytest.mark.asyncio
+async def test_get_notice_unread_count_global_omits_vehicle_id() -> None:
+    client = _api_client()
+    _mock_get(
+        client,
+        {"code": "0000", "data": {"systemNoticeVo": {"count": 1}}},
+    )
+    data = await client.get_notice_unread_count()
+    assert data["systemNoticeVo"]["count"] == 1
+    kwargs = client.session.get.call_args.kwargs
+    assert "params" not in kwargs
+
+
+@pytest.mark.asyncio
+async def test_get_notices_without_vehicle_id() -> None:
+    client = _api_client()
+    _mock_get(client, {"code": "0000", "total": 1, "data": [{"noticeId": "n1"}]})
+    page = await client.get_notices(None, 2, page=1, size=20)
+    assert page["total"] == 1
+    params = client.session.get.call_args.kwargs["params"]
+    assert "vehicleId" not in params
+    assert params["type"] == "2"
+
+
+@pytest.mark.asyncio
+async def test_sync_server_time_sets_skew() -> None:
+    client = _api_client()
+    _mock_get(client, {"code": "0000", "data": 2_000_000_000_000})
+    with patch(
+        "custom_components.carlinko.managers.api_client.time.time",
+        return_value=1_000_000.0,
+    ):
+        server = await client.sync_server_time()
+        assert server == 2_000_000_000_000
+        assert client._time_skew_ms == 2_000_000_000_000 - 1_000_000_000
+        assert client.now_ms() == str(2_000_000_000_000)
+
+
+@pytest.mark.asyncio
+async def test_get_ws_connect_normalizes_url() -> None:
+    client = _api_client()
+    _mock_get(
+        client,
+        {"code": "0000", "data": "http://wss-cqr-sea.hzhjcl.com:4002"},
+    )
+    url = await client.get_ws_connect("sn-abc")
+    assert url == "ws://wss-cqr-sea.hzhjcl.com:4002/"
+    assert client.session.get.call_args.args[0].endswith("/netty/getConnect/2/sn-abc")
+
+
+@pytest.mark.asyncio
+async def test_get_vehicle_state_signs_id() -> None:
+    client = _api_client()
+    _mock_get(client, {"code": "0000", "data": "7700abcd"})
+    d = await client.get_vehicle_state("veh-1")
+    assert d["data"] == "7700abcd"
+    args, kwargs = client.session.get.call_args
+    assert args[0].endswith("/user/vehicle/state/veh-1")
+    headers = kwargs["headers"]
+    assert headers["signature"] == client.sign(
+        {"id": "veh-1", "timestamp": headers["timestamp"]}
+    )
+
+
+def test_meta_from_api_row_includes_api_row() -> None:
+    from custom_components.carlinko.managers.api_client import meta_from_api_row
+
+    row = {
+        "vehicleId": "v1",
+        "deviceId": "sn-1",
+        "licenseNumber": "P",
+        "model": "J5",
+        "vin": "VIN1",
+        "remoteControls": {"commandList": []},
+    }
+    meta = meta_from_api_row(row)
+    assert meta["api_row"]["remoteControls"] == {"commandList": []}
+    assert meta["api_row"]["vehicleId"] == "v1"
 
 
 @pytest.mark.asyncio

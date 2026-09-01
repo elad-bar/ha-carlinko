@@ -66,7 +66,10 @@ async def test_login_ok_logs_info(caplog: pytest.LogCaptureFixture) -> None:
     session.post.return_value.__aexit__ = AsyncMock(return_value=None)
     client.store.set_token = MagicMock(return_value={})
 
-    with caplog.at_level(logging.INFO):
+    with (
+        caplog.at_level(logging.INFO),
+        patch.object(client, "sync_server_time", new_callable=AsyncMock),
+    ):
         await client.login()
 
     assert any("login ok region=sea" in r.message for r in caplog.records)

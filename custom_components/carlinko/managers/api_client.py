@@ -26,6 +26,7 @@ import aiohttp
 from ..common.consts import (
     AC_BOOLS,
     API_HOST_TMPL,
+    API_VERSION,
     CFG_BOOLS,
     DEFAULT_REGION,
     DEFAULT_SIGN_KEY,
@@ -75,6 +76,7 @@ def meta_from_api_row(veh: dict[str, Any]) -> dict[str, Any]:
         or veh.get("oldModel")
         or "EV",
         "vin": veh.get("vin") or veh.get("VIN") or "—",
+        "api_row": dict(veh),
     }
 
 
@@ -99,6 +101,7 @@ class ApiClient:
         self._veh_by_id: dict[str, dict[str, Any]] = {}
         self._caps_by_id: dict[str, dict[str, Any]] = {}
         self._list_cache_t = 0.0
+        self._time_skew_ms = 0
 
     def reload_ids_from_store(self):
         """Reload token / sign_key from store (not per-vehicle ids)."""
@@ -124,9 +127,9 @@ class ApiClient:
         )
         return vid, str(dsn or "").strip()
 
-    @staticmethod
-    def now_ms():
-        return str(int(time.time() * 1000))
+    def now_ms(self) -> str:
+        """Corrected UTC milliseconds (local + server skew)."""
+        return str(int(time.time() * 1000) + int(self._time_skew_ms))
 
     def sign(self, params):
         if not self.sign_key:
@@ -148,6 +151,7 @@ class ApiClient:
             "signature": self.sign({**params, "timestamp": ts}),
             "user-agent": USER_AGENT,
             "language": "en",
+            "version": API_VERSION,
         }
 
         tok = token if token is not None else self.token
@@ -161,14 +165,20 @@ class ApiClient:
         path: str,
         *,
         params: dict[str, Any] | None = None,
+        sign_params: dict[str, Any] | None = None,
         token: str | None = None,
         timeout: aiohttp.ClientTimeout | None = None,
     ) -> dict[str, Any]:
-        """Signed GET once; no auth retry."""
+        """Signed GET once; no auth retry.
+
+        ``params`` become query string + sign payload. ``sign_params`` are
+        signed only (path-id endpoints like isOnline).
+        """
         query = {k: ("" if v is None else str(v)) for k, v in (params or {}).items()}
+        sign = {**(sign_params or {}), **query}
 
         kwargs: dict[str, Any] = {
-            "headers": self.headers_for(query, token=token),
+            "headers": self.headers_for(sign, token=token),
             "timeout": timeout or _HTTP_TIMEOUT,
         }
         if query:
@@ -190,8 +200,7 @@ class ApiClient:
 
         Signature always covers ``{**body, timestamp}``. When
         ``include_timestamp_in_body`` is True the JSON body also includes
-        ``timestamp`` (deviceLocate); otherwise timestamp is header-only
-        (remoteControl).
+        ``timestamp`` (login / remoteControl / deviceLocate).
         """
         ts = self.now_ms()
         sign_params = {**body, "timestamp": ts}
@@ -203,6 +212,7 @@ class ApiClient:
             "user-agent": USER_AGENT,
             "content-type": "application/json",
             "language": "en",
+            "version": API_VERSION,
         }
         if token:
             headers["token"] = token
@@ -214,6 +224,35 @@ class ApiClient:
             timeout=timeout or _HTTP_TIMEOUT,
         ) as r:
             return await r.json()
+
+    async def sync_server_time(self) -> int | None:
+        """GET /pub/timestamp — update clock skew; return server epoch ms or None."""
+        try:
+            async with self.session.get(
+                self.api_base + "/pub/timestamp",
+                headers={"user-agent": USER_AGENT, "language": "en"},
+                timeout=_HTTP_TIMEOUT,
+            ) as r:
+                d = await r.json()
+        except Exception:
+            _LOGGER.debug("pub/timestamp failed", exc_info=True)
+            return None
+
+        if str(d.get("code") or "") not in (OK_CODE, "0"):
+            _LOGGER.debug(f"pub/timestamp code={d.get('code')} msg={d.get('msg')}")
+            return None
+
+        raw = d.get("data")
+        try:
+            server_ms = int(raw)
+        except (TypeError, ValueError):
+            _LOGGER.debug(f"pub/timestamp bad data={raw!r}")
+            return None
+
+        local_ms = int(time.time() * 1000)
+        self._time_skew_ms = server_ms - local_ms
+        _LOGGER.debug(f"server time skew_ms={self._time_skew_ms}")
+        return server_ms
 
     async def _request_authed(
         self,
@@ -282,24 +321,26 @@ class ApiClient:
                 "(HA: config entry; engine: .env / CLI)"
             )
 
+        ts = self.now_ms()
         body = {
             "account": self.email,
             "password": self.password,
             **LOGIN_BODY_DEFAULTS,
-            "dateTime": self.now_ms(),
+            "dateTime": ts,
+            "timestamp": ts,
         }
-        ts = self.now_ms()
         h = {
             "timestamp": ts,
             "signature": self.sign({**body, "timestamp": ts}),
             "user-agent": USER_AGENT,
             "content-type": "application/json",
             "language": "en",
+            "version": API_VERSION,
         }
 
         async with self.session.post(
             self.api_base + "/user/login",
-            json=body,
+            data=json.dumps(body, separators=(",", ":"), ensure_ascii=False),
             headers=h,
             timeout=_HTTP_TIMEOUT,
         ) as r:
@@ -320,6 +361,11 @@ class ApiClient:
 
         self.token = token
         self.store.set_token(token)
+
+        try:
+            await self.sync_server_time()
+        except Exception:
+            _LOGGER.debug("server time sync after login failed", exc_info=True)
 
         _LOGGER.info(f"login ok region={self.region} api_base={self.api_base}")
 
@@ -468,7 +514,7 @@ class ApiClient:
             "/user/vehicle/remoteControl",
             body,
             timeout=post_timeout,
-            include_timestamp_in_body=False,
+            include_timestamp_in_body=True,
         )
 
         code = str(d.get("code") or "")
@@ -535,7 +581,7 @@ class ApiClient:
         _LOGGER.debug("GET /user/vehicle/isOnline")
 
         d = await self._request_authed(
-            lambda tok: self._get(path, token=tok),
+            lambda tok: self._get(path, sign_params={"id": vid}, token=tok),
             path="/user/vehicle/isOnline",
         )
 
@@ -555,6 +601,66 @@ class ApiClient:
             return str(data).lower() in ("1", "true")
 
         return None
+
+    async def get_vehicle_state(self, vehicle_id: str) -> dict[str, Any]:
+        """GET /user/vehicle/state/{vehicleId} — same telemetry hex as WS action:6."""
+        self.reload_ids_from_store()
+
+        vid = str(vehicle_id or "").strip()
+        if not vid:
+            return {"code": "-1", "msg": "vehicle_id missing"}
+
+        path = f"/user/vehicle/state/{vid}"
+        _LOGGER.debug("GET /user/vehicle/state")
+
+        return await self._request_authed(
+            lambda tok: self._get(path, sign_params={"id": vid}, token=tok),
+            path="/user/vehicle/state",
+        )
+
+    async def get_ws_connect(self, device_sn: str) -> str | None:
+        """GET /netty/getConnect/2/{deviceSn} — WS base URL, or None on failure."""
+        sn = str(device_sn or "").strip()
+        if not sn:
+            return None
+
+        path = f"/netty/getConnect/2/{sn}"
+        _LOGGER.debug("GET /netty/getConnect")
+
+        d = await self._request_authed(
+            lambda tok: self._get(path, sign_params={"sn": sn}, token=tok),
+            path="/netty/getConnect",
+        )
+
+        if str(d.get("code") or "") not in (OK_CODE, "0"):
+            _LOGGER.debug(
+                f"getConnect failed device={partial_id(sn)} "
+                f"code={d.get('code')} msg={d.get('msg')}"
+            )
+            return None
+
+        data = d.get("data")
+        url = ""
+        if isinstance(data, str):
+            url = data.strip()
+        elif isinstance(data, dict):
+            url = str(
+                data.get("url") or data.get("wsUrl") or data.get("ws") or ""
+            ).strip()
+
+        # Live API returns http(s)://…:4002; app/WS client use ws(s)://.
+        if url.startswith("http://"):
+            url = "ws://" + url[len("http://") :]
+        elif url.startswith("https://"):
+            url = "wss://" + url[len("https://") :]
+
+        if not url.startswith("ws"):
+            return None
+
+        if not url.endswith("/"):
+            url += "/"
+
+        return url
 
     @staticmethod
     def _page_payload(d: dict[str, Any]) -> dict[str, Any]:
@@ -578,17 +684,18 @@ class ApiClient:
 
         return {"total": total, "data": items}
 
-    async def get_notice_unread_count(self, vehicle_id: str) -> dict[str, Any]:
-        """GET /user/notice/unReadCount?vehicleId= — MessageCenterResultBean."""
+    async def get_notice_unread_count(
+        self, vehicle_id: str | None = None
+    ) -> dict[str, Any]:
+        """GET /user/notice/unReadCount — optional vehicleId (global when omitted)."""
         vid = str(vehicle_id or "").strip()
-        if not vid:
-            return {}
+        params = {"vehicleId": vid} if vid else None
 
-        d = await self._signed_get("/user/notice/unReadCount", {"vehicleId": vid})
+        d = await self._signed_get("/user/notice/unReadCount", params)
 
         if str(d.get("code")) != OK_CODE:
             _LOGGER.debug(
-                f"unReadCount failed vehicle={partial_id(vid)} "
+                f"unReadCount failed vehicle={partial_id(vid) if vid else 'global'} "
                 f"code={d.get('code')} msg={d.get('msg')}"
             )
             return {}
@@ -599,31 +706,28 @@ class ApiClient:
 
     async def get_notices(
         self,
-        vehicle_id: str,
+        vehicle_id: str | None,
         notice_type: int,
         *,
         page: int = 1,
         size: int = 20,
     ) -> dict[str, Any]:
-        """GET /user/notice/page — operational/system notice list."""
+        """GET /user/notice/page — optional vehicleId (global when omitted)."""
         vid = str(vehicle_id or "").strip()
-        if not vid:
-            return {"total": 0, "data": []}
+        params: dict[str, Any] = {
+            "page": page,
+            "size": size,
+            "type": notice_type,
+        }
+        if vid:
+            params["vehicleId"] = vid
 
-        d = await self._signed_get(
-            "/user/notice/page",
-            {
-                "vehicleId": vid,
-                "page": page,
-                "size": size,
-                "type": notice_type,
-            },
-        )
+        d = await self._signed_get("/user/notice/page", params)
 
         if str(d.get("code")) != OK_CODE:
             _LOGGER.debug(
-                f"notice page failed vehicle={partial_id(vid)} type={notice_type} "
-                f"code={d.get('code')} msg={d.get('msg')}"
+                f"notice page failed vehicle={partial_id(vid) if vid else 'global'} "
+                f"type={notice_type} code={d.get('code')} msg={d.get('msg')}"
             )
 
         return self._page_payload(d)

@@ -26,6 +26,8 @@ NOTICE_POLL_INTERVAL_S = 300
 MAINTAIN_POLL_INTERVAL_S = 43200
 # Read-only firmware offer check (also once at startup).
 FIRMWARE_POLL_INTERVAL_S = 86400
+# REST /user/vehicle/state when WS is disconnected (WS remains primary).
+REST_STATE_POLL_INTERVAL_S = 60
 # Cloud: vehicle control / locate function unavailable.
 LOCATION_UNSUPPORTED_CODES = frozenset({"50049"})
 # Notice page types that are operational (not CMS/marketing).
@@ -72,6 +74,8 @@ DEFAULT_SIGN_KEY = "mYj3fzMpn77bir66"
 DEFAULT_REGION = "sea"
 API_HOST_TMPL = "https://cqr-api-{region}.hzhjcl.com"
 WS_HOST_TMPL = "ws://wss-cqr-{region}.hzhjcl.com:4002/"
+# Matches LOGIN_BODY_DEFAULTS appVersion; sent as signed-request ``version`` header.
+API_VERSION = "1.12.0"
 OK_CODE = "0000"
 STALE_TOKEN_CODES = frozenset({"9997", "40001", "40003", "401", "1001", "1002"})
 # Meta keys preserved across /user/vehicle fleet sync.
@@ -99,8 +103,10 @@ REST_META_KEYS = (
     "firmware_offered_version",
     "firmware_upgrading",
 )
+# Full /user/vehicle row snapshot for diagnostics (nested under vehicles[vid]).
+API_ROW_META_KEY = "api_row"
 # Union used by store.set_vehicles when merging prior meta.
-PRESERVED_VEHICLE_META_KEYS = LOCATION_META_KEYS + REST_META_KEYS
+PRESERVED_VEHICLE_META_KEYS = LOCATION_META_KEYS + REST_META_KEYS + (API_ROW_META_KEY,)
 DEFAULT_PORT = 8088
 
 # Static device/app fields for POST /user/login (account/password/dateTime filled at call time).
@@ -109,7 +115,7 @@ LOGIN_BODY_DEFAULTS = {
     "appType": "APP",
     "osType": "ANDROID",
     "appName": "CarLinko",
-    "appVersion": "1.12.0",
+    "appVersion": API_VERSION,
     "osVersion": "13",
     "language": "en",
     "timeZone": "Asia/Jakarta",

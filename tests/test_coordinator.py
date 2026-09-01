@@ -79,6 +79,7 @@ async def test_async_start_auth_error(hass: HomeAssistant) -> None:
     coordinator = CarlinkoCoordinator(hass, entry, store, session)
 
     with (
+        patch.object(coordinator.api, "sync_server_time", new_callable=AsyncMock),
         patch.object(coordinator.api, "login", new_callable=AsyncMock) as login,
         patch.object(entry, "async_start_reauth") as start_reauth,
     ):
@@ -100,6 +101,7 @@ async def test_async_start_multi_vehicle(hass: HomeAssistant) -> None:
     coordinator = CarlinkoCoordinator(hass, entry, store, session)
 
     with (
+        patch.object(coordinator.api, "sync_server_time", new_callable=AsyncMock),
         patch.object(
             coordinator.api, "login", new_callable=AsyncMock, return_value="tok"
         ),
@@ -163,6 +165,7 @@ async def test_vehicle_list_add_remove(hass: HomeAssistant) -> None:
     coordinator = CarlinkoCoordinator(hass, entry, store, session)
 
     with (
+        patch.object(coordinator.api, "sync_server_time", new_callable=AsyncMock),
         patch.object(
             coordinator.api, "login", new_callable=AsyncMock, return_value="tok"
         ),
@@ -405,3 +408,61 @@ async def test_service_rejects_unknown_vehicle(hass: HomeAssistant) -> None:
             blocking=True,
             return_response=True,
         )
+
+
+@pytest.mark.asyncio
+async def test_rest_state_poll_skipped_when_connected(hass: HomeAssistant) -> None:
+    entry = _entry()
+    entry.add_to_hass(hass)
+    store = _store(hass, entry)
+    coordinator = CarlinkoCoordinator(hass, entry, store, MagicMock())
+    rt = VehicleRuntime(
+        vehicle_id="veh-1",
+        device_sn="sn-1",
+        meta={"vehicle_id": "veh-1", "device_sn": "sn-1"},
+        connected=True,
+    )
+    coordinator._vehicles["veh-1"] = rt
+
+    with patch.object(
+        coordinator.api, "get_vehicle_state", new_callable=AsyncMock
+    ) as get_state:
+        await coordinator._poll_rest_state_vehicle("veh-1")
+        get_state.assert_not_called()
+
+
+@pytest.mark.asyncio
+async def test_rest_state_poll_applies_blob_when_disconnected(
+    hass: HomeAssistant,
+) -> None:
+    entry = _entry()
+    entry.add_to_hass(hass)
+    store = _store(hass, entry)
+    coordinator = CarlinkoCoordinator(hass, entry, store, MagicMock())
+    vs = VehicleState()
+    rt = VehicleRuntime(
+        vehicle_id="veh-1",
+        device_sn="sn-1",
+        meta={"vehicle_id": "veh-1", "device_sn": "sn-1"},
+        vehicle_state=vs,
+        connected=False,
+    )
+    coordinator._vehicles["veh-1"] = rt
+
+    blob = "00" * 80
+    with (
+        patch.object(
+            coordinator.api,
+            "get_vehicle_state",
+            new_callable=AsyncMock,
+            return_value={"code": "0000", "data": blob},
+        ),
+        patch.object(
+            vs, "update_data", return_value={"battery": 50, "updated_ts": 1.0}
+        ) as update_data,
+        patch.object(coordinator, "_handle_frame") as handle_frame,
+    ):
+        await coordinator._poll_rest_state_vehicle("veh-1")
+        update_data.assert_called_once_with(blob)
+        handle_frame.assert_called_once()
+        assert handle_frame.call_args.args[0] == "veh-1"

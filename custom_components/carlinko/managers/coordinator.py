@@ -40,6 +40,7 @@ from ..common.consts import (
     NOTICE_POLL_INTERVAL_S,
     NOTICE_TYPE_NAMES,
     OK_CODE,
+    REST_STATE_POLL_INTERVAL_S,
     STALE_TOKEN_CODES,
     STORAGE_VERSION,
     STREAM_BACKSTOP,
@@ -111,6 +112,7 @@ class CarlinkoCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         self._notice_task: asyncio.Task | None = None
         self._maintain_task: asyncio.Task | None = None
         self._firmware_task: asyncio.Task | None = None
+        self._rest_state_task: asyncio.Task | None = None
         self._vehicles: dict[str, VehicleRuntime] = {}
         self._entity_listeners: list[EntityListener] = []
         self._was_available: dict[str, bool] = {}
@@ -383,6 +385,8 @@ class CarlinkoCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         await self.store.async_load()
         _LOGGER.debug(f"store loaded entry_id={partial_id(self.entry.entry_id)}")
         try:
+            _LOGGER.debug("async_start → api.sync_server_time")
+            await self.api.sync_server_time()
             _LOGGER.debug("async_start → api.login")
             await self.api.login()
             _LOGGER.debug("async_start → api.async_list_vehicles force=true")
@@ -449,6 +453,9 @@ class CarlinkoCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         self._firmware_task = self.hass.async_create_background_task(
             self._firmware_poll_loop(), name=f"{DOMAIN}_firmware"
         )
+        self._rest_state_task = self.hass.async_create_background_task(
+            self._rest_state_poll_loop(), name=f"{DOMAIN}_rest_state"
+        )
         _LOGGER.debug(
             f"_caps_refresh_loop task started interval={CAPS_REFRESH_INTERVAL_S}s"
         )
@@ -463,6 +470,9 @@ class CarlinkoCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         )
         _LOGGER.debug(
             f"_firmware_poll_loop task started interval={FIRMWARE_POLL_INTERVAL_S}s"
+        )
+        _LOGGER.debug(
+            f"_rest_state_poll_loop task started interval={REST_STATE_POLL_INTERVAL_S}s"
         )
         region = require_region_from_entry_data(self.entry.data)
         _LOGGER.info(
@@ -946,6 +956,50 @@ class CarlinkoCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 return
             self._publish_data()
 
+    async def _poll_rest_state_vehicle(self, vehicle_id: str) -> None:
+        """Fetch /user/vehicle/state when WS is down; same blob path as action:6."""
+        vid = str(vehicle_id)
+        rt = self._vehicles.get(vid)
+        if rt is None or rt.connected:
+            return
+
+        d = await self.api.get_vehicle_state(vid)
+        code = str(d.get("code") or "")
+        if code != OK_CODE:
+            _LOGGER.debug(
+                f"rest state failed vehicle={partial_id(vid)} "
+                f"code={d.get('code')} msg={d.get('msg')}"
+            )
+            return
+
+        blob = d.get("data")
+        if not isinstance(blob, str) or not blob.strip():
+            _LOGGER.debug(f"rest state empty blob vehicle={partial_id(vid)}")
+            return
+
+        state = rt.vehicle_state.update_data(blob)
+        self._handle_frame(vid, dict(state or {}))
+
+    async def _rest_state_poll_loop(self) -> None:
+        while not self._stop.is_set():
+            try:
+                await asyncio.wait_for(
+                    self._stop.wait(), timeout=REST_STATE_POLL_INTERVAL_S
+                )
+                return
+            except asyncio.TimeoutError:
+                pass
+            for vid in list(self._vehicles):
+                try:
+                    await self._poll_rest_state_vehicle(vid)
+                except AuthError as err:
+                    await self._async_handle_auth_failure(err, source="rest_state")
+                    return
+                except Exception:
+                    _LOGGER.exception(
+                        f"rest state poll failed vehicle={partial_id(vid)}"
+                    )
+
     def _require_vehicle(self, vehicle_id: str) -> str:
         vid = str(vehicle_id or "").strip()
         if not vid or vid not in self._vehicles:
@@ -957,9 +1011,11 @@ class CarlinkoCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         return vid
 
     async def async_get_notices(
-        self, vehicle_id: str, *, page: int = 1
+        self, vehicle_id: str | None = None, *, page: int = 1
     ) -> dict[str, Any]:
-        vid = self._require_vehicle(vehicle_id)
+        vid = str(vehicle_id or "").strip() or None
+        if vid:
+            self._require_vehicle(vid)
         items: list[dict[str, Any]] = []
         total = 0
         for notice_type in NOTICE_OPERATIONAL_TYPES:
@@ -1112,11 +1168,13 @@ class CarlinkoCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         notice = 1 if self._notice_task else 0
         maintain = 1 if self._maintain_task else 0
         firmware = 1 if self._firmware_task else 0
+        rest_state = 1 if self._rest_state_task else 0
         _LOGGER.info(f"coordinator stopping vehicles={len(self._vehicles)}")
         _LOGGER.debug(
             f"async_stop cancel ws tasks count={ws_count} "
             f"caps_task={caps} location_task={loc} notice_task={notice} "
-            f"maintain_task={maintain} firmware_task={firmware}"
+            f"maintain_task={maintain} firmware_task={firmware} "
+            f"rest_state_task={rest_state}"
         )
         self._stop.set()
         tasks: list[asyncio.Task] = []
@@ -1133,6 +1191,7 @@ class CarlinkoCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             "_notice_task",
             "_maintain_task",
             "_firmware_task",
+            "_rest_state_task",
         ):
             task = getattr(self, attr)
             if task:

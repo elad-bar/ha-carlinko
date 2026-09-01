@@ -43,6 +43,12 @@ def _mock_entry_and_coordinator():
         "plate": "ABC123",
         "device_sn": "sn-12345678",
         "vin": "VINSECRET",
+        "api_row": {
+            "vehicleId": "vehicle-abcdef",
+            "vin": "VINSECRET",
+            "brand": "JAECOO",
+            "remoteControls": {"commandList": [{"name": 1}]},
+        },
     }
     coordinator.store.data = {
         "token": "tokensecret",
@@ -81,6 +87,8 @@ async def test_diagnostics_redacts_secrets() -> None:
     assert vehicle["live_state"]["battery"] == 72
     assert "VINSECRET" not in str(vehicle["live_state"])
     assert "battery" in vehicle["entity_values"]
+    assert vehicle["api_profile"]["brand"] == "JAECOO"
+    assert "VINSECRET" not in str(vehicle["api_profile"])
     assert CONF_PASSWORD not in diag["data"] or diag["data"].get(CONF_PASSWORD) in (
         None,
         "**REDACTED**",

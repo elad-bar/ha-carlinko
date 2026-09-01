@@ -35,7 +35,7 @@ _VEHICLE_SCHEMA = {
 SERVICE_SCHEMAS: dict[str, vol.Schema] = {
     SERVICE_GET_NOTICES: vol.Schema(
         {
-            **_VEHICLE_SCHEMA,
+            vol.Optional(ATTR_VEHICLE_ID): cv.string,
             vol.Optional(ATTR_PAGE, default=1): vol.All(
                 vol.Coerce(int), vol.Range(min=1)
             ),
@@ -78,10 +78,25 @@ def _coordinator_for_vehicle(
     )
 
 
+def _any_coordinator(hass: HomeAssistant) -> CarlinkoCoordinator:
+    for entry in hass.config_entries.async_entries(DOMAIN):
+        coordinator = getattr(entry, "runtime_data", None)
+        if isinstance(coordinator, CarlinkoCoordinator):
+            return coordinator
+    raise HomeAssistantError(
+        translation_domain=DOMAIN,
+        translation_key="cannot_connect",
+    )
+
+
 async def _async_handle_get_notices(call: ServiceCall) -> dict[str, Any]:
-    coordinator = _coordinator_for_vehicle(call.hass, call.data[ATTR_VEHICLE_ID])
+    vid = str(call.data.get(ATTR_VEHICLE_ID) or "").strip() or None
+    if vid:
+        coordinator = _coordinator_for_vehicle(call.hass, vid)
+    else:
+        coordinator = _any_coordinator(call.hass)
     return await coordinator.async_get_notices(
-        call.data[ATTR_VEHICLE_ID], page=int(call.data.get(ATTR_PAGE) or 1)
+        vid, page=int(call.data.get(ATTR_PAGE) or 1)
     )
 
 

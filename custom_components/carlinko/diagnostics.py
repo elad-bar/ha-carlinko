@@ -130,6 +130,9 @@ def _vehicle_diagnostics(
             },
         },
     }
+    api_row = meta.get("api_row")
+    if isinstance(api_row, dict) and api_row:
+        payload["api_profile"] = async_redact_data(_json_safe(api_row), STATE_REDACT)
     if hass is not None and entry is not None:
         payload["entities"] = _registry_entities(hass, entry, vehicle_id)
     return payload

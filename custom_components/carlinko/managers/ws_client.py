@@ -98,6 +98,7 @@ class WsClient:
             self.vehicle_state.update_metadata(cfg)
 
     async def connect(self, attempts=3):
+        await self._resolve_ws_url()
         last = None
         headers = {"User-Agent": USER_AGENT}
         for i in range(attempts):
@@ -117,6 +118,20 @@ class WsClient:
                 )
                 await asyncio.sleep(2 + i * 2)
         raise last
+
+    async def _resolve_ws_url(self) -> None:
+        """Prefer /netty/getConnect URL; keep region template on failure."""
+        sn = str(self.device_sn or "").strip()
+        if not sn:
+            return
+        try:
+            url = await self.api.get_ws_connect(sn)
+        except Exception:
+            _LOGGER.debug("getConnect failed; using template ws_url", exc_info=True)
+            return
+        if url:
+            self.api.ws_url = url
+            _LOGGER.debug(f"websocket url from getConnect={url}")
 
     @staticmethod
     async def ws_send(ws, obj):

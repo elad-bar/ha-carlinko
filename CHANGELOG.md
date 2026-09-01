@@ -6,6 +6,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [0.1.6] - 2026-09-01
 
+### Added
+
+- **API contract fidelity:** signed requests send `version`; login / remoteControl JSON bodies include `timestamp`; `isOnline` signs path id as `id`
+- **Server clock skew** via `GET /pub/timestamp` (applied to signed timestamps)
+- **WS URL discovery** via `GET /netty/getConnect/2/{deviceSn}` (`http→ws` rewrite; region template fallback)
+- **REST telemetry fallback** `GET /user/vehicle/state/{vehicleId}` when a vehicle’s WebSocket is disconnected
+- Persist full `/user/vehicle` row as `api_row` for diagnostics (`api_profile`, VIN redacted)
+- Global notice variants (omit `vehicleId`) on `ApiClient` and optional `vehicle_id` on `carlinko.get_notices`
+
 ### Changed
 
 - **ApiClient** HTTP layer refactored: shared private `_get` / `_post` and auth-retry helpers replace nested per-endpoint request closures; public API unchanged
@@ -15,6 +24,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ### Fixed
 
 - Empty `device_sn` in storage when the API returns `deviceId` only (broke locate / remoteControl / firmware for those accounts)
+- `getConnect` URLs returned as `http://…:4002` were dropped; now rewritten to `ws://` before connect
 
 ## [0.1.5] - 2026-08-31
 

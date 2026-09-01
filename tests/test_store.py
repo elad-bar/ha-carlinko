@@ -10,6 +10,22 @@ import pytest
 from custom_components.carlinko.managers.store import CarlinkoStore
 
 
+def test_meta_from_api_row_includes_api_row() -> None:
+    from custom_components.carlinko.managers.api_client import meta_from_api_row
+
+    row = {
+        "vehicleId": "v1",
+        "deviceId": "sn-1",
+        "licenseNumber": "P",
+        "model": "J5",
+        "vin": "VIN1",
+        "remoteControls": {"commandList": []},
+    }
+    meta = meta_from_api_row(row)
+    assert meta["api_row"]["remoteControls"] == {"commandList": []}
+    assert meta["api_row"]["vehicleId"] == "v1"
+
+
 def test_set_vehicles_map_only_no_legacy_mirror() -> None:
     path = tempfile.mktemp(suffix=".json")
     try:
