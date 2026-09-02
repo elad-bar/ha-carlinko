@@ -14,6 +14,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 - Diagnostics payload is `entry` (HA data + options), `store` (persist file, vehicle-filtered on device dump), `entities` (per vehicle), `account` / `vehicles` (`details` + `api`)
 - Stop persisting the full `/user/vehicle` row as `api_row`; leftover rows are stripped on the next store save
+- `ApiClient._get` supports `signed=False` for `GET /pub/timestamp`; `login` uses `_post` (HMAC, no token) instead of a raw `session.post`
 
 ## [0.1.6] - 2026-09-01
 

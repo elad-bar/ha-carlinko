@@ -247,19 +247,24 @@ class ApiClient:
         token: str | None = None,
         timeout: aiohttp.ClientTimeout | None = None,
         log_vehicle_id: str | None = None,
+        signed: bool = True,
     ) -> dict[str, Any]:
-        """Signed GET once; no auth retry.
+        """GET once; no auth retry.
 
         ``params`` become query string + sign payload. ``sign_params`` are
-        signed only (path-id endpoints like isOnline).
+        signed only (path-id endpoints like isOnline). ``signed=False`` skips
+        HMAC / token / version (``GET /pub/timestamp``).
         """
         query = {k: ("" if v is None else str(v)) for k, v in (params or {}).items()}
         sign = {**(sign_params or {}), **query}
 
         kwargs: dict[str, Any] = {
-            "headers": self.headers_for(sign, token=token),
             "timeout": timeout or _HTTP_TIMEOUT,
         }
+        if signed:
+            kwargs["headers"] = self.headers_for(sign, token=token)
+        else:
+            kwargs["headers"] = {"user-agent": USER_AGENT, "language": "en"}
         if query:
             kwargs["params"] = query
 
@@ -315,9 +320,11 @@ class ApiClient:
 
         Signature always covers ``{**body, timestamp}``. When
         ``include_timestamp_in_body`` is True the JSON body also includes
-        ``timestamp`` (login / remoteControl / deviceLocate).
+        ``timestamp`` (login / remoteControl / deviceLocate). Reuses
+        ``body["timestamp"]`` when already set so login ``dateTime`` matches.
         """
-        ts = self.now_ms()
+        raw_ts = body.get("timestamp")
+        ts = str(raw_ts) if raw_ts not in (None, "") else self.now_ms()
         sign_params = {**body, "timestamp": ts}
         payload = {**body, "timestamp": ts} if include_timestamp_in_body else body
 
@@ -376,44 +383,11 @@ class ApiClient:
 
     async def sync_server_time(self) -> int | None:
         """GET /pub/timestamp — update clock skew; return server epoch ms or None."""
-        started = datetime.now(timezone.utc).isoformat()
-        http_status: int | None = None
-        d: dict[str, Any] | None = None
-        error: str | None = None
         try:
-            async with self.session.get(
-                self.api_base + "/pub/timestamp",
-                headers={"user-agent": USER_AGENT, "language": "en"},
-                timeout=_HTTP_TIMEOUT,
-            ) as r:
-                http_status = getattr(r, "status", None)
-                raw = await r.json()
-            d = raw if isinstance(raw, dict) else None
-            if d is None:
-                error = "non_object_json"
-        except Exception as err:
-            error = type(err).__name__
+            d = await self._get("/pub/timestamp", signed=False)
+        except Exception:
             _LOGGER.debug("pub/timestamp failed", exc_info=True)
-            self._record_query(
-                method="GET",
-                path="/pub/timestamp",
-                started_at=started,
-                finished_at=datetime.now(timezone.utc).isoformat(),
-                http_status=http_status,
-                body=None,
-                error=error,
-            )
             return None
-
-        self._record_query(
-            method="GET",
-            path="/pub/timestamp",
-            started_at=started,
-            finished_at=datetime.now(timezone.utc).isoformat(),
-            http_status=http_status,
-            body=d,
-            error=error,
-        )
 
         if not d or str(d.get("code") or "") not in (OK_CODE, "0"):
             _LOGGER.debug(f"pub/timestamp code={d.get('code')} msg={d.get('msg')}")
@@ -514,22 +488,12 @@ class ApiClient:
             "dateTime": ts,
             "timestamp": ts,
         }
-        h = {
-            "timestamp": ts,
-            "signature": self.sign({**body, "timestamp": ts}),
-            "user-agent": USER_AGENT,
-            "content-type": "application/json",
-            "language": "en",
-            "version": API_VERSION,
-        }
-
-        async with self.session.post(
-            self.api_base + "/user/login",
-            data=json.dumps(body, separators=(",", ":"), ensure_ascii=False),
-            headers=h,
-            timeout=_HTTP_TIMEOUT,
-        ) as r:
-            d = await r.json()
+        d = await self._post(
+            "/user/login",
+            body,
+            token=None,
+            include_timestamp_in_body=True,
+        )
 
         code = str(d.get("code"))
         if code != OK_CODE:

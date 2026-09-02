@@ -128,7 +128,6 @@ async def test_login_body_includes_timestamp_and_version() -> None:
     client = _api_client()
     client.store.set_token = MagicMock(return_value={})
     _mock_post(client, {"code": "0000", "data": "tok-new"})
-    # login uses session.post; also sync_server_time uses session.get
     _mock_get(client, {"code": "0000", "data": 1_700_000_000_000})
 
     token = await client.login()
@@ -136,8 +135,13 @@ async def test_login_body_includes_timestamp_and_version() -> None:
     body = json.loads(client.session.post.call_args.kwargs["data"])
     headers = client.session.post.call_args.kwargs["headers"]
     assert body["timestamp"] == headers["timestamp"]
+    assert body["dateTime"] == body["timestamp"]
     assert headers["version"] == "1.12.0"
+    assert "token" not in headers
     assert headers["signature"] == client.sign({**body})
+    log = client.query_log_for_diagnostics()
+    assert not any("login" in k for k in log["account"])
+    assert not any("login" in k for bucket in log["vehicles"].values() for k in bucket)
 
 
 @pytest.mark.asyncio
@@ -176,6 +180,12 @@ async def test_sync_server_time_sets_skew() -> None:
         assert server == 2_000_000_000_000
         assert client._time_skew_ms == 2_000_000_000_000 - 1_000_000_000
         assert client.now_ms() == str(2_000_000_000_000)
+    args, kwargs = client.session.get.call_args
+    assert args[0].endswith("/pub/timestamp")
+    headers = kwargs["headers"]
+    assert "signature" not in headers
+    assert "token" not in headers
+    assert "version" not in headers
 
 
 @pytest.mark.asyncio
