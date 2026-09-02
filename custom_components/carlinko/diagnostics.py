@@ -11,30 +11,11 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers.device_registry import DeviceEntry
 
-from .common.consts import CONF_EMAIL, CONF_PASSWORD, CONF_REGION, DOMAIN
-from .common.helpers import partial_id
+from .common.consts import CONF_PASSWORD, DOMAIN
 from .managers.coordinator import CarlinkoCoordinator
-from .models.entity_specs import get_entity_specs
-from .models.entity_values import EntityValueResolver
 
 TO_REDACT = {CONF_PASSWORD, "token", "password", "sign_key"}
 STATE_REDACT = TO_REDACT | {"vin"}
-
-
-def _email_domain(email: str | None) -> str | None:
-    if not email or "@" not in email:
-        return None
-    return email.rsplit("@", 1)[-1]
-
-
-def _entry_summary(entry: ConfigEntry) -> dict[str, Any]:
-    return {
-        "title": entry.title,
-        "domain": entry.domain,
-        "unique_id": entry.unique_id,
-        "region": entry.data.get(CONF_REGION),
-        "email_domain": _email_domain(entry.data.get(CONF_EMAIL)),
-    }
 
 
 def _json_safe(value: Any) -> Any:
@@ -49,24 +30,41 @@ def _json_safe(value: Any) -> Any:
     return str(value)
 
 
-def _live_state(coordinator: CarlinkoCoordinator, vehicle_id: str) -> dict[str, Any]:
-    """Parsed vehicle state (same source as entities), redacted for export."""
-    raw = dict(coordinator.vehicle_data(vehicle_id))
-    return async_redact_data(_json_safe(raw), STATE_REDACT)
+def _redact_query_log(log: dict[str, Any]) -> dict[str, Any]:
+    return async_redact_data(_json_safe(log), STATE_REDACT)
 
 
-def _entity_values(coordinator: CarlinkoCoordinator, vehicle_id: str) -> dict[str, Any]:
-    """Resolved EntitySpec values for the current state (logical entity snapshot)."""
-    state = coordinator.vehicle_data(vehicle_id)
-    caps = coordinator.caps_for(vehicle_id)
-    resolver = EntityValueResolver(coordinator.store)
-    out: dict[str, Any] = {}
-    for spec in get_entity_specs(state=state, caps=caps):
-        out[spec.key] = {
-            "platform": spec.platform,
-            "value": _json_safe(resolver.resolve_value(spec, state)),
-        }
+def _entry_block(entry: ConfigEntry) -> dict[str, Any]:
+    return {
+        "title": entry.title,
+        "domain": entry.domain,
+        "unique_id": entry.unique_id,
+        "data": async_redact_data(dict(entry.data), TO_REDACT),
+        "options": _json_safe(dict(entry.options)),
+    }
+
+
+def _strip_api_row(meta: dict[str, Any]) -> dict[str, Any]:
+    out = dict(meta)
+    out.pop("api_row", None)
     return out
+
+
+def _store_block(
+    coordinator: CarlinkoCoordinator, vehicle_id: str | None
+) -> dict[str, Any]:
+    raw = dict(coordinator.store.data)
+    vehicles = raw.get("vehicles")
+    if isinstance(vehicles, dict):
+        cleaned = {
+            str(vid): _strip_api_row(dict(meta) if isinstance(meta, dict) else {})
+            for vid, meta in vehicles.items()
+        }
+        if vehicle_id:
+            vid = str(vehicle_id)
+            cleaned = {vid: cleaned[vid]} if vid in cleaned else {}
+        raw["vehicles"] = cleaned
+    return async_redact_data(_json_safe(raw), STATE_REDACT)
 
 
 def _registry_entities(
@@ -94,48 +92,97 @@ def _registry_entities(
     return rows
 
 
-def _vehicle_diagnostics(
-    coordinator: CarlinkoCoordinator,
-    vehicle_id: str,
-    *,
-    hass: HomeAssistant | None = None,
-    entry: ConfigEntry | None = None,
+def _entities_block(
+    hass: HomeAssistant | None,
+    entry: ConfigEntry,
+    vehicle_ids: list[str],
+) -> dict[str, list[dict[str, Any]]]:
+    if hass is None:
+        return {vid: [] for vid in vehicle_ids}
+    return {vid: _registry_entities(hass, entry, vid) for vid in vehicle_ids}
+
+
+def _vehicle_details(
+    coordinator: CarlinkoCoordinator, vehicle_id: str
 ) -> dict[str, Any]:
-    meta = coordinator.store.get_vehicle_meta(vehicle_id)
     rt = coordinator.vehicle_runtime(vehicle_id)
-    payload: dict[str, Any] = {
-        "vehicle_id": partial_id(vehicle_id),
-        "device_sn": partial_id(
-            meta.get("device_sn") or (rt.device_sn if rt else None)
-        ),
-        "model": meta.get("model"),
-        "plate": meta.get("plate"),
-        "connected": bool(rt.connected) if rt else False,
-        "last_update_ts": rt.last_update_ts if rt else 0.0,
-        "caps_keys": sorted(coordinator.caps_for(vehicle_id).keys()),
-        "spec_keys": sorted(coordinator.current_spec_keys(vehicle_id)),
-        "live_state": _live_state(coordinator, vehicle_id),
-        "entity_values": _entity_values(coordinator, vehicle_id),
-        "rest_poll": {
-            "notice_last_poll": meta.get("notice_last_poll"),
-            "notice_seen_count": len(meta.get("notice_seen_ids") or []),
-            "notice_unread": meta.get("notice_unread"),
-            "maintain_last_poll": meta.get("maintain_last_poll"),
-            "firmware_last_check": meta.get("firmware_last_check"),
-            "firmware": {
-                "available": meta.get("firmware_available"),
-                "offered_version": meta.get("firmware_offered_version"),
-                "upgrading": meta.get("firmware_upgrading"),
-                "current_version": meta.get("firmware_current_version"),
-            },
+    details = dict(coordinator.vehicle_data(vehicle_id))
+    details["connected"] = bool(rt.connected) if rt else False
+    details["last_update_ts"] = rt.last_update_ts if rt else 0.0
+    details["caps_keys"] = sorted(coordinator.caps_for(vehicle_id).keys())
+    details["spec_keys"] = sorted(coordinator.current_spec_keys(vehicle_id))
+    return async_redact_data(_json_safe(details), STATE_REDACT)
+
+
+def _query_logs(
+    coordinator: CarlinkoCoordinator, vehicle_id: str | None
+) -> dict[str, Any]:
+    api = getattr(coordinator, "api", None)
+    getter = getattr(api, "query_log_for_diagnostics", None)
+    if not callable(getter):
+        return {"account": {}, "vehicles": {}}
+    raw = getter(vehicle_id)
+    if not isinstance(raw, dict):
+        return {"account": {}, "vehicles": {}}
+    return {
+        "account": _redact_query_log(raw.get("account") or {}),
+        "vehicles": {
+            str(vid): _redact_query_log(bucket if isinstance(bucket, dict) else {})
+            for vid, bucket in (raw.get("vehicles") or {}).items()
         },
     }
-    api_row = meta.get("api_row")
-    if isinstance(api_row, dict) and api_row:
-        payload["api_profile"] = async_redact_data(_json_safe(api_row), STATE_REDACT)
-    if hass is not None and entry is not None:
-        payload["entities"] = _registry_entities(hass, entry, vehicle_id)
-    return payload
+
+
+def _account_block(
+    coordinator: CarlinkoCoordinator, logs: dict[str, Any]
+) -> dict[str, Any]:
+    api = getattr(coordinator, "api", None)
+    token = getattr(api, "token", None) if api is not None else None
+    skew = getattr(api, "time_skew_ms", None) if api is not None else None
+    if skew is None:
+        skew = getattr(api, "_time_skew_ms", 0) if api is not None else 0
+    return {
+        "details": {
+            "token_present": bool(token),
+            "skew_ms": int(skew or 0),
+            "connected": bool(coordinator.connected),
+            "vehicle_count": len(coordinator.vehicle_ids),
+        },
+        "api": logs.get("account") or {},
+    }
+
+
+def _vehicles_block(
+    coordinator: CarlinkoCoordinator,
+    vehicle_ids: list[str],
+    logs: dict[str, Any],
+) -> dict[str, Any]:
+    per = logs.get("vehicles") or {}
+    out: dict[str, Any] = {}
+    for vid in vehicle_ids:
+        out[vid] = {
+            "details": _vehicle_details(coordinator, vid),
+            "api": per.get(vid) or {},
+        }
+    return out
+
+
+def _diagnostics_payload(
+    hass: HomeAssistant | None,
+    entry: ConfigEntry,
+    coordinator: CarlinkoCoordinator,
+    *,
+    vehicle_id: str | None = None,
+) -> dict[str, Any]:
+    ids = [str(vehicle_id)] if vehicle_id else list(coordinator.vehicle_ids)
+    logs = _query_logs(coordinator, vehicle_id)
+    return {
+        "entry": _entry_block(entry),
+        "store": _store_block(coordinator, vehicle_id),
+        "entities": _entities_block(hass, entry, ids),
+        "account": _account_block(coordinator, logs),
+        "vehicles": _vehicles_block(coordinator, ids, logs),
+    }
 
 
 def _vehicle_id_from_device(device: DeviceEntry) -> str | None:
@@ -150,35 +197,9 @@ async def async_get_config_entry_diagnostics(
 ) -> dict[str, Any]:
     """Return redacted diagnostics for a config entry."""
     coordinator: CarlinkoCoordinator | None = getattr(entry, "runtime_data", None)
-    vehicles_out: list[dict[str, Any]] = []
-    connected = False
-    last_update_ts = 0.0
-    spec_keys: list[str] = []
-
-    if coordinator is not None:
-        connected = coordinator.connected
-        last_update_ts = coordinator.last_update_ts
-        spec_keys = sorted(coordinator.current_spec_keys())
-        for vid in coordinator.vehicle_ids:
-            vehicles_out.append(
-                _vehicle_diagnostics(coordinator, vid, hass=hass, entry=entry)
-            )
-
-    payload = {
-        "entry": _entry_summary(entry),
-        "runtime": {
-            "connected": connected,
-            "last_update_ts": last_update_ts,
-            "vehicle_count": len(vehicles_out),
-            "vehicles": vehicles_out,
-            "spec_keys": spec_keys,
-        },
-        "data": async_redact_data(dict(entry.data), TO_REDACT),
-    }
-    if coordinator is not None:
-        store_data = dict(coordinator.store.data)
-        payload["store"] = async_redact_data(store_data, TO_REDACT | {"vin"})
-    return payload
+    if coordinator is None:
+        return {"entry": _entry_block(entry)}
+    return _diagnostics_payload(hass, entry, coordinator)
 
 
 async def async_get_device_diagnostics(
@@ -193,17 +214,7 @@ async def async_get_device_diagnostics(
     if coordinator is None or vehicle_id not in coordinator.vehicle_ids:
         return {
             "error": "unknown_device",
-            "entry": _entry_summary(entry),
+            "entry": _entry_block(entry),
         }
 
-    meta = coordinator.store.get_vehicle_meta(vehicle_id)
-    store_vehicle = async_redact_data(dict(meta), TO_REDACT | {"vin"})
-
-    return {
-        "entry": _entry_summary(entry),
-        "vehicle": _vehicle_diagnostics(
-            coordinator, vehicle_id, hass=hass, entry=entry
-        ),
-        "store_vehicle": store_vehicle,
-        "data": async_redact_data(dict(entry.data), TO_REDACT),
-    }
+    return _diagnostics_payload(hass, entry, coordinator, vehicle_id=vehicle_id)

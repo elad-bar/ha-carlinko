@@ -113,7 +113,7 @@ def test_set_vehicles_preserves_rest_meta() -> None:
             os.unlink(path)
 
 
-def test_set_vehicles_preserves_api_row() -> None:
+def test_set_vehicles_strips_api_row() -> None:
     path = tempfile.mktemp(suffix=".json")
     try:
         store = CarlinkoStore(path=path)
@@ -140,7 +140,7 @@ def test_set_vehicles_preserves_api_row() -> None:
         )
         meta = store.get_vehicle_meta("v1")
         assert meta["plate"] == "AAA-NEW"
-        assert meta["api_row"]["brand"] == "JAECOO"
+        assert "api_row" not in meta
     finally:
         if os.path.isfile(path):
             os.unlink(path)

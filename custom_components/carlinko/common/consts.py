@@ -103,10 +103,8 @@ REST_META_KEYS = (
     "firmware_offered_version",
     "firmware_upgrading",
 )
-# Full /user/vehicle row snapshot for diagnostics (nested under vehicles[vid]).
-API_ROW_META_KEY = "api_row"
 # Union used by store.set_vehicles when merging prior meta.
-PRESERVED_VEHICLE_META_KEYS = LOCATION_META_KEYS + REST_META_KEYS + (API_ROW_META_KEY,)
+PRESERVED_VEHICLE_META_KEYS = LOCATION_META_KEYS + REST_META_KEYS
 DEFAULT_PORT = 8088
 
 # Static device/app fields for POST /user/login (account/password/dateTime filled at call time).

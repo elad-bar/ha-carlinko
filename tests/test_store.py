@@ -10,7 +10,7 @@ import pytest
 from custom_components.carlinko.managers.store import CarlinkoStore
 
 
-def test_meta_from_api_row_includes_api_row() -> None:
+def test_meta_from_api_row_identity_only() -> None:
     from custom_components.carlinko.managers.api_client import meta_from_api_row
 
     row = {
@@ -22,8 +22,10 @@ def test_meta_from_api_row_includes_api_row() -> None:
         "remoteControls": {"commandList": []},
     }
     meta = meta_from_api_row(row)
-    assert meta["api_row"]["remoteControls"] == {"commandList": []}
-    assert meta["api_row"]["vehicleId"] == "v1"
+    assert meta["vehicle_id"] == "v1"
+    assert meta["device_sn"] == "sn-1"
+    assert meta["plate"] == "P"
+    assert "api_row" not in meta
 
 
 def test_set_vehicles_map_only_no_legacy_mirror() -> None:

@@ -4,6 +4,17 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.1.7] - 2026-09-02
+
+### Added
+
+- Last REST **query** snapshots in RAM for diagnostics (`METHOD /path` → `request` / `response`, including failures). Login and `remoteControl` are not stored (logs only). `POST /maps/deviceLocate` is recorded as a search.
+
+### Changed
+
+- Diagnostics payload is `entry` (HA data + options), `store` (persist file, vehicle-filtered on device dump), `entities` (per vehicle), `account` / `vehicles` (`details` + `api`)
+- Stop persisting the full `/user/vehicle` row as `api_row`; leftover rows are stripped on the next store save
+
 ## [0.1.6] - 2026-09-01
 
 ### Added

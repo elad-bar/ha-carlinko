@@ -19,6 +19,41 @@ from custom_components.carlinko.diagnostics import (
 )
 
 
+def _query_log(vehicle_id=None):
+    account = {
+        "GET /user/vehicle": {
+            "request": {
+                "started_at": "2026-09-02T05:00:00Z",
+                "finished_at": "2026-09-02T05:00:01Z",
+                "http_status": 200,
+                "cloud_code": "0000",
+                "cloud_msg": "ok",
+                "error": None,
+            },
+            "response": {
+                "code": "0000",
+                "data": [{"vehicleId": "vehicle-abcdef", "vin": "VINSECRET"}],
+            },
+        }
+    }
+    per = {
+        "vehicle-abcdef": {
+            "POST /maps/deviceLocate": {
+                "request": {
+                    "http_status": 200,
+                    "cloud_code": "0000",
+                    "error": None,
+                },
+                "response": {"code": "0000", "data": {"lat": 1.0}},
+            }
+        }
+    }
+    if vehicle_id:
+        vid = str(vehicle_id)
+        return {"account": account, "vehicles": {vid: per.get(vid, {})}}
+    return {"account": account, "vehicles": per}
+
+
 def _mock_entry_and_coordinator():
     entry = MockConfigEntry(
         domain=DOMAIN,
@@ -28,6 +63,7 @@ def _mock_entry_and_coordinator():
             CONF_PASSWORD: "super-secret",
             CONF_REGION: "sea",
         },
+        options={"availability_seconds": 2400},
         title="CarLinko (user@example.com)",
     )
 
@@ -43,18 +79,25 @@ def _mock_entry_and_coordinator():
         "plate": "ABC123",
         "device_sn": "sn-12345678",
         "vin": "VINSECRET",
-        "api_row": {
-            "vehicleId": "vehicle-abcdef",
-            "vin": "VINSECRET",
-            "brand": "JAECOO",
-            "remoteControls": {"commandList": [{"name": 1}]},
-        },
     }
     coordinator.store.data = {
         "token": "tokensecret",
-        "vehicle_id": "vehicle-abcdef",
-        "device_sn": "sn-12345678",
-        "vin": "VINSECRET",
+        "tariff": 0.12,
+        "petrol_price": 6.5,
+        "petrol_kml": 14.0,
+        "vehicles": {
+            "vehicle-abcdef": {
+                "model": "J5",
+                "plate": "ABC123",
+                "device_sn": "sn-12345678",
+                "vin": "VINSECRET",
+                "api_row": {"vin": "VINSECRET", "brand": "JAECOO"},
+            },
+            "other-car": {
+                "model": "X",
+                "vin": "OTHERVIN",
+            },
+        },
     }
     coordinator.caps_for.return_value = {"lock": True, "ac": {}}
     coordinator.current_spec_keys.return_value = {"battery", "lock"}
@@ -62,7 +105,9 @@ def _mock_entry_and_coordinator():
         "battery": 72,
         "vehicle": {"plate": "ABC123", "model": "J5", "vin": "VINSECRET"},
     }
-    coordinator.store.get_cost_config.return_value = {}
+    coordinator.api.token = "tokensecret"
+    coordinator.api.time_skew_ms = -120
+    coordinator.api.query_log_for_diagnostics.side_effect = _query_log
 
     entry.runtime_data = coordinator
     return entry, coordinator
@@ -78,22 +123,27 @@ async def test_diagnostics_redacts_secrets() -> None:
     assert "super-secret" not in blob
     assert "tokensecret" not in blob
     assert "VINSECRET" not in blob
-    assert diag["entry"]["email_domain"] == "example.com"
-    assert diag["entry"]["region"] == "sea"
-    assert diag["runtime"]["connected"] is True
-    assert diag["runtime"]["vehicle_count"] == 1
-    assert "battery" in diag["runtime"]["spec_keys"]
-    vehicle = diag["runtime"]["vehicles"][0]
-    assert vehicle["live_state"]["battery"] == 72
-    assert "VINSECRET" not in str(vehicle["live_state"])
-    assert "battery" in vehicle["entity_values"]
-    assert vehicle["api_profile"]["brand"] == "JAECOO"
-    assert "VINSECRET" not in str(vehicle["api_profile"])
-    assert CONF_PASSWORD not in diag["data"] or diag["data"].get(CONF_PASSWORD) in (
-        None,
-        "**REDACTED**",
-        "REDACTED",
-    )
+    assert diag["entry"]["data"][CONF_REGION] == "sea"
+    assert diag["entry"]["options"]["availability_seconds"] == 2400
+    assert "runtime" not in diag
+    assert "data" not in diag
+    assert diag["account"]["details"]["connected"] is True
+    assert diag["account"]["details"]["vehicle_count"] == 1
+    assert diag["account"]["details"]["token_present"] is True
+    assert "GET /user/vehicle" in diag["account"]["api"]
+    vehicle = diag["vehicles"]["vehicle-abcdef"]
+    assert vehicle["details"]["battery"] == 72
+    assert "lock" in vehicle["details"]["caps_keys"]
+    assert "battery" in vehicle["details"]["spec_keys"]
+    assert vehicle["details"]["connected"] is True
+    assert "POST /maps/deviceLocate" in vehicle["api"]
+    assert "vehicle-abcdef" in diag["store"]["vehicles"]
+    assert "other-car" in diag["store"]["vehicles"]
+    assert "api_row" not in diag["store"]["vehicles"]["vehicle-abcdef"]
+    assert "entity_values" not in vehicle
+    assert CONF_PASSWORD not in diag["entry"]["data"] or diag["entry"]["data"].get(
+        CONF_PASSWORD
+    ) in (None, "**REDACTED**", "REDACTED")
 
 
 @pytest.mark.asyncio
@@ -108,15 +158,13 @@ async def test_device_diagnostics_redacts_and_scopes() -> None:
     assert "super-secret" not in blob
     assert "tokensecret" not in blob
     assert "VINSECRET" not in blob
-    assert diag["entry"]["email_domain"] == "example.com"
-    assert diag["vehicle"]["model"] == "J5"
-    assert diag["vehicle"]["plate"] == "ABC123"
-    assert diag["vehicle"]["connected"] is True
-    assert "battery" in diag["vehicle"]["spec_keys"]
-    assert "lock" in diag["vehicle"]["caps_keys"]
-    assert diag["vehicle"]["live_state"]["battery"] == 72
-    assert "battery" in diag["vehicle"]["entity_values"]
-    assert diag["store_vehicle"]["model"] == "J5"
+    assert "store_vehicle" not in diag
+    assert set(diag["store"]["vehicles"]) == {"vehicle-abcdef"}
+    assert set(diag["entities"]) == {"vehicle-abcdef"}
+    assert set(diag["vehicles"]) == {"vehicle-abcdef"}
+    assert "GET /user/vehicle" in diag["account"]["api"]
+    assert diag["vehicles"]["vehicle-abcdef"]["details"]["battery"] == 72
+    assert diag["store"]["tariff"] == 0.12
 
 
 @pytest.mark.asyncio
@@ -131,7 +179,7 @@ async def test_device_diagnostics_unknown_device() -> None:
     assert diag["error"] == "unknown_device"
     assert "super-secret" not in blob
     assert "tokensecret" not in blob
-    assert "vehicle" not in diag
+    assert "vehicles" not in diag
 
 
 @pytest.mark.asyncio

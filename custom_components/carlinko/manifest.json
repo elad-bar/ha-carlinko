@@ -9,5 +9,5 @@
   "issue_tracker": "https://github.com/elad-bar/ha-carlinko/issues",
   "loggers": ["custom_components.carlinko"],
   "requirements": [],
-  "version": "0.1.6"
+  "version": "0.1.7"
 }

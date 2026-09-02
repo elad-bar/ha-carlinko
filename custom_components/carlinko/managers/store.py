@@ -299,6 +299,7 @@ class CarlinkoStore:
             new_sn = str(m.get("device_sn") or "").strip()
             old_sn = str(old.get("device_sn") or "").strip()
             m["device_sn"] = new_sn or old_sn
+            m.pop("api_row", None)
             cleaned[key] = m
         self.data["vehicles"] = cleaned
         # Drop legacy single-car top-level mirrors; map is the only source.

@@ -14,6 +14,7 @@ from __future__ import annotations
 
 import base64
 from collections.abc import Awaitable, Callable
+from datetime import datetime, timezone
 import hashlib
 import hmac
 import json
@@ -46,6 +47,8 @@ from ..models.exceptions import AuthError
 _LOGGER = logging.getLogger(__name__)
 
 _HTTP_TIMEOUT = aiohttp.ClientTimeout(total=20)
+_QUERY_SKIP_PATHS = frozenset({"/user/login", "/user/vehicle/remoteControl"})
+_ACCOUNT_QUERY_KEYS = frozenset({"GET /pub/timestamp", "GET /user/vehicle"})
 
 
 def vehicle_id_of(veh: dict[str, Any] | None) -> str:
@@ -76,7 +79,6 @@ def meta_from_api_row(veh: dict[str, Any]) -> dict[str, Any]:
         or veh.get("oldModel")
         or "EV",
         "vin": veh.get("vin") or veh.get("VIN") or "—",
-        "api_row": dict(veh),
     }
 
 
@@ -102,6 +104,82 @@ class ApiClient:
         self._caps_by_id: dict[str, dict[str, Any]] = {}
         self._list_cache_t = 0.0
         self._time_skew_ms = 0
+        self._query_account: dict[str, dict[str, Any]] = {}
+        self._query_vehicles: dict[str, dict[str, dict[str, Any]]] = {}
+
+    @property
+    def time_skew_ms(self) -> int:
+        return int(self._time_skew_ms)
+
+    def _vehicle_id_for_sn(self, device_sn: str) -> str:
+        sn = str(device_sn or "").strip()
+        if not sn:
+            return ""
+        if hasattr(self.store, "get_vehicles"):
+            try:
+                vehicles = self.store.get_vehicles() or {}
+            except Exception:
+                vehicles = {}
+            if isinstance(vehicles, dict):
+                for vid, meta in vehicles.items():
+                    if str((meta or {}).get("device_sn") or "").strip() == sn:
+                        return str(vid)
+        for vid, row in self._veh_by_id.items():
+            if device_sn_of(row) == sn:
+                return str(vid)
+        return ""
+
+    def _record_query(
+        self,
+        *,
+        method: str,
+        path: str,
+        started_at: str,
+        finished_at: str,
+        http_status: int | None,
+        body: dict[str, Any] | None,
+        error: str | None,
+        log_vehicle_id: str | None = None,
+    ) -> None:
+        if path in _QUERY_SKIP_PATHS:
+            return
+        key = f"{method} {path}"
+        cloud_code = None
+        cloud_msg = None
+        if isinstance(body, dict):
+            if body.get("code") is not None:
+                cloud_code = str(body.get("code"))
+            cloud_msg = body.get("msg")
+        record = {
+            "request": {
+                "started_at": started_at,
+                "finished_at": finished_at,
+                "http_status": http_status,
+                "cloud_code": cloud_code,
+                "cloud_msg": cloud_msg,
+                "error": error,
+            },
+            "response": dict(body) if isinstance(body, dict) else None,
+        }
+        if key in _ACCOUNT_QUERY_KEYS:
+            self._query_account[key] = record
+            return
+        vid = str(log_vehicle_id or "").strip()
+        if not vid:
+            return
+        self._query_vehicles.setdefault(vid, {})[key] = record
+
+    def query_log_for_diagnostics(
+        self, vehicle_id: str | None = None
+    ) -> dict[str, Any]:
+        """Last query snapshots for diagnostics (account + per-vehicle)."""
+        account = {k: dict(v) for k, v in self._query_account.items()}
+        if vehicle_id:
+            vid = str(vehicle_id)
+            per = self._query_vehicles.get(vid) or {}
+            return {"account": account, "vehicles": {vid: dict(per)}}
+        vehicles = {vid: dict(bucket) for vid, bucket in self._query_vehicles.items()}
+        return {"account": account, "vehicles": vehicles}
 
     def reload_ids_from_store(self):
         """Reload token / sign_key from store (not per-vehicle ids)."""
@@ -168,6 +246,7 @@ class ApiClient:
         sign_params: dict[str, Any] | None = None,
         token: str | None = None,
         timeout: aiohttp.ClientTimeout | None = None,
+        log_vehicle_id: str | None = None,
     ) -> dict[str, Any]:
         """Signed GET once; no auth retry.
 
@@ -184,8 +263,43 @@ class ApiClient:
         if query:
             kwargs["params"] = query
 
-        async with self.session.get(self.api_base + path, **kwargs) as r:
-            return await r.json()
+        started = datetime.now(timezone.utc).isoformat()
+        http_status: int | None = None
+        body: dict[str, Any] | None = None
+        error: str | None = None
+        try:
+            async with self.session.get(self.api_base + path, **kwargs) as r:
+                http_status = getattr(r, "status", None)
+                raw = await r.json()
+            if isinstance(raw, dict):
+                body = raw
+            else:
+                body = None
+                error = "non_object_json"
+        except Exception as err:
+            error = type(err).__name__
+            self._record_query(
+                method="GET",
+                path=path,
+                started_at=started,
+                finished_at=datetime.now(timezone.utc).isoformat(),
+                http_status=http_status,
+                body=None,
+                error=error,
+                log_vehicle_id=log_vehicle_id,
+            )
+            raise
+        self._record_query(
+            method="GET",
+            path=path,
+            started_at=started,
+            finished_at=datetime.now(timezone.utc).isoformat(),
+            http_status=http_status,
+            body=body,
+            error=error,
+            log_vehicle_id=log_vehicle_id,
+        )
+        return body if isinstance(body, dict) else {}
 
     async def _post(
         self,
@@ -195,6 +309,7 @@ class ApiClient:
         token: str | None = None,
         timeout: aiohttp.ClientTimeout | None = None,
         include_timestamp_in_body: bool = False,
+        log_vehicle_id: str | None = None,
     ) -> dict[str, Any]:
         """Signed POST once; no auth retry.
 
@@ -217,28 +332,90 @@ class ApiClient:
         if token:
             headers["token"] = token
 
-        async with self.session.post(
-            self.api_base + path,
-            data=json.dumps(payload, separators=(",", ":"), ensure_ascii=False),
-            headers=headers,
-            timeout=timeout or _HTTP_TIMEOUT,
-        ) as r:
-            return await r.json()
+        started = datetime.now(timezone.utc).isoformat()
+        http_status: int | None = None
+        parsed: dict[str, Any] | None = None
+        error: str | None = None
+        try:
+            async with self.session.post(
+                self.api_base + path,
+                data=json.dumps(payload, separators=(",", ":"), ensure_ascii=False),
+                headers=headers,
+                timeout=timeout or _HTTP_TIMEOUT,
+            ) as r:
+                http_status = getattr(r, "status", None)
+                raw = await r.json()
+            if isinstance(raw, dict):
+                parsed = raw
+            else:
+                error = "non_object_json"
+        except Exception as err:
+            error = type(err).__name__
+            self._record_query(
+                method="POST",
+                path=path,
+                started_at=started,
+                finished_at=datetime.now(timezone.utc).isoformat(),
+                http_status=http_status,
+                body=None,
+                error=error,
+                log_vehicle_id=log_vehicle_id,
+            )
+            raise
+        self._record_query(
+            method="POST",
+            path=path,
+            started_at=started,
+            finished_at=datetime.now(timezone.utc).isoformat(),
+            http_status=http_status,
+            body=parsed,
+            error=error,
+            log_vehicle_id=log_vehicle_id,
+        )
+        return parsed if isinstance(parsed, dict) else {}
 
     async def sync_server_time(self) -> int | None:
         """GET /pub/timestamp — update clock skew; return server epoch ms or None."""
+        started = datetime.now(timezone.utc).isoformat()
+        http_status: int | None = None
+        d: dict[str, Any] | None = None
+        error: str | None = None
         try:
             async with self.session.get(
                 self.api_base + "/pub/timestamp",
                 headers={"user-agent": USER_AGENT, "language": "en"},
                 timeout=_HTTP_TIMEOUT,
             ) as r:
-                d = await r.json()
-        except Exception:
+                http_status = getattr(r, "status", None)
+                raw = await r.json()
+            d = raw if isinstance(raw, dict) else None
+            if d is None:
+                error = "non_object_json"
+        except Exception as err:
+            error = type(err).__name__
             _LOGGER.debug("pub/timestamp failed", exc_info=True)
+            self._record_query(
+                method="GET",
+                path="/pub/timestamp",
+                started_at=started,
+                finished_at=datetime.now(timezone.utc).isoformat(),
+                http_status=http_status,
+                body=None,
+                error=error,
+            )
             return None
 
-        if str(d.get("code") or "") not in (OK_CODE, "0"):
+        self._record_query(
+            method="GET",
+            path="/pub/timestamp",
+            started_at=started,
+            finished_at=datetime.now(timezone.utc).isoformat(),
+            http_status=http_status,
+            body=d,
+            error=error,
+        )
+
+        if not d or str(d.get("code") or "") not in (OK_CODE, "0"):
             _LOGGER.debug(f"pub/timestamp code={d.get('code')} msg={d.get('msg')}")
             return None
 
@@ -278,7 +455,11 @@ class ApiClient:
         return d if isinstance(d, dict) else {}
 
     async def _signed_get(
-        self, path: str, params: dict[str, Any] | None = None
+        self,
+        path: str,
+        params: dict[str, Any] | None = None,
+        *,
+        log_vehicle_id: str | None = None,
     ) -> dict[str, Any]:
         """GET path with signed query params; re-login once on stale token."""
         self.reload_ids_from_store()
@@ -286,7 +467,9 @@ class ApiClient:
         _LOGGER.debug(f"GET {path}")
 
         return await self._request_authed(
-            lambda tok: self._get(path, params=params, token=tok),
+            lambda tok: self._get(
+                path, params=params, token=tok, log_vehicle_id=log_vehicle_id
+            ),
             path=path,
             raise_if_still_stale=True,
         )
@@ -298,6 +481,7 @@ class ApiClient:
         *,
         timeout: aiohttp.ClientTimeout | None = None,
         include_timestamp_in_body: bool = False,
+        log_vehicle_id: str | None = None,
     ) -> dict[str, Any]:
         """POST path with signed body; re-login once on stale token."""
         _LOGGER.debug(f"POST {path}")
@@ -309,6 +493,7 @@ class ApiClient:
                 token=tok,
                 timeout=timeout,
                 include_timestamp_in_body=include_timestamp_in_body,
+                log_vehicle_id=log_vehicle_id,
             ),
             path=path,
         )
@@ -552,6 +737,7 @@ class ApiClient:
             "/maps/deviceLocate",
             {"sn": sn, "showAddress": 1},
             include_timestamp_in_body=True,
+            log_vehicle_id=str(vehicle_id or "").strip() or self._vehicle_id_for_sn(sn),
         )
 
         code = str(d.get("code") or "")
@@ -581,7 +767,12 @@ class ApiClient:
         _LOGGER.debug("GET /user/vehicle/isOnline")
 
         d = await self._request_authed(
-            lambda tok: self._get(path, sign_params={"id": vid}, token=tok),
+            lambda tok: self._get(
+                path,
+                sign_params={"id": vid},
+                token=tok,
+                log_vehicle_id=vid,
+            ),
             path="/user/vehicle/isOnline",
         )
 
@@ -614,7 +805,12 @@ class ApiClient:
         _LOGGER.debug("GET /user/vehicle/state")
 
         return await self._request_authed(
-            lambda tok: self._get(path, sign_params={"id": vid}, token=tok),
+            lambda tok: self._get(
+                path,
+                sign_params={"id": vid},
+                token=tok,
+                log_vehicle_id=vid,
+            ),
             path="/user/vehicle/state",
         )
 
@@ -628,7 +824,12 @@ class ApiClient:
         _LOGGER.debug("GET /netty/getConnect")
 
         d = await self._request_authed(
-            lambda tok: self._get(path, sign_params={"sn": sn}, token=tok),
+            lambda tok: self._get(
+                path,
+                sign_params={"sn": sn},
+                token=tok,
+                log_vehicle_id=self._vehicle_id_for_sn(sn),
+            ),
             path="/netty/getConnect",
         )
 
@@ -691,7 +892,9 @@ class ApiClient:
         vid = str(vehicle_id or "").strip()
         params = {"vehicleId": vid} if vid else None
 
-        d = await self._signed_get("/user/notice/unReadCount", params)
+        d = await self._signed_get(
+            "/user/notice/unReadCount", params, log_vehicle_id=vid or None
+        )
 
         if str(d.get("code")) != OK_CODE:
             _LOGGER.debug(
@@ -722,7 +925,9 @@ class ApiClient:
         if vid:
             params["vehicleId"] = vid
 
-        d = await self._signed_get("/user/notice/page", params)
+        d = await self._signed_get(
+            "/user/notice/page", params, log_vehicle_id=vid or None
+        )
 
         if str(d.get("code")) != OK_CODE:
             _LOGGER.debug(
@@ -753,6 +958,7 @@ class ApiClient:
                 "page": page,
                 "size": size,
             },
+            log_vehicle_id=vid,
         )
 
         if str(d.get("code")) != OK_CODE:
@@ -795,6 +1001,7 @@ class ApiClient:
         d = await self._signed_get(
             "/user/higherFirmware",
             {"deviceId": did, "version": ver},
+            log_vehicle_id=self._vehicle_id_for_sn(did),
         )
 
         if str(d.get("code")) != OK_CODE:

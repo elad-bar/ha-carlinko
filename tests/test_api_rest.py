@@ -21,6 +21,7 @@ def _api_client() -> ApiClient:
 
 def _mock_get(client: ApiClient, payload: dict) -> None:
     response = MagicMock()
+    response.status = 200
     response.json = AsyncMock(return_value=payload)
     client.session.get = MagicMock(return_value=MagicMock())
     client.session.get.return_value.__aenter__ = AsyncMock(return_value=response)
@@ -73,6 +74,7 @@ async def test_get_maintain_details_signs_maintain_id() -> None:
 
 def _mock_post(client: ApiClient, payload: dict) -> None:
     response = MagicMock()
+    response.status = 200
     response.json = AsyncMock(return_value=payload)
     client.session.post = MagicMock(return_value=MagicMock())
     client.session.post.return_value.__aenter__ = AsyncMock(return_value=response)
@@ -202,7 +204,7 @@ async def test_get_vehicle_state_signs_id() -> None:
     )
 
 
-def test_meta_from_api_row_includes_api_row() -> None:
+def test_meta_from_api_row_identity_only() -> None:
     from custom_components.carlinko.managers.api_client import meta_from_api_row
 
     row = {
@@ -214,8 +216,9 @@ def test_meta_from_api_row_includes_api_row() -> None:
         "remoteControls": {"commandList": []},
     }
     meta = meta_from_api_row(row)
-    assert meta["api_row"]["remoteControls"] == {"commandList": []}
-    assert meta["api_row"]["vehicleId"] == "v1"
+    assert meta["vehicle_id"] == "v1"
+    assert meta["device_sn"] == "sn-1"
+    assert "api_row" not in meta
 
 
 @pytest.mark.asyncio
@@ -260,3 +263,60 @@ def test_device_sn_of_reads_device_id() -> None:
     assert device_sn_of({"deviceId": "EME1263A27011284"}) == "EME1263A27011284"
     assert device_sn_of({"deviceSn": "ignored"}) == ""
     assert device_sn_of({}) == ""
+
+
+@pytest.mark.asyncio
+async def test_query_log_records_locate_not_remote_control() -> None:
+    client = _api_client()
+    client.store.get_vehicle_meta = MagicMock(
+        side_effect=lambda vid: {
+            "v1": {"device_sn": "sn-1"},
+            "v2": {"device_sn": "sn-2"},
+        }.get(vid, {})
+    )
+    _mock_post(client, {"code": "0000", "msg": "ok", "data": {"lat": 1.0}})
+    await client.device_locate(vehicle_id="v1")
+    await client.send_control("740100", vehicle_id="v1")
+    log = client.query_log_for_diagnostics()
+    assert "POST /maps/deviceLocate" in log["vehicles"]["v1"]
+    rec = log["vehicles"]["v1"]["POST /maps/deviceLocate"]
+    assert rec["request"]["http_status"] == 200
+    assert rec["request"]["cloud_code"] == "0000"
+    assert rec["response"]["data"]["lat"] == 1.0
+    assert not any("remoteControl" in k for k in log["vehicles"]["v1"])
+
+
+@pytest.mark.asyncio
+async def test_query_log_locate_is_per_vehicle() -> None:
+    client = _api_client()
+    client.store.get_vehicle_meta = MagicMock(
+        side_effect=lambda vid: {
+            "v1": {"device_sn": "sn-1"},
+            "v2": {"device_sn": "sn-2"},
+        }.get(vid, {})
+    )
+    _mock_post(client, {"code": "0000", "data": {"lat": 1.0}})
+    await client.device_locate(vehicle_id="v1")
+    _mock_post(client, {"code": "0000", "data": {"lat": 2.0}})
+    await client.device_locate(vehicle_id="v2")
+    log = client.query_log_for_diagnostics()
+    assert (
+        log["vehicles"]["v1"]["POST /maps/deviceLocate"]["response"]["data"]["lat"]
+        == 1.0
+    )
+    assert (
+        log["vehicles"]["v2"]["POST /maps/deviceLocate"]["response"]["data"]["lat"]
+        == 2.0
+    )
+    one = client.query_log_for_diagnostics("v1")
+    assert set(one["vehicles"]) == {"v1"}
+
+
+@pytest.mark.asyncio
+async def test_query_log_user_vehicle_is_account() -> None:
+    client = _api_client()
+    _mock_get(client, {"code": "0000", "data": [{"vehicleId": "v1"}]})
+    await client.async_list_vehicles(force=True)
+    log = client.query_log_for_diagnostics()
+    assert "GET /user/vehicle" in log["account"]
+    assert log["account"]["GET /user/vehicle"]["request"]["cloud_code"] == "0000"
