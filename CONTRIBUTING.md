@@ -28,13 +28,9 @@ semantics) — treat checked-in translations as the source of truth, not a fresh
 Google Translate run. Please still open PRs for native phrasing, RTL layout
 issues, regional variants, or brand usage (**CarLinko** stays untranslated).
 
-When you add or change entities in [`entity_specs.py`](custom_components/carlinko/models/entity_specs.py):
+When you add or change copy in `strings.json` / `translations/en.json`, or you add a locale, follow the Cursor skill [`.cursor/skills/translate-locales/`](.cursor/skills/translate-locales/) (LLM with entity context: **only changed keys** for a feature/fix; **all keys** for a new language). Then run `pytest tests/test_translations.py`.
 
-1. Update `strings.json` and `translations/en.json` together.
-2. Fill **new keys only** in locale files (edit by hand or run the generator — see below).
-3. Run `pytest tests/test_translations.py`.
-
-To fill **missing** strings from English locally (optional, needs network; from
+To fill **missing** strings without an agent (optional, needs network; from
 [`requirements-dev.txt`](requirements-dev.txt)):
 
 ```bash
@@ -51,7 +47,7 @@ machine-translates keys that are missing or empty. Use `--force` to re-translate
 everything (destructive — **avoid on `main`** after a manual or LLM-assisted review).
 
 **Prefer editing locale JSON directly** (or a focused PR) when improving wording.
-Use the generator for **new keys** after entity changes, then spot-check output.
+Use the generator only as a fallback for **empty/missing** keys when no agent is available; spot-check output. Changed English keys should be re-translated via the skill, not left stale.
 Do not commit API keys. Review safety-related labels (lock, charging stop, tyres)
 after any bulk generation; the same applies after LLM-suggested bulk edits.
 
@@ -64,6 +60,16 @@ after any bulk generation; the same applies after LLM-suggested bulk edits.
   To run everything against the tree: `pre-commit run --all-files`.
   Pull requests also run [CI](.github/workflows/ci.yml) (pre-commit, hassfest, HACS, pytest).
 
+## Standards
+
+Project invariants (layers, HA-free boundary, tests, CI jobs) live in:
+
+- [docs/standards/coding.md](docs/standards/coding.md)
+- [docs/standards/testing.md](docs/standards/testing.md)
+- [docs/standards/ci.md](docs/standards/ci.md)
+
+Cursor skills for adding a feature, fixing a bug, changelog/version, and translations are under [`.cursor/skills/`](.cursor/skills/).
+
 ## Releases
 
 Version lives in [`custom_components/carlinko/manifest.json`](custom_components/carlinko/manifest.json).
@@ -71,10 +77,11 @@ When merging to `main` / `master`, CI runs the same checks, then (on success) cr
 if that tag is missing and publishes a [GitHub Release](https://docs.github.com/en/repositories/releasing-projects-on-github)
 whose notes come from the matching section in [`CHANGELOG.md`](CHANGELOG.md).
 
-Before bumping the manifest for a release:
+Before bumping the manifest for a release (agents: [changelog-version skill](.cursor/skills/changelog-version/SKILL.md)):
 
-1. Add a `## [x.y.z] - YYYY-MM-DD` section to `CHANGELOG.md` (Keep a Changelog style).
-2. Run `pytest tests/test_changelog_release.py` — it fails if the manifest version has no changelog entry.
+1. Compare `manifest.json` `version` to the latest **GitHub release**. If they match, increment the **patch** and add a new `## [x.y.z] - YYYY-MM-DD` section. If the manifest is already ahead, only append changelog bullets.
+2. Document the change in [`CHANGELOG.md`](CHANGELOG.md) (Keep a Changelog: Added / Changed / Fixed).
+3. Run `pytest tests/test_changelog_release.py` — it fails if the manifest version has no changelog entry.
 
 Optional release assets (e.g. demo video) can be uploaded manually to the release on GitHub after CI publishes it.
 
