@@ -390,6 +390,17 @@
       "location": {
         "name": "Vị trí"
       }
+    },
+    "image": {
+      "vehicle_front": {
+        "name": "Phía trước"
+      },
+      "vehicle_side": {
+        "name": "Bên hông"
+      },
+      "vehicle_top": {
+        "name": "Phía trên"
+      }
     }
   },
   "selector": {

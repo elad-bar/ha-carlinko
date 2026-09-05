@@ -390,6 +390,17 @@
       "location": {
         "name": "موقعیت"
       }
+    },
+    "image": {
+      "vehicle_front": {
+        "name": "جلو"
+      },
+      "vehicle_side": {
+        "name": "کنار"
+      },
+      "vehicle_top": {
+        "name": "بالا"
+      }
     }
   },
   "selector": {

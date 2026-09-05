@@ -12,6 +12,7 @@ import json
 import logging
 import os
 import tempfile
+import time
 from typing import Any
 
 from ..common.consts import (
@@ -329,3 +330,88 @@ class CarlinkoStore:
         if vehicles:
             return next(iter(vehicles))
         return ""
+
+    def get_vehicle_images(self) -> dict[str, dict[str, Any]]:
+        """Map of vehicle_id → angle → cached image ({url, content_type, data})."""
+        raw = self.data.get("vehicle_images")
+        if not isinstance(raw, dict):
+            return {}
+        out: dict[str, dict[str, Any]] = {}
+        for vid, entry in raw.items():
+            if isinstance(entry, dict):
+                out[str(vid)] = self._normalize_vehicle_image_entry(dict(entry))
+        return out
+
+    @staticmethod
+    def _normalize_vehicle_image_entry(entry: dict[str, Any]) -> dict[str, Any]:
+        """Migrate legacy flat Front blob to ``{front: {...}}``."""
+        # Already angle-keyed if any known angle child is a dict with image fields.
+        has_angle = False
+        for angle in ("front", "side", "top"):
+            child = entry.get(angle)
+            if isinstance(child, dict) and (
+                "data" in child or "url" in child or "content_type" in child
+            ):
+                has_angle = True
+                break
+        if has_angle:
+            return {
+                str(k): dict(v) if isinstance(v, dict) else v for k, v in entry.items()
+            }
+        # Legacy flat Front shape.
+        if "data" in entry or "url" in entry:
+            return {"front": dict(entry)}
+        return dict(entry)
+
+    def get_vehicle_image(
+        self, vehicle_id: str, angle: str = "front"
+    ) -> dict[str, Any]:
+        """Cached image for one vehicle angle, or empty dict."""
+        angles = self.get_vehicle_images().get(str(vehicle_id)) or {}
+        child = angles.get(str(angle or "front"))
+        return dict(child) if isinstance(child, dict) else {}
+
+    def set_vehicle_image(
+        self,
+        vehicle_id: str,
+        *,
+        url: str,
+        content_type: str,
+        data_b64: str,
+        angle: str = "front",
+        updated: float | None = None,
+    ) -> dict[str, Any]:
+        """Persist base64 image bytes for one vehicle angle."""
+        vid = str(vehicle_id or "").strip()
+        ang = str(angle or "front").strip().lower() or "front"
+        if not vid:
+            return {}
+        blob = {
+            "url": str(url or "").strip(),
+            "content_type": str(content_type or "image/jpeg").strip() or "image/jpeg",
+            "data": str(data_b64 or ""),
+            "updated": float(updated if updated is not None else time.time()),
+        }
+        images = self.get_vehicle_images()
+        per = dict(images.get(vid) or {})
+        per[ang] = blob
+        images[vid] = per
+        self.data["vehicle_images"] = images
+        self.save()
+        return dict(blob)
+
+    def clear_vehicle_image(self, vehicle_id: str) -> None:
+        """Drop all cached angles for one vehicle (e.g. fleet removal)."""
+        self.clear_vehicle_images(vehicle_id)
+
+    def clear_vehicle_images(self, vehicle_id: str) -> None:
+        """Drop all cached angles for one vehicle (e.g. fleet removal)."""
+        vid = str(vehicle_id or "").strip()
+        if not vid:
+            return
+        images = self.get_vehicle_images()
+        if vid not in images:
+            return
+        images.pop(vid, None)
+        self.data["vehicle_images"] = images
+        self.save()

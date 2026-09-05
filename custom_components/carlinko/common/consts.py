@@ -61,6 +61,7 @@ PLATFORMS = (
     "switch",
     "select",
     "device_tracker",
+    "image",
 )
 
 STORAGE_VERSION = 1

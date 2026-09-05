@@ -43,6 +43,7 @@ from ..common.consts import (
 )
 from ..common.helpers import flag, flags, parse_control_cfg, partial_id, seat_max
 from ..models.exceptions import AuthError
+from ..models.vehicle_images import image_urls_from_row
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -70,7 +71,7 @@ def device_sn_of(veh: dict[str, Any] | None) -> str:
 def meta_from_api_row(veh: dict[str, Any]) -> dict[str, Any]:
     """Persistable per-vehicle meta from a /user/vehicle row."""
     vid = vehicle_id_of(veh)
-    return {
+    meta: dict[str, Any] = {
         "vehicle_id": vid,
         "device_sn": device_sn_of(veh),
         "plate": veh.get("licenseNumber") or veh.get("plate") or "—",
@@ -80,6 +81,9 @@ def meta_from_api_row(veh: dict[str, Any]) -> dict[str, Any]:
         or "EV",
         "vin": veh.get("vin") or veh.get("VIN") or "—",
     }
+    for angle, url in image_urls_from_row(veh).items():
+        meta[f"{angle}_image_url"] = url
+    return meta
 
 
 class ApiClient:

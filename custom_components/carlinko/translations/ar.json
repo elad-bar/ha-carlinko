@@ -390,6 +390,17 @@
       "location": {
         "name": "الموقع"
       }
+    },
+    "image": {
+      "vehicle_front": {
+        "name": "الأمام"
+      },
+      "vehicle_side": {
+        "name": "الجانب"
+      },
+      "vehicle_top": {
+        "name": "الأعلى"
+      }
     }
   },
   "selector": {

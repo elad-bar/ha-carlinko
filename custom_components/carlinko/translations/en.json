@@ -352,6 +352,17 @@
         "name": "Location"
       }
     },
+    "image": {
+      "vehicle_front": {
+        "name": "Front"
+      },
+      "vehicle_side": {
+        "name": "Side"
+      },
+      "vehicle_top": {
+        "name": "Top"
+      }
+    },
     "button": {
       "find": {
         "name": "Find car"

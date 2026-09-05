@@ -14,6 +14,7 @@ _HA_FREE_MODULES = (
     "carlinko.models.entity_specs",
     "carlinko.models.entity_values",
     "carlinko.models.vehicle_state",
+    "carlinko.models.vehicle_images",
     "carlinko.models.exceptions",
     "carlinko.managers.api_client",
     "carlinko.managers.ws_client",
@@ -72,6 +73,7 @@ def test_platforms_use_common_entity_setup() -> None:
         "button",
         "switch",
         "select",
+        "image",
     )
     root = _REPO / "custom_components" / "carlinko"
     for name in platforms:

@@ -390,6 +390,17 @@
       "location": {
         "name": "ตำแหน่ง"
       }
+    },
+    "image": {
+      "vehicle_front": {
+        "name": "ด้านหน้า"
+      },
+      "vehicle_side": {
+        "name": "ด้านข้าง"
+      },
+      "vehicle_top": {
+        "name": "ด้านบน"
+      }
     }
   },
   "selector": {

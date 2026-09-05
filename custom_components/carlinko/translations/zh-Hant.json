@@ -390,6 +390,17 @@
       "location": {
         "name": "位置"
       }
+    },
+    "image": {
+      "vehicle_front": {
+        "name": "正面"
+      },
+      "vehicle_side": {
+        "name": "側面"
+      },
+      "vehicle_top": {
+        "name": "頂部"
+      }
     }
   },
   "selector": {

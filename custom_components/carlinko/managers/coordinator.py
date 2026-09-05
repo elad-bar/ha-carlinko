@@ -3,13 +3,15 @@
 from __future__ import annotations
 
 import asyncio
+import base64
 from collections.abc import Callable
 from dataclasses import dataclass, field
 import logging
 import time
 from typing import Any
+from urllib.parse import urlsplit
 
-from aiohttp import ClientSession
+from aiohttp import ClientSession, ClientTimeout
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant, callback
@@ -44,6 +46,7 @@ from ..common.consts import (
     STALE_TOKEN_CODES,
     STORAGE_VERSION,
     STREAM_BACKSTOP,
+    USER_AGENT,
     WS_SETUP_TIMEOUT_S,
 )
 from ..common.helpers import (
@@ -55,6 +58,7 @@ from ..managers.api_client import ApiClient, meta_from_api_row, vehicle_id_of
 from ..managers.ws_client import WsClient
 from ..models.entity_specs import get_entity_specs
 from ..models.exceptions import AuthError
+from ..models.vehicle_images import IMAGE_ANGLES
 from ..models.vehicle_state import VehicleState
 from .store import CarlinkoStore, ha_storage_key
 
@@ -524,6 +528,7 @@ class CarlinkoCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             self._stop_ws(vid)
             removed_keys = set(self._vehicles[vid].spec_keys)
             del self._vehicles[vid]
+            self.store.clear_vehicle_images(vid)
             self._notify_listeners(vid, set(), removed_keys)
             self._async_remove_device(vid)
 
@@ -570,6 +575,86 @@ class CarlinkoCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             # Fleet membership changed — platforms may rebuild wanted set.
             self._notify_listeners("", set(), set())
             self._async_cleanup_stale_devices()
+
+        self._schedule_vehicle_image_ensure(list(metas))
+
+    def _schedule_vehicle_image_ensure(self, vehicle_ids: list[str]) -> None:
+        """Kick off CDN fetch/cache for vehicle render angles that need it."""
+        for vid in vehicle_ids:
+            self.hass.async_create_task(self._ensure_vehicle_images(vid))
+
+    @staticmethod
+    def _cdn_log_host(url: str) -> str:
+        try:
+            parts = urlsplit(url)
+            return parts.netloc or "unknown"
+        except Exception:
+            return "unknown"
+
+    async def _ensure_vehicle_images(self, vehicle_id: str) -> None:
+        """Download each render angle once; skip when store already has that URL."""
+        vid = str(vehicle_id or "").strip()
+        if not vid:
+            return
+        meta = self.store.get_vehicle_meta(vid)
+        published = False
+        for angle in IMAGE_ANGLES:
+            url = str(meta.get(f"{angle}_image_url") or "").strip()
+            if not url:
+                continue
+            cached = self.store.get_vehicle_image(vid, angle=angle)
+            if (
+                str(cached.get("url") or "").strip() == url
+                and str(cached.get("data") or "").strip()
+            ):
+                continue
+            host = self._cdn_log_host(url)
+            _LOGGER.debug(
+                f"vehicle image download begin vehicle={vid} angle={angle} host={host}"
+            )
+            try:
+                timeout = ClientTimeout(total=30)
+                async with self.api.session.get(
+                    url,
+                    headers={"User-Agent": USER_AGENT},
+                    timeout=timeout,
+                ) as resp:
+                    status = resp.status
+                    if status != 200:
+                        _LOGGER.warning(
+                            f"vehicle image download failed vehicle={vid} "
+                            f"angle={angle} host={host} status={status}"
+                        )
+                        continue
+                    body = await resp.read()
+                    if not body:
+                        _LOGGER.warning(
+                            f"vehicle image download empty vehicle={vid} "
+                            f"angle={angle} host={host}"
+                        )
+                        continue
+                    ctype = (resp.headers.get("Content-Type") or "image/jpeg").split(
+                        ";"
+                    )[0].strip() or "image/jpeg"
+                self.store.set_vehicle_image(
+                    vid,
+                    angle=angle,
+                    url=url,
+                    content_type=ctype,
+                    data_b64=base64.b64encode(body).decode("ascii"),
+                )
+                _LOGGER.info(
+                    f"vehicle image cached vehicle={vid} angle={angle} "
+                    f"host={host} bytes={len(body)}"
+                )
+                published = True
+            except Exception:
+                _LOGGER.exception(
+                    f"vehicle image download error vehicle={vid} "
+                    f"angle={angle} host={host}"
+                )
+        if published:
+            self._publish_data()
 
     async def _async_probe_new_vehicle(self, vehicle_id: str) -> None:
         try:

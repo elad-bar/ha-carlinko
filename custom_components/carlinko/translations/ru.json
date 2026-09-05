@@ -390,6 +390,17 @@
       "location": {
         "name": "Местоположение"
       }
+    },
+    "image": {
+      "vehicle_front": {
+        "name": "Спереди"
+      },
+      "vehicle_side": {
+        "name": "Сбоку"
+      },
+      "vehicle_top": {
+        "name": "Сверху"
+      }
     }
   },
   "selector": {

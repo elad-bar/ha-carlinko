@@ -147,3 +147,62 @@ def test_device_tracker_gps() -> None:
     assert entity.latitude == 1.0
     assert entity.longitude == 2.0
     assert entity.location_name == "A"
+
+
+@pytest.mark.asyncio
+async def test_image_front_from_store() -> None:
+    import base64
+    from unittest.mock import patch
+
+    from custom_components.carlinko.image import CarlinkoImage
+
+    coordinator = _coordinator()
+    coordinator.vehicle_ids = ["veh-1"]
+    coordinator.hass = MagicMock()
+    coordinator.store.get_vehicle_image.return_value = {
+        "url": "https://cdn.example/f.png",
+        "content_type": "image/png",
+        "data": base64.b64encode(b"PNG").decode("ascii"),
+        "updated": 1700000000.0,
+    }
+    with patch(
+        "homeassistant.components.image.get_async_client", return_value=MagicMock()
+    ):
+        entity = CarlinkoImage(coordinator, _spec("vehicle_front"), "veh-1")
+    assert entity._attr_translation_key == "vehicle_front"
+    assert entity._angle == "front"
+    assert entity.content_type == "image/png"
+    assert await entity.async_image() == b"PNG"
+    assert entity.available is True
+    coordinator.store.get_vehicle_image.assert_called_with("veh-1", angle="front")
+
+
+@pytest.mark.asyncio
+async def test_image_side_and_top_angles() -> None:
+    import base64
+    from unittest.mock import patch
+
+    from custom_components.carlinko.image import CarlinkoImage
+
+    coordinator = _coordinator()
+    coordinator.vehicle_ids = ["veh-1"]
+    coordinator.hass = MagicMock()
+
+    def _img(vid, angle="front"):
+        return {
+            "url": f"https://cdn.example/{angle}.png",
+            "content_type": "image/png",
+            "data": base64.b64encode(angle.encode()).decode("ascii"),
+            "updated": 1700000000.0,
+        }
+
+    coordinator.store.get_vehicle_image.side_effect = _img
+    with patch(
+        "homeassistant.components.image.get_async_client", return_value=MagicMock()
+    ):
+        side = CarlinkoImage(coordinator, _spec("vehicle_side"), "veh-1")
+        top = CarlinkoImage(coordinator, _spec("vehicle_top"), "veh-1")
+    assert side._angle == "side"
+    assert top._angle == "top"
+    assert await side.async_image() == b"side"
+    assert await top.async_image() == b"top"

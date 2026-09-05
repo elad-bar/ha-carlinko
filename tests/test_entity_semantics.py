@@ -99,10 +99,16 @@ def test_cloud_rest_entities_in_catalog() -> None:
         "firmware_update_available",
         "firmware_offered_version",
         "firmware_upgrading",
+        "vehicle_front",
+        "vehicle_side",
+        "vehicle_top",
     ):
         assert by_key[key].cloud_rest is True
     assert by_key["firmware_update_available"].platform == "binary_sensor"
     assert by_key["notice_unread"].platform == "sensor"
+    assert by_key["vehicle_front"].platform == "image"
+    assert by_key["vehicle_side"].platform == "image"
+    assert by_key["vehicle_top"].platform == "image"
 
 
 def test_status_binaries_gated_against_writable_twins() -> None:

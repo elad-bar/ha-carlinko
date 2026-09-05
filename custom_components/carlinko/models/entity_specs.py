@@ -554,6 +554,24 @@ ENTITY_SPECS: tuple[EntitySpec, ...] = (
         data_path="location",
     ),
     EntitySpec(
+        key="vehicle_front",
+        platform="image",
+        name="Front",
+        cloud_rest=True,
+    ),
+    EntitySpec(
+        key="vehicle_side",
+        platform="image",
+        name="Side",
+        cloud_rest=True,
+    ),
+    EntitySpec(
+        key="vehicle_top",
+        platform="image",
+        name="Top",
+        cloud_rest=True,
+    ),
+    EntitySpec(
         key="notice_unread",
         platform="sensor",
         name="Notice unread",

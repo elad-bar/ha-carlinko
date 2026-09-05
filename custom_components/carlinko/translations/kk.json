@@ -390,6 +390,17 @@
       "location": {
         "name": "Орналасу"
       }
+    },
+    "image": {
+      "vehicle_front": {
+        "name": "Алдыңғы"
+      },
+      "vehicle_side": {
+        "name": "Жан"
+      },
+      "vehicle_top": {
+        "name": "Үсті"
+      }
     }
   },
   "selector": {

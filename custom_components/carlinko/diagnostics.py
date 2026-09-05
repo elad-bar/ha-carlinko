@@ -50,6 +50,46 @@ def _strip_api_row(meta: dict[str, Any]) -> dict[str, Any]:
     return out
 
 
+def _strip_vehicle_images(raw: dict[str, Any], vehicle_id: str | None) -> None:
+    """Replace base64 blobs with compact present/url/content_type summaries."""
+    images = raw.get("vehicle_images")
+    if not isinstance(images, dict):
+        return
+    cleaned: dict[str, Any] = {}
+    for vid, entry in images.items():
+        key = str(vid)
+        if vehicle_id and key != str(vehicle_id):
+            continue
+        if not isinstance(entry, dict):
+            continue
+        # Support legacy flat Front and angle-keyed shapes.
+        if any(
+            isinstance(entry.get(a), dict) and ("data" in entry[a] or "url" in entry[a])
+            for a in ("front", "side", "top")
+        ):
+            angles_out: dict[str, Any] = {}
+            for angle, child in entry.items():
+                if not isinstance(child, dict):
+                    continue
+                angles_out[str(angle)] = {
+                    "url": child.get("url"),
+                    "content_type": child.get("content_type"),
+                    "present": bool(child.get("data")),
+                    "updated": child.get("updated"),
+                }
+            cleaned[key] = angles_out
+        else:
+            cleaned[key] = {
+                "front": {
+                    "url": entry.get("url"),
+                    "content_type": entry.get("content_type"),
+                    "present": bool(entry.get("data")),
+                    "updated": entry.get("updated"),
+                }
+            }
+    raw["vehicle_images"] = cleaned
+
+
 def _store_block(
     coordinator: CarlinkoCoordinator, vehicle_id: str | None
 ) -> dict[str, Any]:
@@ -64,6 +104,7 @@ def _store_block(
             vid = str(vehicle_id)
             cleaned = {vid: cleaned[vid]} if vid in cleaned else {}
         raw["vehicles"] = cleaned
+    _strip_vehicle_images(raw, vehicle_id)
     return async_redact_data(_json_safe(raw), STATE_REDACT)
 
 

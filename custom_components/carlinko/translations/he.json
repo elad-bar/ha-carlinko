@@ -405,6 +405,17 @@
       "location": {
         "name": "מיקום"
       }
+    },
+    "image": {
+      "vehicle_front": {
+        "name": "חזית"
+      },
+      "vehicle_side": {
+        "name": "צד"
+      },
+      "vehicle_top": {
+        "name": "מלמעלה"
+      }
     }
   },
   "services": {

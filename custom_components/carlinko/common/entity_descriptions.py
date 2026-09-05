@@ -13,6 +13,7 @@ from homeassistant.components.binary_sensor import (
 from homeassistant.components.button import ButtonEntityDescription
 from homeassistant.components.climate import ClimateEntityDescription
 from homeassistant.components.cover import CoverEntityDescription
+from homeassistant.components.image import ImageEntityDescription
 from homeassistant.components.lock import LockEntityDescription
 from homeassistant.components.number import NumberDeviceClass, NumberEntityDescription
 from homeassistant.components.select import SelectEntityDescription
@@ -146,5 +147,7 @@ def get_entity_description(spec: EntitySpec) -> EntityDescription:
         return SwitchEntityDescription(**base)
     if platform == "device_tracker":
         return EntityDescription(**base)
+    if platform == "image":
+        return ImageEntityDescription(**base)
 
     return EntityDescription(**base)

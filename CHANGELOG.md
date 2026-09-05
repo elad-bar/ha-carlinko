@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.1.8] - 2026-09-04
+
+### Added
+
+- **Front** image entity: caches the vehicle Front CDN render from `/user/vehicle` (`vehicleImgConfig`) once in the integration store and exposes it as an HA `image` entity
+- **Side** and **Top** image entities from the same `vehicleImgConfig` (download-once cache per angle)
+
 ## [0.1.7] - 2026-09-02
 
 ### Added

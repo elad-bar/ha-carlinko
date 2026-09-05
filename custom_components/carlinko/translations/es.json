@@ -390,6 +390,17 @@
       "location": {
         "name": "Ubicación"
       }
+    },
+    "image": {
+      "vehicle_front": {
+        "name": "Frontal"
+      },
+      "vehicle_side": {
+        "name": "Lateral"
+      },
+      "vehicle_top": {
+        "name": "Superior"
+      }
     }
   },
   "selector": {

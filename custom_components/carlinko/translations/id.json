@@ -390,6 +390,17 @@
       "location": {
         "name": "Lokasi"
       }
+    },
+    "image": {
+      "vehicle_front": {
+        "name": "Depan"
+      },
+      "vehicle_side": {
+        "name": "Samping"
+      },
+      "vehicle_top": {
+        "name": "Atas"
+      }
     }
   },
   "selector": {

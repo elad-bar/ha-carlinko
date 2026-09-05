@@ -390,6 +390,17 @@
       "location": {
         "name": "Lokasi"
       }
+    },
+    "image": {
+      "vehicle_front": {
+        "name": "Hadapan"
+      },
+      "vehicle_side": {
+        "name": "Sisi"
+      },
+      "vehicle_top": {
+        "name": "Atas"
+      }
     }
   },
   "selector": {

@@ -98,6 +98,22 @@ def _mock_entry_and_coordinator():
                 "vin": "OTHERVIN",
             },
         },
+        "vehicle_images": {
+            "vehicle-abcdef": {
+                "front": {
+                    "url": "https://cdn.example/front.png",
+                    "content_type": "image/png",
+                    "data": "QUJDREVGR0hJSktMTU5PUFFSU1RVVldYWVo=",
+                    "updated": 1700000000.0,
+                },
+                "side": {
+                    "url": "https://cdn.example/side.png",
+                    "content_type": "image/png",
+                    "data": "U0lERV9CQVNFNjQ=",
+                    "updated": 1700000001.0,
+                },
+            }
+        },
     }
     coordinator.caps_for.return_value = {"lock": True, "ac": {}}
     coordinator.current_spec_keys.return_value = {"battery", "lock"}
@@ -140,6 +156,14 @@ async def test_diagnostics_redacts_secrets() -> None:
     assert "vehicle-abcdef" in diag["store"]["vehicles"]
     assert "other-car" in diag["store"]["vehicles"]
     assert "api_row" not in diag["store"]["vehicles"]["vehicle-abcdef"]
+    img = diag["store"]["vehicle_images"]["vehicle-abcdef"]
+    assert img["front"]["present"] is True
+    assert img["front"]["content_type"] == "image/png"
+    assert "data" not in img["front"]
+    assert img["side"]["present"] is True
+    assert "data" not in img["side"]
+    assert "QUJDREVGR0hJSktMTU5PUFFSU1RVVldYWVo=" not in blob
+    assert "U0lERV9CQVNFNjQ=" not in blob
     assert "entity_values" not in vehicle
     assert CONF_PASSWORD not in diag["entry"]["data"] or diag["entry"]["data"].get(
         CONF_PASSWORD
