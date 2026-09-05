@@ -101,6 +101,30 @@ def seat_max(ac, flag_key, list_key):
     return max((i + 1 for i, on in enumerate(lst[:3]) if on), default=0)
 
 
+def inherit_rear_seat_caps(seats: dict) -> dict:
+    """Fill rear heat/vent caps from driver when cloud rear flags are off.
+
+    Some cars expose rear seat UI in the app and ship ``RearHeaterList`` /
+    ``RearVentList`` while ``RearHeater`` / ``RearVent`` stay false. Until the
+    original app mapping is confirmed, mirror driver levels onto rear L/R when
+    those rear caps are still zero.
+    """
+    out = dict(seats or {})
+    heat_l = int(out.get("heatL") or 0)
+    vent_l = int(out.get("ventL") or 0)
+    if heat_l > 0:
+        if int(out.get("heatLR") or 0) <= 0:
+            out["heatLR"] = heat_l
+        if int(out.get("heatRR") or 0) <= 0:
+            out["heatRR"] = heat_l
+    if vent_l > 0:
+        if int(out.get("ventLR") or 0) <= 0:
+            out["ventLR"] = vent_l
+        if int(out.get("ventRR") or 0) <= 0:
+            out["ventRR"] = vent_l
+    return out
+
+
 def interpret_device_locate_code(code: str | None) -> bool | None:
     """Map /maps/deviceLocate response code → location_supported.
 

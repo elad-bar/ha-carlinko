@@ -41,7 +41,14 @@ from ..common.consts import (
     WIN_BOOLS,
     WS_HOST_TMPL,
 )
-from ..common.helpers import flag, flags, parse_control_cfg, partial_id, seat_max
+from ..common.helpers import (
+    flag,
+    flags,
+    inherit_rear_seat_caps,
+    parse_control_cfg,
+    partial_id,
+    seat_max,
+)
 from ..models.exceptions import AuthError
 from ..models.vehicle_images import image_urls_from_row
 
@@ -538,7 +545,9 @@ class ApiClient:
             "max": ac.get("SetTemperatureMax"),
             "step": ac.get("TemperatureStepValue"),
         }
-        out["seats"] = {oid: seat_max(ac, fkey, lkey) for oid, fkey, lkey in SEAT_CAPS}
+        out["seats"] = inherit_rear_seat_caps(
+            {oid: seat_max(ac, fkey, lkey) for oid, fkey, lkey in SEAT_CAPS}
+        )
         out["plate"] = v.get("licenseNumber") or ""
 
         return out

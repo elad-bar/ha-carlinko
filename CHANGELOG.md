@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.1.9] - 2026-09-05
+
+### Changed
+
+- When driver seat heat/vent caps are present but cloud `RearHeater` / `RearVent` flags are false, mirror driver levels onto rear L/R selects (interim until the app’s rear mapping is confirmed)
+
 ## [0.1.8] - 2026-09-04
 
 ### Added
