@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.1.10] - 2026-09-06
+
+### Changed
+
+- Device tracker no longer uses the deprecated `location_name` property (removed in Home Assistant 2027.7). Reverse-geocoded address is now the `address` attribute; tracker state follows GPS zones (`home` / `not_home` / named zone)
+
 ## [0.1.9] - 2026-09-05
 
 ### Changed

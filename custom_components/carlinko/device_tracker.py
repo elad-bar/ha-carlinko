@@ -66,9 +66,11 @@ class CarlinkoDeviceTracker(CarlinkoEntity, TrackerEntity):
             return None
 
     @property
-    def location_name(self) -> str | None:
+    def extra_state_attributes(self) -> dict[str, str]:
         address = self._location().get("address")
-        return str(address) if address else None
+        if not address:
+            return {}
+        return {"address": str(address)}
 
     @property
     def source_type(self) -> SourceType:

@@ -146,7 +146,7 @@ def test_device_tracker_gps() -> None:
     assert entity.source_type == SourceType.GPS
     assert entity.latitude == 1.0
     assert entity.longitude == 2.0
-    assert entity.location_name == "A"
+    assert entity.extra_state_attributes == {"address": "A"}
 
 
 @pytest.mark.asyncio

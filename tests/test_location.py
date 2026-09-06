@@ -189,6 +189,7 @@ def test_device_tracker_coords_and_unavailable() -> None:
     assert entity.available is False
     assert entity.latitude is None
     assert entity.source_type == SourceType.GPS
+    assert entity.extra_state_attributes == {}
 
     coordinator.vehicle_data.return_value = {
         "vehicle": {"plate": "P", "model": "M"},
@@ -197,4 +198,4 @@ def test_device_tracker_coords_and_unavailable() -> None:
     assert entity.available is True
     assert entity.latitude == 32.0
     assert entity.longitude == 34.0
-    assert entity.location_name == "Home"
+    assert entity.extra_state_attributes == {"address": "Home"}
