@@ -10,6 +10,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 - Device tracker no longer uses the deprecated `location_name` property (removed in Home Assistant 2027.7). Reverse-geocoded address is now the `address` attribute; tracker state follows GPS zones (`home` / `not_home` / named zone)
 
+### Fixed
+
+- Rear seat heat/vent selects follow `RearHeater` / `RearVent` (and their level lists) from `vehicleControlConfig`. Driver caps are no longer copied onto rear when those flags are false; a missing level list still means L1–L3. Cars that only gained rear selects from the v0.1.9 workaround lose those entities after reload
+
 ## [0.1.9] - 2026-09-05
 
 ### Changed

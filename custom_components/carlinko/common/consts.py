@@ -266,9 +266,8 @@ DOOR_BITS = (
 # ---------------------------------------------------------------------------
 # vehicleControlConfig → our capability keys (ApiClient.control_caps)
 # ---------------------------------------------------------------------------
-# Seat: our key → (A/C feature flag, A/C level list).
-# Rear flags are often false while lists are populated; ApiClient then mirrors
-# driver heat/vent onto heatLR/heatRR and ventLR/ventRR when those stay 0.
+# Seat: our key → (A/C feature flag, A/C level list). Missing flag = hidden;
+# missing list = L1–L3. Rear L/R share RearHeater / RearVent.
 SEAT_CAPS = (
     ("heatL", "DriverHeater", "LeftHeaterList"),
     ("ventL", "DriverVent", "LeftVentList"),

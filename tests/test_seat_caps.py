@@ -2,8 +2,10 @@
 
 from __future__ import annotations
 
+from unittest.mock import MagicMock
+
 from custom_components.carlinko.common.consts import SEAT_CAPS
-from custom_components.carlinko.common.helpers import inherit_rear_seat_caps, seat_max
+from custom_components.carlinko.common.helpers import seat_max
 from custom_components.carlinko.managers.api_client import ApiClient
 
 
@@ -26,53 +28,68 @@ def _ac(**overrides):
     return base
 
 
-def test_seat_max_requires_flag_and_list() -> None:
+def test_seat_max_flag_false_hides_even_with_list() -> None:
     assert seat_max(_ac(RearHeater=False), "RearHeater", "RearHeaterList") == 0
+
+
+def test_seat_max_flag_true_with_list() -> None:
     assert seat_max(_ac(RearHeater=True), "RearHeater", "RearHeaterList") == 3
-    assert seat_max({"RearHeater": True}, "RearHeater", "RearHeaterList") == 0
 
 
-def test_inherit_rear_from_driver_when_rear_flags_off() -> None:
+def test_seat_max_missing_list_defaults_all_levels() -> None:
+    assert seat_max({"RearHeater": True}, "RearHeater", "RearHeaterList") == 3
+
+
+def test_seat_max_missing_flag_is_hidden() -> None:
+    assert (
+        seat_max({"RearHeaterList": [True, True, True]}, "RearHeater", "RearHeaterList")
+        == 0
+    )
+
+
+def test_seat_max_partial_list() -> None:
+    assert (
+        seat_max(
+            _ac(RearHeater=True, RearHeaterList=[True, True, False]),
+            "RearHeater",
+            "RearHeaterList",
+        )
+        == 2
+    )
+
+
+def test_seat_max_empty_list() -> None:
+    assert (
+        seat_max(
+            _ac(RearHeater=True, RearHeaterList=[]), "RearHeater", "RearHeaterList"
+        )
+        == 0
+    )
+
+
+def test_raw_caps_do_not_inherit_rear_from_driver() -> None:
     raw = {oid: seat_max(_ac(), f, l) for oid, f, l in SEAT_CAPS}
     assert raw["heatL"] == 3
+    assert raw["ventL"] == 3
     assert raw["heatLR"] == 0
+    assert raw["heatRR"] == 0
     assert raw["ventLR"] == 0
-
-    seats = inherit_rear_seat_caps(raw)
-    assert seats["heatLR"] == 3
-    assert seats["heatRR"] == 3
-    assert seats["ventLR"] == 3
-    assert seats["ventRR"] == 3
+    assert raw["ventRR"] == 0
 
 
-def test_inherit_preserves_explicit_rear_caps() -> None:
-    seats = inherit_rear_seat_caps(
-        {
-            "heatL": 3,
-            "ventL": 2,
-            "heatLR": 1,
-            "heatRR": 2,
-            "ventLR": 1,
-            "ventRR": 0,
-        }
-    )
-    assert seats["heatLR"] == 1
-    assert seats["heatRR"] == 2
-    assert seats["ventLR"] == 1
-    assert seats["ventRR"] == 2
+def test_rear_heat_only() -> None:
+    ac = _ac(RearHeater=True, RearVent=False)
+    assert seat_max(ac, "RearHeater", "RearHeaterList") == 3
+    assert seat_max(ac, "RearVent", "RearVentList") == 0
 
 
-def test_inherit_skips_when_driver_disabled() -> None:
-    seats = inherit_rear_seat_caps(
-        {"heatL": 0, "ventL": 0, "heatLR": 0, "heatRR": 0, "ventLR": 0, "ventRR": 0}
-    )
-    assert seats["heatLR"] == 0
-    assert seats["ventRR"] == 0
+def test_rear_vent_only() -> None:
+    ac = _ac(RearHeater=False, RearVent=True)
+    assert seat_max(ac, "RearHeater", "RearHeaterList") == 0
+    assert seat_max(ac, "RearVent", "RearVentList") == 3
 
 
-def test_caps_from_vehicle_inherits_rear_seats() -> None:
-    from unittest.mock import MagicMock
-
+def test_caps_from_vehicle_does_not_promote_rear() -> None:
     store = MagicMock()
     store.data = {}
     client = ApiClient("user@example.com", "secret", "sea", store, MagicMock())
@@ -83,7 +100,7 @@ def test_caps_from_vehicle_inherits_rear_seats() -> None:
         }
     )
     assert caps["seats"]["heatL"] == 3
-    assert caps["seats"]["heatLR"] == 3
-    assert caps["seats"]["heatRR"] == 3
-    assert caps["seats"]["ventLR"] == 3
-    assert caps["seats"]["ventRR"] == 3
+    assert caps["seats"]["heatLR"] == 0
+    assert caps["seats"]["heatRR"] == 0
+    assert caps["seats"]["ventLR"] == 0
+    assert caps["seats"]["ventRR"] == 0
