@@ -34,12 +34,14 @@
     "step": {
       "init": {
         "title": "CarLinko options",
-        "description": "Tune WebSocket stream timing, entity availability, and rear seat heat/vent for this account.",
+        "description": "Tune WebSocket stream timing, entity availability, and which rear seat and accessory heat controls are shown for this account.",
         "data": {
           "stream_backstop": "Stream backstop (seconds)",
           "availability_seconds": "Availability window (seconds)",
           "rear_heat": "Rear seat heat",
-          "rear_vent": "Rear seat vent"
+          "rear_vent": "Rear seat vent",
+          "windshield_heat": "Windshield heat",
+          "steer_heat": "Steering wheel heat"
         }
       }
     }
@@ -58,7 +60,7 @@
         "vn": "Vietnam"
       }
     },
-    "rear_seat_mode": {
+    "override_mode": {
       "options": {
         "auto": "Auto",
         "on": "On",

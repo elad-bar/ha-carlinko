@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.1.12] - 2026-09-07
+
+### Added
+
+- **Windshield heat** and **Steering wheel heat** options let users follow the CarLinko app, show those switches on cars whose dashboard has the feature, or hide them
+
 ## [0.1.11] - 2026-09-07
 
 ### Added

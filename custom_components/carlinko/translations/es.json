@@ -34,12 +34,14 @@
     "step": {
       "init": {
         "title": "Opciones de CarLinko",
-        "description": "Ajuste el intervalo del flujo WebSocket, la disponibilidad de entidades y el calor/ventilación de los asientos traseros de esta cuenta.",
+        "description": "Ajuste el intervalo del flujo WebSocket, la disponibilidad de entidades y qué controles de asientos traseros y calefacción de accesorios se muestran en esta cuenta.",
         "data": {
           "stream_backstop": "Intervalo de actualización del flujo WebSocket (segundos)",
           "availability_seconds": "Ventana de disponibilidad (segundos)",
           "rear_heat": "Calefacción de asientos traseros",
-          "rear_vent": "Ventilación de asientos traseros"
+          "rear_vent": "Ventilación de asientos traseros",
+          "windshield_heat": "Calefacción del parabrisas",
+          "steer_heat": "Calefacción del volante"
         }
       }
     }
@@ -425,7 +427,7 @@
         "vn": "Vietnam"
       }
     },
-    "rear_seat_mode": {
+    "override_mode": {
       "options": {
         "auto": "Automático",
         "on": "Activado",

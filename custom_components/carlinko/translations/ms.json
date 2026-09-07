@@ -34,12 +34,14 @@
     "step": {
       "init": {
         "title": "Pilihan CarLinko",
-        "description": "Laraskan masa strim WebSocket, ketersediaan entiti, serta haba/pengudaraan tempat duduk belakang akaun ini.",
+        "description": "Laraskan masa strim WebSocket, ketersediaan entiti, serta kawalan pemanas tempat duduk belakang dan aksesori yang dipaparkan untuk akaun ini.",
         "data": {
           "stream_backstop": "Had masa strim (saat)",
           "availability_seconds": "Tetingkap ketersediaan (saat)",
           "rear_heat": "Pemanas tempat duduk belakang",
-          "rear_vent": "Pengudaraan tempat duduk belakang"
+          "rear_vent": "Pengudaraan tempat duduk belakang",
+          "windshield_heat": "Pemanas cermin depan",
+          "steer_heat": "Pemanas stereng"
         }
       }
     }
@@ -425,7 +427,7 @@
         "vn": "Vietnam"
       }
     },
-    "rear_seat_mode": {
+    "override_mode": {
       "options": {
         "auto": "Auto",
         "on": "Hidup",

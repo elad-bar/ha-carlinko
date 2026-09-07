@@ -54,7 +54,7 @@ Between two INFO milestones in a flow, there should be enough DEBUG to trace the
 - **Region** is set only when adding the integration (`entry.data`); the options flow does not include or log region.
 - User-facing validation failures → **warning** at `config_flow` (with `step=…` and `error=…`) and vendor detail at **api_client** where applicable.
 - Flow boundaries (started, submit, created entry, success reload, abort) → **info**.
-- Options saved → **info** e.g. `options saved stream_backstop=20 availability_seconds=2400 rear_heat=auto rear_vent=on`.
+- Options saved → **info** e.g. `options saved stream_backstop=20 availability_seconds=2400 rear_heat=auto rear_vent=on windshield_heat=auto steer_heat=on`.
 - Missing or invalid region on reauth or setup → **error** at `config_flow` or `coordinator` (`setup failed entry_id=… missing required config data key=region`).
 - Unexpected exceptions in a flow step → **exception** if truly unknown; handled cases → **warning** with context.
 

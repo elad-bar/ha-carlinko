@@ -22,7 +22,9 @@ from .common.consts import (
     CONF_REAR_HEAT,
     CONF_REAR_VENT,
     CONF_REGION,
+    CONF_STEER_HEAT,
     CONF_STREAM_BACKSTOP,
+    CONF_WINDSHIELD_HEAT,
     DEFAULT_REGION,
     DOMAIN,
     KNOWN_REGIONS,
@@ -76,10 +78,12 @@ def _options_schema(entry: config_entries.ConfigEntry) -> vol.Schema:
     availability = entry.options.get(CONF_AVAILABILITY_SECONDS, AVAILABILITY_SECONDS)
     rear_heat = entry.options.get(CONF_REAR_HEAT, REAR_SEAT_AUTO)
     rear_vent = entry.options.get(CONF_REAR_VENT, REAR_SEAT_AUTO)
-    rear_mode = selector.SelectSelector(
+    windshield_heat = entry.options.get(CONF_WINDSHIELD_HEAT, REAR_SEAT_AUTO)
+    steer_heat = entry.options.get(CONF_STEER_HEAT, REAR_SEAT_AUTO)
+    override_mode = selector.SelectSelector(
         selector.SelectSelectorConfig(
             options=list(REAR_SEAT_MODES),
-            translation_key="rear_seat_mode",
+            translation_key="override_mode",
             mode=selector.SelectSelectorMode.DROPDOWN,
         )
     )
@@ -99,8 +103,12 @@ def _options_schema(entry: config_entries.ConfigEntry) -> vol.Schema:
                     min=60, max=86400, step=60, mode=selector.NumberSelectorMode.BOX
                 )
             ),
-            vol.Required(CONF_REAR_HEAT, default=str(rear_heat)): rear_mode,
-            vol.Required(CONF_REAR_VENT, default=str(rear_vent)): rear_mode,
+            vol.Required(CONF_REAR_HEAT, default=str(rear_heat)): override_mode,
+            vol.Required(CONF_REAR_VENT, default=str(rear_vent)): override_mode,
+            vol.Required(
+                CONF_WINDSHIELD_HEAT, default=str(windshield_heat)
+            ): override_mode,
+            vol.Required(CONF_STEER_HEAT, default=str(steer_heat)): override_mode,
         }
     )
 
@@ -282,7 +290,7 @@ class CarlinkoConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
 
 class CarlinkoOptionsFlow(config_entries.OptionsFlow):
-    """Options: stream timing, availability, and rear seat entity overlay."""
+    """Options: stream timing, availability, and capability entity overlays."""
 
     async def async_step_init(
         self, user_input: dict[str, Any] | None = None
@@ -297,10 +305,13 @@ class CarlinkoOptionsFlow(config_entries.OptionsFlow):
             availability = int(user_input[CONF_AVAILABILITY_SECONDS])
             rear_heat = str(user_input[CONF_REAR_HEAT])
             rear_vent = str(user_input[CONF_REAR_VENT])
+            windshield_heat = str(user_input[CONF_WINDSHIELD_HEAT])
+            steer_heat = str(user_input[CONF_STEER_HEAT])
             _LOGGER.info(
                 f"options saved stream_backstop={backstop} "
                 f"availability_seconds={availability} "
-                f"rear_heat={rear_heat} rear_vent={rear_vent}"
+                f"rear_heat={rear_heat} rear_vent={rear_vent} "
+                f"windshield_heat={windshield_heat} steer_heat={steer_heat}"
             )
             data = {
                 **dict(self.config_entry.options),
@@ -308,6 +319,8 @@ class CarlinkoOptionsFlow(config_entries.OptionsFlow):
                 CONF_AVAILABILITY_SECONDS: availability,
                 CONF_REAR_HEAT: rear_heat,
                 CONF_REAR_VENT: rear_vent,
+                CONF_WINDSHIELD_HEAT: windshield_heat,
+                CONF_STEER_HEAT: steer_heat,
             }
             return self.async_create_entry(title="", data=data)
         return self.async_show_form(

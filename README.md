@@ -90,20 +90,24 @@ After setup, configure via the integration’s **Configure** options flow:
 | Availability window (seconds) | `2400` (~40 min) | Entities go unavailable if no frame within this window |
 | Rear seat heat                | Auto             | Controls whether both rear heat selects are shown      |
 | Rear seat vent                | Auto             | Controls whether both rear vent selects are shown      |
+| Windshield heat               | Auto             | Controls whether the windshield heat switch is shown   |
+| Steering wheel heat           | Auto             | Controls whether the steering wheel switch is shown    |
 
-Rear seat options apply to both the left and right rear seats:
+Each option overrides one capability reported by the CarLinko app. The rear seat
+options apply to both the left and right rear seats; the accessory options each
+control a single switch.
 
 - **Auto** follows the capabilities reported by the CarLinko app. This is the
   safest default for most vehicles.
-- **On** shows both rear selects even when the app reports the feature as
+- **On** shows the entities even when the app reports the feature as
   unavailable. Use this for a vehicle whose dashboard supports the feature but
   whose CarLinko app hides it.
-- **Off** hides both rear selects, even when the app reports the feature as
+- **Off** hides the entities, even when the app reports the feature as
   available.
 
 Saving options reloads the integration so the affected entities are added or
 removed. **On** enables real remote controls; only use it after confirming that
-your vehicle supports the selected rear-seat feature.
+your vehicle supports the selected feature.
 
 ## Behaviour
 

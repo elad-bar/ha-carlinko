@@ -5,7 +5,11 @@ from __future__ import annotations
 from unittest.mock import MagicMock
 
 from custom_components.carlinko.common.consts import SEAT_CAPS
-from custom_components.carlinko.common.helpers import overlay_rear_seat_caps, seat_max
+from custom_components.carlinko.common.helpers import (
+    overlay_bool_caps,
+    overlay_rear_seat_caps,
+    seat_max,
+)
 from custom_components.carlinko.managers.api_client import ApiClient
 
 
@@ -146,3 +150,36 @@ def test_overlay_off_hides_even_when_cloud_true() -> None:
     )
     assert caps["seats"]["heatLR"] == 0
     assert caps["seats"]["ventRR"] == 0
+
+
+def test_overlay_bool_auto_leaves_cloud_flag() -> None:
+    caps = overlay_bool_caps(
+        {"windshieldHeat": False, "steerHeat": True},
+        {"windshieldHeat": "auto", "steerHeat": "auto"},
+    )
+    assert caps["windshieldHeat"] is False
+    assert caps["steerHeat"] is True
+
+
+def test_overlay_bool_on_shows_when_cloud_false() -> None:
+    caps = overlay_bool_caps(
+        {"windshieldHeat": False, "steerHeat": False},
+        {"windshieldHeat": "on", "steerHeat": "on"},
+    )
+    assert caps["windshieldHeat"] is True
+    assert caps["steerHeat"] is True
+
+
+def test_overlay_bool_off_hides_when_cloud_true() -> None:
+    caps = overlay_bool_caps(
+        {"windshieldHeat": True, "steerHeat": True},
+        {"windshieldHeat": "off", "steerHeat": "off"},
+    )
+    assert caps["windshieldHeat"] is False
+    assert caps["steerHeat"] is False
+
+
+def test_overlay_bool_does_not_mutate_input() -> None:
+    caps = {"windshieldHeat": False}
+    overlay_bool_caps(caps, {"windshieldHeat": "on"})
+    assert caps["windshieldHeat"] is False

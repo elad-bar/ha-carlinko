@@ -33,7 +33,9 @@ from ..common.consts import (
     CONF_PASSWORD,
     CONF_REAR_HEAT,
     CONF_REAR_VENT,
+    CONF_STEER_HEAT,
     CONF_STREAM_BACKSTOP,
+    CONF_WINDSHIELD_HEAT,
     DOMAIN,
     EVENT_NOTICE,
     FIRMWARE_POLL_INTERVAL_S,
@@ -54,6 +56,7 @@ from ..common.consts import (
 )
 from ..common.helpers import (
     interpret_device_locate_code,
+    overlay_bool_caps,
     overlay_rear_seat_caps,
     partial_id,
     require_region_from_entry_data,
@@ -156,7 +159,15 @@ class CarlinkoCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             caps["location"] = True
         heat_mode = self.entry.options.get(CONF_REAR_HEAT, REAR_SEAT_AUTO)
         vent_mode = self.entry.options.get(CONF_REAR_VENT, REAR_SEAT_AUTO)
-        return overlay_rear_seat_caps(caps, heat_mode, vent_mode)
+        return overlay_bool_caps(
+            overlay_rear_seat_caps(caps, heat_mode, vent_mode),
+            {
+                "windshieldHeat": self.entry.options.get(
+                    CONF_WINDSHIELD_HEAT, REAR_SEAT_AUTO
+                ),
+                "steerHeat": self.entry.options.get(CONF_STEER_HEAT, REAR_SEAT_AUTO),
+            },
+        )
 
     @property
     def caps(self) -> dict:

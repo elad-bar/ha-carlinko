@@ -8,6 +8,7 @@ import pytest
 
 from custom_components.carlinko.climate import CarlinkoClimate
 from custom_components.carlinko.common.entity_descriptions import get_entity_description
+from custom_components.carlinko.common.helpers import overlay_bool_caps
 from custom_components.carlinko.cover import CarlinkoCover
 from custom_components.carlinko.models.blob_fields import BlobFields
 from custom_components.carlinko.models.entity_specs import (
@@ -197,6 +198,15 @@ def test_accessory_heat_switches_are_cap_gated() -> None:
     with_keys = {s.key for s in get_entity_specs(caps=with_caps)}
     assert "windshield_heat" in with_keys
     assert "steer_heat" in with_keys
+
+
+def test_accessory_heat_overlay_on_shows_switches() -> None:
+    cloud = {"windshieldHeat": False, "steerHeat": False}
+    assert "windshield_heat" not in {s.key for s in get_entity_specs(caps=cloud)}
+    overridden = overlay_bool_caps(cloud, {"windshieldHeat": "on", "steerHeat": "on"})
+    keys = {s.key for s in get_entity_specs(caps=overridden)}
+    assert "windshield_heat" in keys
+    assert "steer_heat" in keys
 
 
 def test_rear_right_vent_select_from_blob() -> None:

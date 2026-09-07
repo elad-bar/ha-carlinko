@@ -15,7 +15,9 @@ from custom_components.carlinko.common.consts import (
     CONF_REAR_HEAT,
     CONF_REAR_VENT,
     CONF_REGION,
+    CONF_STEER_HEAT,
     CONF_STREAM_BACKSTOP,
+    CONF_WINDSHIELD_HEAT,
     DOMAIN,
 )
 from custom_components.carlinko.config_flow import CarlinkoConfigFlow
@@ -387,6 +389,8 @@ async def test_options_flow(hass: HomeAssistant) -> None:
             CONF_AVAILABILITY_SECONDS: 3600,
             CONF_REAR_HEAT: "on",
             CONF_REAR_VENT: "auto",
+            CONF_WINDSHIELD_HEAT: "on",
+            CONF_STEER_HEAT: "off",
         },
     )
     await hass.async_block_till_done()
@@ -397,6 +401,8 @@ async def test_options_flow(hass: HomeAssistant) -> None:
     assert entry.options[CONF_AVAILABILITY_SECONDS] == 3600
     assert entry.options[CONF_REAR_HEAT] == "on"
     assert entry.options[CONF_REAR_VENT] == "auto"
+    assert entry.options[CONF_WINDSHIELD_HEAT] == "on"
+    assert entry.options[CONF_STEER_HEAT] == "off"
 
 
 @pytest.mark.asyncio

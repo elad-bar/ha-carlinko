@@ -137,6 +137,18 @@ def overlay_rear_seat_caps(caps: dict, heat_mode: str, vent_mode: str) -> dict:
     return out
 
 
+def overlay_bool_caps(caps: dict, modes: dict[str, str]) -> dict:
+    """Copy caps and force boolean capability flags from Auto/On/Off options."""
+    out = dict(caps)
+    for key, mode in modes.items():
+        normalized = str(mode or REAR_SEAT_AUTO).strip().lower()
+        if normalized == REAR_SEAT_ON:
+            out[key] = True
+        elif normalized == REAR_SEAT_OFF:
+            out[key] = False
+    return out
+
+
 def interpret_device_locate_code(code: str | None) -> bool | None:
     """Map /maps/deviceLocate response code → location_supported.
 

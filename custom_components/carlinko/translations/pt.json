@@ -34,12 +34,14 @@
     "step": {
       "init": {
         "title": "Opções CarLinko",
-        "description": "Ajuste o fluxo WebSocket, a disponibilidade das entidades e o aquecimento/ventilação dos bancos traseiros desta conta.",
+        "description": "Ajuste o fluxo WebSocket, a disponibilidade das entidades e quais controlos de aquecimento dos bancos traseiros e de acessórios são apresentados nesta conta.",
         "data": {
           "stream_backstop": "Limite do fluxo (segundos)",
           "availability_seconds": "Janela de disponibilidade (segundos)",
           "rear_heat": "Aquecimento dos bancos traseiros",
-          "rear_vent": "Ventilação dos bancos traseiros"
+          "rear_vent": "Ventilação dos bancos traseiros",
+          "windshield_heat": "Aquecimento do para-brisas",
+          "steer_heat": "Aquecimento do volante"
         }
       }
     }
@@ -425,7 +427,7 @@
         "vn": "Vietnã"
       }
     },
-    "rear_seat_mode": {
+    "override_mode": {
       "options": {
         "auto": "Automático",
         "on": "Ligado",
