@@ -5,7 +5,7 @@ from __future__ import annotations
 from unittest.mock import MagicMock
 
 from custom_components.carlinko.common.consts import SEAT_CAPS
-from custom_components.carlinko.common.helpers import seat_max
+from custom_components.carlinko.common.helpers import overlay_rear_seat_caps, seat_max
 from custom_components.carlinko.managers.api_client import ApiClient
 
 
@@ -103,4 +103,46 @@ def test_caps_from_vehicle_does_not_promote_rear() -> None:
     assert caps["seats"]["heatLR"] == 0
     assert caps["seats"]["heatRR"] == 0
     assert caps["seats"]["ventLR"] == 0
+    assert caps["seats"]["ventRR"] == 0
+
+
+def test_overlay_auto_leaves_cloud_hidden() -> None:
+    caps = overlay_rear_seat_caps(
+        {"seats": {"heatLR": 0, "heatRR": 0, "ventLR": 0, "ventRR": 0, "heatL": 3}},
+        "auto",
+        "auto",
+    )
+    assert caps["seats"]["heatLR"] == 0
+    assert caps["seats"]["heatL"] == 3
+
+
+def test_overlay_on_shows_rear_when_cloud_hidden() -> None:
+    caps = overlay_rear_seat_caps(
+        {"seats": {"heatLR": 0, "heatRR": 0, "ventLR": 0, "ventRR": 0}},
+        "on",
+        "on",
+    )
+    assert caps["seats"]["heatLR"] == 3
+    assert caps["seats"]["heatRR"] == 3
+    assert caps["seats"]["ventLR"] == 3
+    assert caps["seats"]["ventRR"] == 3
+
+
+def test_overlay_on_keeps_cloud_max() -> None:
+    caps = overlay_rear_seat_caps(
+        {"seats": {"heatLR": 2, "heatRR": 2, "ventLR": 0, "ventRR": 0}},
+        "on",
+        "auto",
+    )
+    assert caps["seats"]["heatLR"] == 2
+    assert caps["seats"]["ventLR"] == 0
+
+
+def test_overlay_off_hides_even_when_cloud_true() -> None:
+    caps = overlay_rear_seat_caps(
+        {"seats": {"heatLR": 3, "heatRR": 3, "ventLR": 3, "ventRR": 3}},
+        "off",
+        "off",
+    )
+    assert caps["seats"]["heatLR"] == 0
     assert caps["seats"]["ventRR"] == 0

@@ -34,10 +34,12 @@
     "step": {
       "init": {
         "title": "Pilihan CarLinko",
-        "description": "Laraskan masa strim WebSocket dan ketersediaan entiti untuk akaun ini.",
+        "description": "Laraskan masa strim WebSocket, ketersediaan entiti, serta haba/pengudaraan tempat duduk belakang akaun ini.",
         "data": {
           "stream_backstop": "Had masa strim (saat)",
-          "availability_seconds": "Tetingkap ketersediaan (saat)"
+          "availability_seconds": "Tetingkap ketersediaan (saat)",
+          "rear_heat": "Pemanas tempat duduk belakang",
+          "rear_vent": "Pengudaraan tempat duduk belakang"
         }
       }
     }
@@ -303,6 +305,12 @@
       },
       "purify": {
         "name": "Penulen udara"
+      },
+      "windshield_heat": {
+        "name": "Pemanas cermin depan"
+      },
+      "steer_heat": {
+        "name": "Pemanas stereng"
       }
     },
     "select": {
@@ -415,6 +423,13 @@
         "sea": "Asia Tenggara",
         "uzb": "Uzbekistan",
         "vn": "Vietnam"
+      }
+    },
+    "rear_seat_mode": {
+      "options": {
+        "auto": "Auto",
+        "on": "Hidup",
+        "off": "Mati"
       }
     }
   },

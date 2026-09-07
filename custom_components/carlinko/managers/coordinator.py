@@ -31,6 +31,8 @@ from ..common.consts import (
     CONF_AVAILABILITY_SECONDS,
     CONF_EMAIL,
     CONF_PASSWORD,
+    CONF_REAR_HEAT,
+    CONF_REAR_VENT,
     CONF_STREAM_BACKSTOP,
     DOMAIN,
     EVENT_NOTICE,
@@ -42,6 +44,7 @@ from ..common.consts import (
     NOTICE_POLL_INTERVAL_S,
     NOTICE_TYPE_NAMES,
     OK_CODE,
+    REAR_SEAT_AUTO,
     REST_STATE_POLL_INTERVAL_S,
     STALE_TOKEN_CODES,
     STORAGE_VERSION,
@@ -51,6 +54,7 @@ from ..common.consts import (
 )
 from ..common.helpers import (
     interpret_device_locate_code,
+    overlay_rear_seat_caps,
     partial_id,
     require_region_from_entry_data,
 )
@@ -150,7 +154,9 @@ class CarlinkoCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         meta = self.store.get_vehicle_meta(vehicle_id)
         if meta.get("location_supported") is True:
             caps["location"] = True
-        return caps
+        heat_mode = self.entry.options.get(CONF_REAR_HEAT, REAR_SEAT_AUTO)
+        vent_mode = self.entry.options.get(CONF_REAR_VENT, REAR_SEAT_AUTO)
+        return overlay_rear_seat_caps(caps, heat_mode, vent_mode)
 
     @property
     def caps(self) -> dict:

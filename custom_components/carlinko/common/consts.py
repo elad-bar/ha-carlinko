@@ -12,6 +12,12 @@ CONF_PASSWORD = "password"
 CONF_REGION = "region"
 CONF_STREAM_BACKSTOP = "stream_backstop"
 CONF_AVAILABILITY_SECONDS = "availability_seconds"
+CONF_REAR_HEAT = "rear_heat"
+CONF_REAR_VENT = "rear_vent"
+REAR_SEAT_AUTO = "auto"
+REAR_SEAT_ON = "on"
+REAR_SEAT_OFF = "off"
+REAR_SEAT_MODES = (REAR_SEAT_AUTO, REAR_SEAT_ON, REAR_SEAT_OFF)
 
 # Entity unavailable when last frame older than this (legacy ~40 min).
 AVAILABILITY_SECONDS = 2400
@@ -148,8 +154,12 @@ BLOB = {
     "range": (29, 31),
     "seat_heat_l": 32,
     "seat_heat_r": 33,
+    "seat_heat_lr": 34,
+    "seat_heat_rr": 36,
     "seat_vent_l": 37,
     "seat_vent_r": 38,
+    "seat_vent_lr": 39,
+    "seat_vent_rr": 41,
     "defrost_front": 42,
     "tyres": (44, 52),
     "fuel_l_100": 53,
@@ -162,6 +172,8 @@ BLOB = {
     "charge_remain_invalid": 0x3FE,
     "charge_power": (62, 64),
     "charge_power_scale": 0.1,
+    "windshield_heat": 64,
+    "steer_heat": 65,
     "wltc_range": (68, 70),
     "headline_range": (70, 72),
 }
@@ -220,9 +232,15 @@ BLOB_FIELDS = (
     ("ac_temp", "byte", ("ac_temp_calculated", "ac_temp"), BlobSection.EXTENDED),
     ("seat_heat_l", "byte", None, BlobSection.EXTENDED),
     ("seat_heat_r", "byte", None, BlobSection.EXTENDED),
+    ("seat_heat_lr", "byte", None, BlobSection.EXTENDED),
+    ("seat_heat_rr", "byte", None, BlobSection.EXTENDED),
     ("seat_vent_l", "byte", None, BlobSection.EXTENDED),
     ("seat_vent_r", "byte", None, BlobSection.EXTENDED),
+    ("seat_vent_lr", "byte", None, BlobSection.EXTENDED),
+    ("seat_vent_rr", "byte", None, BlobSection.EXTENDED),
     ("defrost_front", "flag", None, BlobSection.EXTENDED),
+    ("windshield_heat", "flag", None, BlobSection.EXTENDED),
+    ("steer_heat", "flag", None, BlobSection.EXTENDED),
     ("wltc_range", "int", None, BlobSection.EXTENDED),
     ("hv_state", "byte", None, BlobSection.EXTENDED),
     ("headline_range", "int", None, BlobSection.HEAD),
@@ -381,6 +399,8 @@ EMPTY_VEHICLE_STATE = {
     "windows": None,
     "sunroof": None,
     "defrost_front": None,
+    "windshield_heat": None,
+    "steer_heat": None,
     "hv_state": None,
     "wltc_range": None,
     "headline_range": None,
@@ -388,8 +408,12 @@ EMPTY_VEHICLE_STATE = {
     "ac_temp_calculated": None,
     "seat_heat_l": None,
     "seat_heat_r": None,
+    "seat_heat_lr": None,
+    "seat_heat_rr": None,
     "seat_vent_l": None,
     "seat_vent_r": None,
+    "seat_vent_lr": None,
+    "seat_vent_rr": None,
     "consumption": None,
     "consumption_calculated": None,
     "fuel_pct": None,

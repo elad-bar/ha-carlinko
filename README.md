@@ -88,6 +88,22 @@ After setup, configure via the integration’s **Configure** options flow:
 | ----------------------------- | ---------------- | ------------------------------------------------------ |
 | Stream backstop (seconds)     | `20`             | WS keepalive / re-request interval                     |
 | Availability window (seconds) | `2400` (~40 min) | Entities go unavailable if no frame within this window |
+| Rear seat heat                | Auto             | Controls whether both rear heat selects are shown      |
+| Rear seat vent                | Auto             | Controls whether both rear vent selects are shown      |
+
+Rear seat options apply to both the left and right rear seats:
+
+- **Auto** follows the capabilities reported by the CarLinko app. This is the
+  safest default for most vehicles.
+- **On** shows both rear selects even when the app reports the feature as
+  unavailable. Use this for a vehicle whose dashboard supports the feature but
+  whose CarLinko app hides it.
+- **Off** hides both rear selects, even when the app reports the feature as
+  available.
+
+Saving options reloads the integration so the affected entities are added or
+removed. **On** enables real remote controls; only use it after confirming that
+your vehicle supports the selected rear-seat feature.
 
 ## Behaviour
 
@@ -246,6 +262,8 @@ the catalog).
 | Quick heat          | Button         | —                   | —                                           |
 | Defog               | Switch         | —                   | —                                           |
 | Air purify          | Switch         | —                   | —                                           |
+| Windshield heat     | Switch         | —                   | —                                           |
+| Steering wheel heat | Switch         | —                   | —                                           |
 | Driver seat heat    | Select         | —                   | Available options: Off, Low, Medium, High   |
 | Driver seat vent    | Select         | —                   | Available options: Off, Low, Medium, High   |
 | Passenger seat heat | Select         | —                   | Available options: Off, Low, Medium, High   |

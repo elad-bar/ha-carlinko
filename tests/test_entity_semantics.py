@@ -9,6 +9,7 @@ import pytest
 from custom_components.carlinko.climate import CarlinkoClimate
 from custom_components.carlinko.common.entity_descriptions import get_entity_description
 from custom_components.carlinko.cover import CarlinkoCover
+from custom_components.carlinko.models.blob_fields import BlobFields
 from custom_components.carlinko.models.entity_specs import (
     ENTITY_SPECS,
     get_entity_specs,
@@ -160,6 +161,58 @@ def test_seat_select_current_option_from_blob() -> None:
         "seat_heat_l": 0,
     }
     assert select.current_option == "off"
+
+
+def test_rear_selects_follow_blob() -> None:
+    assert _spec("seat_vent_lr").has_live_state() is True
+    assert _spec("seat_vent_rr").has_live_state() is True
+    assert _spec("seat_heat_lr").has_live_state() is True
+    assert _spec("seat_heat_rr").has_live_state() is True
+
+
+def test_blob_decodes_rear_and_accessory_bytes() -> None:
+    blob = bytearray(72)
+    blob[34] = 3
+    blob[36] = 2
+    blob[39] = 1
+    blob[41] = 2
+    blob[64] = 1
+    blob[65] = 1
+    decoded: dict = {}
+    BlobFields(bytes(blob), decoded).apply()
+    assert decoded["seat_heat_lr"] == 3
+    assert decoded["seat_heat_rr"] == 2
+    assert decoded["seat_vent_lr"] == 1
+    assert decoded["seat_vent_rr"] == 2
+    assert decoded["windshield_heat"] is True
+    assert decoded["steer_heat"] is True
+
+
+def test_accessory_heat_switches_are_cap_gated() -> None:
+    assert _spec("windshield_heat").when == "cap:windshieldHeat"
+    assert _spec("steer_heat").when == "cap:steerHeat"
+    without = {s.key for s in get_entity_specs(caps={})}
+    assert "windshield_heat" not in without
+    with_caps = {"windshieldHeat": True, "steerHeat": True}
+    with_keys = {s.key for s in get_entity_specs(caps=with_caps)}
+    assert "windshield_heat" in with_keys
+    assert "steer_heat" in with_keys
+
+
+def test_rear_right_vent_select_from_blob() -> None:
+    coordinator = MagicMock()
+    coordinator.store.get_vehicle_meta.return_value = {
+        "plate": "P",
+        "model": "M",
+        "vin": "V",
+    }
+    coordinator.vehicle_data.return_value = {
+        "vehicle": {"plate": "P", "model": "M"},
+        "seat_vent_rr": 2,
+    }
+    coordinator.store.get_cost_config.return_value = {}
+    select = CarlinkoSelect(coordinator, _spec("seat_vent_rr"), "veh-1")
+    assert select.current_option == "l2"
 
 
 @pytest.mark.asyncio

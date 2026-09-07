@@ -34,10 +34,12 @@
     "step": {
       "init": {
         "title": "Tùy chọn CarLinko",
-        "description": "Điều chỉnh thời gian luồng WebSocket và khả dụng entity cho tài khoản này.",
+        "description": "Điều chỉnh luồng WebSocket, khả dụng thực thể và sưởi/thông gió ghế sau của tài khoản này.",
         "data": {
           "stream_backstop": "Giới hạn luồng (giây)",
-          "availability_seconds": "Cửa sổ khả dụng (giây)"
+          "availability_seconds": "Cửa sổ khả dụng (giây)",
+          "rear_heat": "Sưởi ghế sau",
+          "rear_vent": "Thông gió ghế sau"
         }
       }
     }
@@ -303,6 +305,12 @@
       },
       "purify": {
         "name": "Lọc không khí"
+      },
+      "windshield_heat": {
+        "name": "Sưởi kính chắn gió"
+      },
+      "steer_heat": {
+        "name": "Sưởi vô lăng"
       }
     },
     "select": {
@@ -415,6 +423,13 @@
         "sea": "Đông Nam Á",
         "uzb": "Uzbekistan",
         "vn": "Việt Nam"
+      }
+    },
+    "rear_seat_mode": {
+      "options": {
+        "auto": "Tự động",
+        "on": "Bật",
+        "off": "Tắt"
       }
     }
   },

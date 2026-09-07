@@ -34,10 +34,12 @@
     "step": {
       "init": {
         "title": "אפשרויות CarLinko",
-        "description": "כוונון תזמון זרם WebSocket וחלון זמינות הישויות בחשבון זה.",
+        "description": "כוונון תזמון זרם WebSocket, זמינות הישויות וחימום/אוורור המושבים האחוריים בחשבון זה.",
         "data": {
           "stream_backstop": "מרווח ריענון זרם WebSocket (שניות)",
-          "availability_seconds": "חלון זמינות (שניות)"
+          "availability_seconds": "חלון זמינות (שניות)",
+          "rear_heat": "חימום מושבים אחוריים",
+          "rear_vent": "אוורור מושבים אחוריים"
         }
       }
     }
@@ -54,6 +56,13 @@
         "sea": "דרום מזרח אסיה",
         "uzb": "אוזבקיסטן",
         "vn": "וייטנאם"
+      }
+    },
+    "rear_seat_mode": {
+      "options": {
+        "auto": "אוטומטי",
+        "on": "פועל",
+        "off": "כבוי"
       }
     }
   },
@@ -318,6 +327,12 @@
       },
       "purify": {
         "name": "טיהור אוויר"
+      },
+      "windshield_heat": {
+        "name": "חימום השמשה הקדמית"
+      },
+      "steer_heat": {
+        "name": "חימום ההגה"
       }
     },
     "select": {

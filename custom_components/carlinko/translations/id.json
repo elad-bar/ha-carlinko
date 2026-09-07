@@ -34,10 +34,12 @@
     "step": {
       "init": {
         "title": "Opsi CarLinko",
-        "description": "Sesuaikan waktu aliran WebSocket dan ketersediaan entitas untuk akun ini.",
+        "description": "Atur waktu aliran WebSocket, ketersediaan entitas, serta panas/ventilasi kursi belakang akun ini.",
         "data": {
           "stream_backstop": "Batas waktu aliran (detik)",
-          "availability_seconds": "Jendela ketersediaan (detik)"
+          "availability_seconds": "Jendela ketersediaan (detik)",
+          "rear_heat": "Pemanas kursi belakang",
+          "rear_vent": "Ventilasi kursi belakang"
         }
       }
     }
@@ -303,6 +305,12 @@
       },
       "purify": {
         "name": "Penyaringan udara"
+      },
+      "windshield_heat": {
+        "name": "Pemanas kaca depan"
+      },
+      "steer_heat": {
+        "name": "Pemanas setir"
       }
     },
     "select": {
@@ -415,6 +423,13 @@
         "sea": "Asia Tenggara",
         "uzb": "Uzbekistan",
         "vn": "Vietnam"
+      }
+    },
+    "rear_seat_mode": {
+      "options": {
+        "auto": "Otomatis",
+        "on": "Aktif",
+        "off": "Nonaktif"
       }
     }
   },

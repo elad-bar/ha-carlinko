@@ -12,6 +12,9 @@ from .consts import (
     KPA_TO_PSI,
     LOCATION_UNSUPPORTED_CODES,
     OK_CODE,
+    REAR_SEAT_AUTO,
+    REAR_SEAT_OFF,
+    REAR_SEAT_ON,
     TYRE_INVALID,
     TYRE_TEMP_OFFSET,
     TYRE_TEMP_SCALE,
@@ -101,6 +104,37 @@ def seat_max(ac, flag_key, list_key):
     if not isinstance(lst, list):
         return 0
     return max((i + 1 for i, on in enumerate(lst[:3]) if on), default=0)
+
+
+def apply_rear_seat_mode(seats: dict, mode: str, keys: tuple[str, ...]) -> dict:
+    """Overlay Auto/On/Off onto rear heat or vent seat max values."""
+    out = dict(seats)
+    normalized = str(mode or REAR_SEAT_AUTO).strip().lower()
+    if normalized == REAR_SEAT_AUTO:
+        return out
+    if normalized == REAR_SEAT_OFF:
+        for key in keys:
+            out[key] = 0
+        return out
+    if normalized == REAR_SEAT_ON:
+        for key in keys:
+            try:
+                current = int(out.get(key) or 0)
+            except (TypeError, ValueError):
+                current = 0
+            out[key] = current if current > 0 else 3
+        return out
+    return out
+
+
+def overlay_rear_seat_caps(caps: dict, heat_mode: str, vent_mode: str) -> dict:
+    """Copy caps and apply rear heat/vent option overlays."""
+    out = dict(caps)
+    seats = dict(out.get("seats") or {})
+    seats = apply_rear_seat_mode(seats, heat_mode, ("heatLR", "heatRR"))
+    seats = apply_rear_seat_mode(seats, vent_mode, ("ventLR", "ventRR"))
+    out["seats"] = seats
+    return out
 
 
 def interpret_device_locate_code(code: str | None) -> bool | None:

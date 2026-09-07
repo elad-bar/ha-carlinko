@@ -34,10 +34,12 @@
     "step": {
       "init": {
         "title": "CarLinko 选项",
-        "description": "调整此账户的 WebSocket 流时序与实体可用性。",
+        "description": "调整此账户的 WebSocket 流时间、实体可用性以及后排座椅加热/通风。",
         "data": {
           "stream_backstop": "流后备间隔（秒）",
-          "availability_seconds": "可用性窗口（秒）"
+          "availability_seconds": "可用性窗口（秒）",
+          "rear_heat": "后排座椅加热",
+          "rear_vent": "后排座椅通风"
         }
       }
     }
@@ -303,6 +305,12 @@
       },
       "purify": {
         "name": "空气净化"
+      },
+      "windshield_heat": {
+        "name": "前挡风玻璃加热"
+      },
+      "steer_heat": {
+        "name": "方向盘加热"
       }
     },
     "select": {
@@ -415,6 +423,13 @@
         "sea": "东南亚",
         "uzb": "乌兹别克斯坦",
         "vn": "越南"
+      }
+    },
+    "rear_seat_mode": {
+      "options": {
+        "auto": "自动",
+        "on": "开",
+        "off": "关"
       }
     }
   },

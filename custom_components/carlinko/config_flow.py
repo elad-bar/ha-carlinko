@@ -19,11 +19,15 @@ from .common.consts import (
     AVAILABILITY_SECONDS,
     CONF_AVAILABILITY_SECONDS,
     CONF_EMAIL,
+    CONF_REAR_HEAT,
+    CONF_REAR_VENT,
     CONF_REGION,
     CONF_STREAM_BACKSTOP,
     DEFAULT_REGION,
     DOMAIN,
     KNOWN_REGIONS,
+    REAR_SEAT_AUTO,
+    REAR_SEAT_MODES,
     STREAM_BACKSTOP,
 )
 from .common.helpers import mask_email, partial_id, require_region_from_entry_data
@@ -70,6 +74,15 @@ def _reauth_schema() -> vol.Schema:
 def _options_schema(entry: config_entries.ConfigEntry) -> vol.Schema:
     backstop = entry.options.get(CONF_STREAM_BACKSTOP, STREAM_BACKSTOP)
     availability = entry.options.get(CONF_AVAILABILITY_SECONDS, AVAILABILITY_SECONDS)
+    rear_heat = entry.options.get(CONF_REAR_HEAT, REAR_SEAT_AUTO)
+    rear_vent = entry.options.get(CONF_REAR_VENT, REAR_SEAT_AUTO)
+    rear_mode = selector.SelectSelector(
+        selector.SelectSelectorConfig(
+            options=list(REAR_SEAT_MODES),
+            translation_key="rear_seat_mode",
+            mode=selector.SelectSelectorMode.DROPDOWN,
+        )
+    )
     return vol.Schema(
         {
             vol.Required(
@@ -86,6 +99,8 @@ def _options_schema(entry: config_entries.ConfigEntry) -> vol.Schema:
                     min=60, max=86400, step=60, mode=selector.NumberSelectorMode.BOX
                 )
             ),
+            vol.Required(CONF_REAR_HEAT, default=str(rear_heat)): rear_mode,
+            vol.Required(CONF_REAR_VENT, default=str(rear_vent)): rear_mode,
         }
     )
 
@@ -267,7 +282,7 @@ class CarlinkoConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
 
 class CarlinkoOptionsFlow(config_entries.OptionsFlow):
-    """Options: stream backstop and availability window."""
+    """Options: stream timing, availability, and rear seat entity overlay."""
 
     async def async_step_init(
         self, user_input: dict[str, Any] | None = None
@@ -280,17 +295,21 @@ class CarlinkoOptionsFlow(config_entries.OptionsFlow):
         if user_input is not None:
             backstop = int(user_input[CONF_STREAM_BACKSTOP])
             availability = int(user_input[CONF_AVAILABILITY_SECONDS])
+            rear_heat = str(user_input[CONF_REAR_HEAT])
+            rear_vent = str(user_input[CONF_REAR_VENT])
             _LOGGER.info(
                 f"options saved stream_backstop={backstop} "
-                f"availability_seconds={availability}"
+                f"availability_seconds={availability} "
+                f"rear_heat={rear_heat} rear_vent={rear_vent}"
             )
-            return self.async_create_entry(
-                title="",
-                data={
-                    CONF_STREAM_BACKSTOP: backstop,
-                    CONF_AVAILABILITY_SECONDS: availability,
-                },
-            )
+            data = {
+                **dict(self.config_entry.options),
+                CONF_STREAM_BACKSTOP: backstop,
+                CONF_AVAILABILITY_SECONDS: availability,
+                CONF_REAR_HEAT: rear_heat,
+                CONF_REAR_VENT: rear_vent,
+            }
+            return self.async_create_entry(title="", data=data)
         return self.async_show_form(
             step_id="init",
             data_schema=_options_schema(self.config_entry),

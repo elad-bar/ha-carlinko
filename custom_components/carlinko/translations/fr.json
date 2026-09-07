@@ -34,10 +34,12 @@
     "step": {
       "init": {
         "title": "Options CarLinko",
-        "description": "Réglez le timing du flux WebSocket et la disponibilité des entités pour ce compte.",
+        "description": "Réglez le flux WebSocket, la disponibilité des entités et le chauffage/ventilation des sièges arrière de ce compte.",
         "data": {
           "stream_backstop": "Seuil de secours du flux WebSocket (secondes)",
-          "availability_seconds": "Fenêtre de disponibilité (secondes)"
+          "availability_seconds": "Fenêtre de disponibilité (secondes)",
+          "rear_heat": "Chauffage des sièges arrière",
+          "rear_vent": "Ventilation des sièges arrière"
         }
       }
     }
@@ -303,6 +305,12 @@
       },
       "purify": {
         "name": "Purification de l'air"
+      },
+      "windshield_heat": {
+        "name": "Chauffage du pare-brise"
+      },
+      "steer_heat": {
+        "name": "Chauffage du volant"
       }
     },
     "select": {
@@ -415,6 +423,13 @@
         "sea": "Asie du Sud-Est",
         "uzb": "Ouzbékistan",
         "vn": "Viêt Nam"
+      }
+    },
+    "rear_seat_mode": {
+      "options": {
+        "auto": "Automatique",
+        "on": "Activé",
+        "off": "Désactivé"
       }
     }
   },

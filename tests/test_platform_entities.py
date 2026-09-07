@@ -130,6 +130,15 @@ async def test_switch_turn_on_off() -> None:
 
 
 @pytest.mark.asyncio
+async def test_windshield_heat_switch_from_blob() -> None:
+    coordinator = _coordinator(windshield_heat=True)
+    entity = CarlinkoSwitch(coordinator, _spec("windshield_heat"), "veh-1")
+    assert entity.is_on is True
+    await entity.async_turn_off()
+    coordinator.async_send_control.assert_awaited_with("742300", vehicle_id="veh-1")
+
+
+@pytest.mark.asyncio
 async def test_select_option() -> None:
     coordinator = _coordinator()
     entity = CarlinkoSelect(coordinator, _spec("seat_heat_l"), "veh-1")

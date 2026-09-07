@@ -4,6 +4,17 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.1.11] - 2026-09-07
+
+### Added
+
+- **Rear seat heat** and **Rear seat vent** options let users follow the CarLinko app, show both rear controls on dashboard-capable cars, or hide them
+- Windshield heat and steering wheel heat switches, including live on/off state
+
+### Changed
+
+- Rear seat heat and vent controls now show their current Off, Low, Medium, or High state
+
 ## [0.1.10] - 2026-09-06
 
 ### Changed

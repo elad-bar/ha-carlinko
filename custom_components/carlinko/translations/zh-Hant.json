@@ -34,10 +34,12 @@
     "step": {
       "init": {
         "title": "CarLinko 選項",
-        "description": "調整此帳戶的 WebSocket 串流時序與實體可用性。",
+        "description": "調整此帳戶的 WebSocket 串流時間、實體可用性以及後座加熱／通風。",
         "data": {
           "stream_backstop": "串流後備間隔（秒）",
-          "availability_seconds": "可用性視窗（秒）"
+          "availability_seconds": "可用性視窗（秒）",
+          "rear_heat": "後座加熱",
+          "rear_vent": "後座通風"
         }
       }
     }
@@ -303,6 +305,12 @@
       },
       "purify": {
         "name": "空氣淨化"
+      },
+      "windshield_heat": {
+        "name": "前擋風玻璃加熱"
+      },
+      "steer_heat": {
+        "name": "方向盤加熱"
       }
     },
     "select": {
@@ -415,6 +423,13 @@
         "sea": "東南亞",
         "uzb": "烏茲別克",
         "vn": "越南"
+      }
+    },
+    "rear_seat_mode": {
+      "options": {
+        "auto": "自動",
+        "on": "開",
+        "off": "關"
       }
     }
   },

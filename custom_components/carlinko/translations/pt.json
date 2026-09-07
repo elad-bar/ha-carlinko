@@ -34,10 +34,12 @@
     "step": {
       "init": {
         "title": "Opções CarLinko",
-        "description": "Ajuste o tempo do fluxo WebSocket e a disponibilidade das entidades desta conta.",
+        "description": "Ajuste o fluxo WebSocket, a disponibilidade das entidades e o aquecimento/ventilação dos bancos traseiros desta conta.",
         "data": {
           "stream_backstop": "Limite do fluxo (segundos)",
-          "availability_seconds": "Janela de disponibilidade (segundos)"
+          "availability_seconds": "Janela de disponibilidade (segundos)",
+          "rear_heat": "Aquecimento dos bancos traseiros",
+          "rear_vent": "Ventilação dos bancos traseiros"
         }
       }
     }
@@ -303,6 +305,12 @@
       },
       "purify": {
         "name": "Purificar ar"
+      },
+      "windshield_heat": {
+        "name": "Aquecimento do para-brisas"
+      },
+      "steer_heat": {
+        "name": "Aquecimento do volante"
       }
     },
     "select": {
@@ -415,6 +423,13 @@
         "sea": "Sudeste Asiático",
         "uzb": "Uzbequistão",
         "vn": "Vietnã"
+      }
+    },
+    "rear_seat_mode": {
+      "options": {
+        "auto": "Automático",
+        "on": "Ligado",
+        "off": "Desligado"
       }
     }
   },

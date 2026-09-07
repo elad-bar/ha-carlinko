@@ -12,6 +12,8 @@ from custom_components.carlinko.common.consts import (
     CONF_AVAILABILITY_SECONDS,
     CONF_EMAIL,
     CONF_PASSWORD,
+    CONF_REAR_HEAT,
+    CONF_REAR_VENT,
     CONF_REGION,
     CONF_STREAM_BACKSTOP,
     DOMAIN,
@@ -383,6 +385,8 @@ async def test_options_flow(hass: HomeAssistant) -> None:
         user_input={
             CONF_STREAM_BACKSTOP: 30,
             CONF_AVAILABILITY_SECONDS: 3600,
+            CONF_REAR_HEAT: "on",
+            CONF_REAR_VENT: "auto",
         },
     )
     await hass.async_block_till_done()
@@ -391,6 +395,8 @@ async def test_options_flow(hass: HomeAssistant) -> None:
     assert CONF_REGION not in entry.options
     assert entry.options[CONF_STREAM_BACKSTOP] == 30
     assert entry.options[CONF_AVAILABILITY_SECONDS] == 3600
+    assert entry.options[CONF_REAR_HEAT] == "on"
+    assert entry.options[CONF_REAR_VENT] == "auto"
 
 
 @pytest.mark.asyncio
